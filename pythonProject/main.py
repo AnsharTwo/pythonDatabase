@@ -1,11 +1,7 @@
 import pyodbc
 
 def dbConnect():
-    conn_str = (r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
-                r'DBQ=~C:\Users\rober\databaseForPythonApp\SourceNew.mdb;')
-
-    # conn_str = r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)}; rDBQ=~C:\Users\rober\databaseForPythonApp\SourceNew.accdb;'
-
+    conn_str = (r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
     conn = pyodbc.connect(conn_str)
 
 
