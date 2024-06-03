@@ -1,19 +1,15 @@
-import pyodbc
 
-def dbConnect():
-    conn_str = (r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
-    conn = pyodbc.connect(conn_str)
-
-
+import db
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    for i in pyodbc.drivers():
-        if i.startswith('Microsoft Access Driver'):
-            print(f'Microsoft Access Driver (*.mdb, *.accdb)')
+    # verify MS Access driver is available
+    db.isMSAccessDriver()
 
-    dbConnect()
+    conn = db.dbConnect()
+
+    db.reportTables(conn.cursor())
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
 # This is a sample Python script.
