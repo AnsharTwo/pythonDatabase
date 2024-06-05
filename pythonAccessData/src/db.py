@@ -1,5 +1,10 @@
 import pyodbc
-def isMSAccessDriver():
+
+connStr = (
+    r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
+
+
+def is_ms_access_driver():
     found = False
     for i in pyodbc.drivers():
         if i.startswith('Microsoft Access Driver'):
@@ -8,11 +13,12 @@ def isMSAccessDriver():
     if not found:
         print(f'ERROR - Microsoft Access Driver not found.')
 
-def dbConnect():
-    conn_str = (r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
-    return pyodbc.connect(conn_str)
 
-def reportTables(cursor):
+def db_connect():
+    return pyodbc.connect(connStr)
+
+
+def report_tables(cursor):
     print(f'listing tables in database found...')
     for i in cursor.tables(tableType='TABLE'):
         print(i.table_name)

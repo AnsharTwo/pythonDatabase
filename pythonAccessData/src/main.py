@@ -1,15 +1,14 @@
-
-import db
+from src import db
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
     # verify MS Access driver is available
-    db.isMSAccessDriver()
+    db.is_ms_access_driver()
 
-    conn = db.dbConnect()
+    conn = db.db_connect()
 
-    db.reportTables(conn.cursor())
+    db.report_tables(conn.cursor())
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
 # This is a sample Python script.
