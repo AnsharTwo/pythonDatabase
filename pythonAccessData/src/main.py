@@ -1,3 +1,4 @@
+
 from src import db
 
 # Press the green button in the gutter to run the script.
@@ -9,6 +10,15 @@ if __name__ == '__main__':
     conn = db.db_connect()
 
     db.report_tables(conn.cursor())
+
+    books = conn.cursor().execute('select * from Books')
+    for bk in books:
+        print(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+
+    annots = conn.cursor().execute('select * from [Source Text]')
+    for ant in annots:
+        print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
 # This is a sample Python script.
