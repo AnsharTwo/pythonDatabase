@@ -1,7 +1,6 @@
 
 from src import db
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
     # verify MS Access driver is available
@@ -11,26 +10,12 @@ if __name__ == '__main__':
 
     db.report_tables(conn.cursor())
 
-    books = conn.cursor().execute('select * from Books')
+    books = db.selectBooksAll(conn.cursor())
+
     for bk in books:
         print(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
 
-    annots = conn.cursor().execute('select * from [Source Text]')
+    annots = db.selectAnnotsAll(conn.cursor())
+
     for ant in annots:
         print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
-
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-# def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-#    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-# if __name__ == '__main__':
-#     print_hi('PyCharm')
