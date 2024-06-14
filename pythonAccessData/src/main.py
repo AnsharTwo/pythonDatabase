@@ -10,12 +10,18 @@ if __name__ == '__main__':
 
     db.report_tables(conn.cursor())
 
-    books = db.selectBooksAll(conn.cursor())
+    # books = db.selectBooksAll(conn.cursor())
 
-    for bk in books:
-        print(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+    # for bk in books:
+    #   print(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
 
-    annots = db.selectAnnotsAll(conn.cursor())
+    # annots = db.selectAnnotsAll(conn.cursor())
 
+    # for ant in annots:
+    #   print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    annots = db.selectAnnotsbyBook(conn.cursor())
     for ant in annots:
         print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    conn.close()
