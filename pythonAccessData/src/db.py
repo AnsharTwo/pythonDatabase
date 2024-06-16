@@ -29,8 +29,11 @@ def selectAnnotsAll(cursor):
     return annots
 
 # return by book/s
-def selectAnnotsbyBook(cursor):
-    annots = cursor.execute('select [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] from [Source Text] inner join Books on [Source Text].[Book No] = Books.[Book No] where Books.[Book Title] = (\'The Vindicator Scrolls\') order by [Source Text].[Page No]')
+def selectAnnotsbyBook(cursor, book_title):
+    annots = cursor.execute(
+        """select [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
+        from [Source Text] inner join Books on [Source Text].[Book No] = Books.[Book No] 
+        where Books.[Book Title] = ('{}') order by [Source Text].[Page No]""".format(book_title))
     return annots
 
 # return by author/s
