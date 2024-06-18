@@ -33,11 +33,19 @@ def selectAnnotsbyBook(cursor, book_title):
     annots = cursor.execute(
         """select [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
         from [Source Text] inner join Books on [Source Text].[Book No] = Books.[Book No] 
-        where Books.[Book Title] = ('{}') order by [Source Text].[Page No]""".format(book_title))
+        where Books.[Book Title] like ('{}') order by [Source Text].[Page No]""".format(book_title))
     return annots
 
 # return by author/s
+def selectAnnotsbyAuthor(cursor, author):
+    annots = cursor.execute(
+        """select Books.Author, [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
+        from [Source Text] inner join Books on [Source Text].[Book No] = Books.[Book No] 
+        where Books.Author like ('{}') order by [Source Text].[Book No], [Source Text].[Page No]""".format(author))
+    return annots
+
+# return by keyword/s
 
 # return by year read
 
-# return by keyword/s
+# return year range

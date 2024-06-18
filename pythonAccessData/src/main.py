@@ -21,8 +21,14 @@ if __name__ == '__main__':
     #   print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
     # use \'' if single quote is in e.g. hitler's
-    annots = db.selectAnnotsbyBook(conn.cursor(), "The Hundred-Year Marathon: China\''s Secret Strategy to Replace America as the Global Superpower")
+    # annots = db.selectAnnotsbyBook(conn.cursor(), "%The Hundred-Year Marathon: China\''s%")
+    # for ant in annots:
+    #    print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    annots = db.selectAnnotsbyAuthor(conn.cursor(),
+                                   '%Tompk%')
     for ant in annots:
-        print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+        print(
+            f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
     conn.close()
