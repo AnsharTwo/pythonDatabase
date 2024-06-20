@@ -25,10 +25,28 @@ if __name__ == '__main__':
     # for ant in annots:
     #    print(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
-    annots = db.selectAnnotsbyAuthor(conn.cursor(),
-                                   '%Tompk%')
+    # annots = db.selectAnnotsbyAuthor(conn.cursor(),
+    #                               '%Tompk%')
+    # for ant in annots:
+    #    print(
+    #        f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    annots = db.selectAnnotsbySearchString(conn.cursor(),
+                                   '%Hitler%')
     for ant in annots:
         print(
-            f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    # annots = db.selectAnnotsbySrchStrAndBook(conn.cursor(),
+    #                               '%Tesla%', '%Secrets of Anti%')
+    # for ant in annots:
+    #    print(
+    #        f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    #annots = db.selectAnnotsbySrchStrAndAuthor(conn.cursor(),
+    #                               '%Tesla%', '%Cheney%')
+    #for ant in annots:
+    #    print(
+    #        f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
     conn.close()
