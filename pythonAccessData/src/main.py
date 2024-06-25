@@ -31,20 +31,33 @@ if __name__ == '__main__':
     #    print(
     #        f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
+    resCount = annots = db.resAnnotsbySearchString(conn.cursor(),
+                                   '%Hitler%')
+
     annots = db.selectAnnotsbySearchString(conn.cursor(),
                                    '%Hitler%')
+
+    print("Found {} results.".format(resCount))
     for ant in annots:
         print(
             f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
+    # resCount = db.resAnnotsbySrchStrAndBook(conn.cursor(),
+    #                               '%Tesla%', '%Secrets of Anti%')
+
     # annots = db.selectAnnotsbySrchStrAndBook(conn.cursor(),
     #                               '%Tesla%', '%Secrets of Anti%')
-    # for ant in annots:
-    #    print(
-    #        f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
-    #annots = db.selectAnnotsbySrchStrAndAuthor(conn.cursor(),
-    #                               '%Tesla%', '%Cheney%')
+    # print("Found {} results.".format(resCount))
+
+    # for ant in annots:
+    #    print(f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    # resCount = db.resAnnotsbySrchStrAndAuthor(conn.cursor(),
+    #                               '%Bell%', '%Cook%')
+    # annots = db.selectAnnotsbySrchStrAndAuthor(conn.cursor(),
+    #                                           '%Bell%', '%Cook%')
+    # print("Found {} results.".format(resCount))
     #for ant in annots:
     #    print(
     #        f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")

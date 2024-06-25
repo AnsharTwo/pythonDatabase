@@ -44,7 +44,16 @@ def selectAnnotsbyAuthor(cursor, author):
         WHERE Books.Author LIKE ('{}') ORDER BY [Source Text].[Book No], [Source Text].[Page No]""".format(author))
     return annots
 
-# return by keyword/s
+def resAnnotsbySearchString(cursor, searchString):
+
+    results = cursor.execute(
+        """SELECT COUNT(*) 
+        FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
+        WHERE [Source Text].[Source Text] LIKE ('{}') """.format(searchString))
+
+    res = results.fetchone()
+    return res[0]
+
 def selectAnnotsbySearchString(cursor, searchString):
     annots = cursor.execute(
         """SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No], 
@@ -52,7 +61,17 @@ def selectAnnotsbySearchString(cursor, searchString):
         FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
         WHERE [Source Text].[Source Text] LIKE ('{}') 
         ORDER BY [Source Text].[Book No], [Source Text].[Page No]""".format(searchString))
+
     return annots
+
+def resAnnotsbySrchStrAndBook(cursor, searchString, book):
+    results = cursor.execute("""SELECT COUNT(*) FROM [Source Text] INNER JOIN Books 
+    ON [Source Text].[Book No] = Books.[Book No] 
+    WHERE [Source Text].[Source Text] LIKE ('{}') 
+    AND Books.[Book Title] LIKE ('{}') """.format(searchString, book))
+
+    res = results.fetchone()
+    return res[0]
 
 def selectAnnotsbySrchStrAndBook(cursor, searchString, book):
     annots = cursor.execute(
@@ -61,14 +80,22 @@ def selectAnnotsbySrchStrAndBook(cursor, searchString, book):
         FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
         WHERE [Source Text].[Source Text] LIKE ('{}') AND Books.[Book Title] LIKE ('{}') 
         ORDER BY [Source Text].[Book No], [Source Text].[Page No]""".format(searchString, book))
+
     return annots
+def resAnnotsbySrchStrAndAuthor(cursor, searchString, author):
+    results = cursor.execute(
+        """SELECT COUNT(*) FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No]
+        WHERE[Source Text].[Source Text] LIKE('{}') AND Books.[Author] LIKE('{}') """.format(searchString, author))
+
+    res = results.fetchone()
+    return res[0]
 
 def selectAnnotsbySrchStrAndAuthor(cursor, searchString, author):
     annots = cursor.execute(
         """SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No],
-        [Source Text].[Source Text] 
-        FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
-        WHERE [Source Text].[Source Text] LIKE ('{}') AND Books.[Author] LIKE ('{}') 
+        [Source Text].[Source Text]
+        FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No]
+        WHERE [Source Text].[Source Text] LIKE ('{}') AND Books.[Author] LIKE ('{}')
         ORDER BY [Source Text].[Book No], [Source Text].[Page No]""".format(searchString, author))
     return annots
 
