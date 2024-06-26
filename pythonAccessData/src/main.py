@@ -68,13 +68,35 @@ if __name__ == '__main__':
     # for ant in annots:
     #    print(f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
-    resCountSrchStrAndAuthor = db.resAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                   '%Bell%', '%Cook%')
-    annots = db.selectAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                               '%Bell%', '%Cook%')
-    print("Found {} results.".format(resCountSrchStrAndAuthor))
+    # resCountSrchStrAndAuthor = db.resAnnotsbySrchStrAndAuthor(conn.cursor(),
+    #                               '%Bell%', '%Cook%')
+    # annots = db.selectAnnotsbySrchStrAndAuthor(conn.cursor(),
+   #                                            '%Bell%', '%Cook%')
+    # print("Found {} results.".format(resCountSrchStrAndAuthor))
+    # for ant in annots:
+    #    print(
+    #        f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+    # resCountAnnotsYearRead = db.resAnnotsbyYearRead(conn.cursor(),
+    #                                           '2016', '2017')
+
+    #annots = db.selectAnnotsbyYearRead(conn.cursor(),
+    #                                           '2016', '2017')
+
+    #for ant in annots:
+    #    print(
+    #        f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+    #print("Found {} results.".format(resCountAnnotsYearRead))
+
+    resCountBooksYearRead = db.resBooksbyYearRead(conn.cursor(),
+                                               '2005', '2007')
+
+    annots = db.selectBooksbyYearRead(conn.cursor(),
+                                               '2005', '2007')
+
+    print("Found {} results.".format(resCountBooksYearRead))
     for ant in annots:
         print(
-            f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
 
     conn.close()

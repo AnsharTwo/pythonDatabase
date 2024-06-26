@@ -132,5 +132,33 @@ def selectAnnotsbySrchStrAndAuthor(cursor, searchString, author):
     return annots
 
 # return by year read
+def resAnnotsbyYearRead(cursor, fromYear, toYear):
+    results = cursor.execute("""SELECT COUNT(*)
+        FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No]
+        WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}')""".format(fromYear, toYear))
 
-# return year range
+    res = results.fetchone()
+    return res[0]
+
+def selectAnnotsbyYearRead(cursor, fromYear, toYear):
+    annots = cursor.execute("""SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No],
+        [Source Text].[Source Text], Books.[Year Read]
+        FROM [Source Text] INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No]
+        WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}')
+        ORDER BY [Source Text].[Book No], [Source Text].[Page No]""".format(fromYear, toYear))
+
+    return annots
+
+def resBooksbyYearRead(cursor, fromYear, toYear):
+    results = cursor.execute("""SELECT COUNT(*) FROM Books 
+    WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}')""".format(fromYear, toYear))
+
+    res = results.fetchone()
+    return res[0]
+
+def selectBooksbyYearRead(cursor, fromYear, toYear):
+    annots = cursor.execute("""SELECT * FROM Books 
+    WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}') 
+    ORDER BY Books.[Book No]""".format(fromYear, toYear))
+
+    return annots
