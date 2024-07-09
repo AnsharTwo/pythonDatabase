@@ -1,9 +1,12 @@
 
-from src import db
+# from src import db
+import db
 
 if __name__ == '__main__':
 
-    sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
+    # sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
+    sourceData = db.DATA_SOURCE(
+        r'DRIVER={Microsoft Access Driver (*.mdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
 
     # verify MS Access driver is available
     sourceData.is_ms_access_driver()
