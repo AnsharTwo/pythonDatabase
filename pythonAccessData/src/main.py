@@ -1,9 +1,14 @@
 
-from src import db
+# from src import db
+import sys
+
+import db
 
 if __name__ == '__main__':
 
-    sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'r'DBQ=C:\Users\rober\databaseForPythonApp\SourceNew.mdb')
+    dbPath = sys.argv[1] + sys.argv[2]
+
+    sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb)};DBQ=%s;' % dbPath)
 
     # verify MS Access driver is available
     sourceData.is_ms_access_driver()
@@ -48,16 +53,16 @@ if __name__ == '__main__':
     #    print(
     #        f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
-    # resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(),
-    #                               '%Hitler%')
+    resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(),
+                                   '%Mullins%')
 
-    # annots = sourceData.selectAnnotsbySearchString(conn.cursor(),
-    #                               '%Hitler%')
+    annots = sourceData.selectAnnotsbySearchString(conn.cursor(),
+                                   '%Mullins%')
 
-    #print("Found {} results.".format(resCountSearchString))
-    # for ant in annots:
-    #    print(
-    #        f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+    print("Found {} results.".format(resCountSearchString))
+    for ant in annots:
+        print(
+            f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
     # resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(),
     #                               '%Tesla%', '%Secrets of Anti%')
@@ -90,15 +95,15 @@ if __name__ == '__main__':
     #        f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
     # print("Found {} results.".format(resCountAnnotsYearRead))
 
-    resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(),
-                                               '2010', '2015')
+    # resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(),
+    #                                           '2010', '2015')
 
-    annots = sourceData.selectBooksbyYearRead(conn.cursor(),
-                                               '2010', '2015')
+    # annots = sourceData.selectBooksbyYearRead(conn.cursor(),
+    #                                           '2010', '2015')
 
-    print("Found {} results.".format(resCountBooksYearRead))
-    for ant in annots:
-        print(
-            f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
+    # print("Found {} results.".format(resCountBooksYearRead))
+    # for ant in annots:
+    #    print(
+    #        f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
 
     conn.close()
