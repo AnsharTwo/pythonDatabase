@@ -3,19 +3,24 @@
 import sys
 
 import db
+import form
 
 if __name__ == '__main__':
 
     dbPath = sys.argv[1] + sys.argv[2]
-
-    sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb)};DBQ=%s;' % dbPath)
+    print('PATH IS ' + dbPath)
+    if dbPath != "dataform":
+        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
+    else:
+        dataForm = form.DATA_FORM()
+        dataForm.test_form()
 
     # verify MS Access driver is available
-    sourceData.is_ms_access_driver()
+    # sourceData.is_ms_access_driver()#
 
-    conn = sourceData.db_connect()
+    # conn = sourceData.db_connect()
 
-    sourceData.report_tables(conn.cursor())
+    # sourceData.report_tables(conn.cursor())
 
     # resCountBooksAll = sourceData.resBooksAll(conn.cursor())
 
@@ -53,16 +58,16 @@ if __name__ == '__main__':
     #    print(
     #        f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
-    resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(),
-                                   '%Mullins%')
+    # resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(),
+    #                               '%Mullins%')
 
-    annots = sourceData.selectAnnotsbySearchString(conn.cursor(),
-                                   '%Mullins%')
+    # annots = sourceData.selectAnnotsbySearchString(conn.cursor(),
+    #                               '%Mullins%')
 
-    print("Found {} results.".format(resCountSearchString))
-    for ant in annots:
-        print(
-            f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+    # print("Found {} results.".format(resCountSearchString))
+    # for ant in annots:
+    #    print(
+    #        f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
     # resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(),
     #                               '%Tesla%', '%Secrets of Anti%')
@@ -106,4 +111,4 @@ if __name__ == '__main__':
     #    print(
     #        f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
 
-    conn.close()
+    # conn.close()
