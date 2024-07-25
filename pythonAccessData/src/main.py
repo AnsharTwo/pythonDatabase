@@ -3,32 +3,28 @@
 import sys
 
 import db
-import form
 
 if __name__ == '__main__':
 
     dbPath = sys.argv[1] + sys.argv[2]
     print('PATH IS ' + dbPath)
-    if dbPath != "dataform":
-        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
-    else:
-        dataForm = form.DATA_FORM()
-        dataForm.test_form()
+
+    sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
 
     # verify MS Access driver is available
-    # sourceData.is_ms_access_driver()#
+    sourceData.is_ms_access_driver()
 
-    # conn = sourceData.db_connect()
+    conn = sourceData.db_connect()
 
-    # sourceData.report_tables(conn.cursor())
+    sourceData.report_tables(conn.cursor())
 
-    # resCountBooksAll = sourceData.resBooksAll(conn.cursor())
+    resCountBooksAll = sourceData.resBooksAll(conn.cursor())
 
-    # books = sourceData.selectBooksAll(conn.cursor())
+    books = sourceData.selectBooksAll(conn.cursor())
 
-    # for bk in books:
-    #   print(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
-    #print("Found {} results.".format(resCountBooksAll))
+    for bk in books:
+       print(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+    print("Found {} results.".format(resCountBooksAll))
 
     # resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
 
@@ -108,7 +104,7 @@ if __name__ == '__main__':
 
     # print("Found {} results.".format(resCountBooksYearRead))
     # for ant in annots:
-    #    print(
+    #     print(
     #        f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
 
     # conn.close()
