@@ -1,4 +1,6 @@
 import form
 
 dataForm = form.DATA_FORM()
-dataForm.test_form()
+
+dataForm.db_records()
+# dataForm.select_search()

@@ -7,7 +7,6 @@ import db
 if __name__ == '__main__':
 
     dbPath = sys.argv[1] + sys.argv[2]
-    print('PATH IS ' + dbPath)
 
     sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
 
