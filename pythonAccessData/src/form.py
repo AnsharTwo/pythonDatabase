@@ -7,15 +7,37 @@ class DATA_FORM:
 
     # def __init__(self):
 
+
+    def init_sidebar(self):
+        annotDb = "Annotations database"
+        urlExcel = "Excel URLs sheets"
+
+        st.sidebar.title("Annotations and URL manager")
+        form = st.sidebar.selectbox("Select to do", [annotDb, urlExcel])
+        if form == annotDb:
+            self.select_search()
+        elif form == urlExcel:
+            self.select_url_search()
+
     def select_search(self):
         with st.form("Select search type"):
             st.header("Select search type")
-            st.selectbox("How was your experience learning about Streamlit?", ["---", "Good", "Neutral", "Bad"])
-            st.select_slider("How would you rate the article",
-                             ["Very Poor", "Poor", "As Expected", "Easy to follow", "Excellent"], value="As Expected")
-            st.text_area("Any other comments?")
-            st.text("Thank you for your time!")
+            st.selectbox("Select search type", ["---",
+                                                "Annotations by search text",
+                                                "Annotations by search text and author",
+                                                "Annotations by search text and book",
+                                                "Annotations by book",
+                                                "Annotations by Author",
+                                                "All books",
+                                                "Books by year read",
+                                                "All annotations",
+                                                "Annotations by year/s read"
+                                                ])
+            st.text_area("Annotated text to search for (separate multiple with comma)")
             st.form_submit_button("Submit")
+
+    def select_url_search(self):
+        st.write("Page is pending, under construction")
 
     def db_records(self):
         dbPath = sys.argv[1] + sys.argv[2]
