@@ -20,9 +20,14 @@ class DATA_FORM:
             self.select_url_search()
 
     def select_search(self):
+
+        wdgtSelectSearch = "Select search type"
+        textArea = "Annotated text to search for (separate multiple with comma)"
+        auth = ""
+
         with st.form("Select search type"):
             st.header("Select search type")
-            st.selectbox("Select search type", ["---",
+            searchSelection = st.selectbox(wdgtSelectSearch, ["---",
                                                 "Annotations by search text",
                                                 "Annotations by search text and author",
                                                 "Annotations by search text and book",
@@ -33,13 +38,20 @@ class DATA_FORM:
                                                 "All annotations",
                                                 "Annotations by year/s read"
                                                 ])
-            st.text_area("Annotated text to search for (separate multiple with comma)")
-            st.form_submit_button("Submit")
+            searchText = st.text_area(textArea)
+
+            if searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
+                auth = st.text_input("Author")
+
+            submitted = st.form_submit_button("Submit")
+            if submitted:
+                self.db_records(searchSelection, searchText, auth)
+
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
 
-    def db_records(self):
+    def db_records(self, searchSelection, searchText, auth):
         dbPath = sys.argv[1] + sys.argv[2]
 
         sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
@@ -49,19 +61,25 @@ class DATA_FORM:
 
         st.header("Database Records")
 
-        # resCountBooksAll = sourceData.resBooksAll(conn.cursor())
-        # books = sourceData.selectBooksAll(conn.cursor())
-        # st.write("Found {} results.".format(resCountBooksAll))
-        # for bk in books:
-        #    st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+        if searchSelection == self.dict_searches.get("ants_srch_txt"):
+            resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchText)
+            annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchText)
+            st.write("Found {} results.".format(resCountSearchString))
+            for ant in annots:
+                st.write(
+                    f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+        elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
+            resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(), searchText, auth)
+            annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(),  searchText, auth)
 
-        resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(),
-                                       '%Ayn Rand%')
-        annots = sourceData.selectAnnotsbySearchString(conn.cursor(),
-                                       '%Ayn Rand%')
-        st.write("Found {} results.".format(resCountSearchString))
-        for ant in annots:
-            st.write(
-                f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            st.write("Found {} results.".format(resCountSrchStrAndAuthor))
+            for ant in annots:
+                st.write(
+                    f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
         conn.close()
+
+    dict_searches = {
+        "ants_srch_txt": "Annotations by search text",
+        "ants_srch_txt_auth": "Annotations by search text and author"
+    }
