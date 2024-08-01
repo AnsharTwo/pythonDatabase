@@ -20,33 +20,31 @@ class DATA_FORM:
             self.select_url_search()
 
     def select_search(self):
+        with st.form("Search"):
+            st.header("Select search")
+            searchSelection = st.selectbox("Select search type",[
+                "---",
+                "Annotations by search text",
+                "Annotations by search text and author",
+                "Annotations by search text and book",
+                "Annotations by book",
+                "Annotations by Author",
+                "All books",
+                "Books by year read",
+                "All annotations",
+                "Annotations by year/s read"
+            ])
+            gone = st.form_submit_button("Go")
+            if gone:
+                if searchSelection == self.dict_searches.get("ants_srch_txt"):
+                    self.srch_searchtext()
 
-        wdgtSelectSearch = "Select search type"
-        textArea = "Annotated text to search for (separate multiple with comma)"
-        auth = ""
-
-        with st.form("Select search type"):
-            st.header("Select search type")
-            searchSelection = st.selectbox(wdgtSelectSearch, ["---",
-                                                "Annotations by search text",
-                                                "Annotations by search text and author",
-                                                "Annotations by search text and book",
-                                                "Annotations by book",
-                                                "Annotations by Author",
-                                                "All books",
-                                                "Books by year read",
-                                                "All annotations",
-                                                "Annotations by year/s read"
-                                                ])
-            searchText = st.text_area(textArea)
-
-            if searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-                auth = st.text_input("Author")
-
-            submitted = st.form_submit_button("Submit")
-            if submitted:
-                self.db_records(searchSelection, searchText, auth)
-
+    def srch_searchtext(self):
+        txt = st.text_area("Annotated text to search for (separate multiple with comma)")
+        searched = st.form_submit_button("Search")
+        if searched:
+            st.write("I sent it")
+            self.db_records(self.dict_Searches.get("ants_srch_txt"), txt, "")
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
