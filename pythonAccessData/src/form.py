@@ -34,17 +34,15 @@ class DATA_FORM:
                 "All annotations",
                 "Annotations by year/s read"
             ])
-            gone = st.form_submit_button("Go")
-            if gone:
-                if searchSelection == self.dict_searches.get("ants_srch_txt"):
-                    self.srch_searchtext()
+            st.form_submit_button("Go")
+            if searchSelection == self.dict_searches.get("ants_srch_txt"):
+                self.srch_searchtext()
 
     def srch_searchtext(self):
         txt = st.text_area("Annotated text to search for (separate multiple with comma)")
         searched = st.form_submit_button("Search")
         if searched:
-            st.write("I sent it")
-            self.db_records(self.dict_Searches.get("ants_srch_txt"), txt, "")
+            self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "")
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
