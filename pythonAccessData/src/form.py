@@ -1,6 +1,5 @@
 import sys
 import streamlit as st
-from tornado import auth
 
 import db
 
@@ -44,6 +43,12 @@ class DATA_FORM:
                 self.srch_searchtext_bk()
             elif searchSelection == self.dict_searches.get("ants_bk"):
                 self.srch_bk()
+            elif searchSelection == self.dict_searches.get("ants_auth"):
+                self.srch_auth()
+            elif searchSelection == self.dict_searches.get("bks_all"):
+                self.bks_all()
+            elif searchSelection == self.dict_searches.get("bks_yr_read"):
+                self.bks_yr_read()
 
     def srch_searchtext(self):
         txt = st.text_area("Annotated text to search for (separate multiple with comma)")
@@ -52,7 +57,7 @@ class DATA_FORM:
             if txt == "":
                 st.markdown(":red[no search text given.]")
             else:
-                self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "", "")
+                self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "", "", "", "")
 
     def srch_searchtext_auth(self):
         txt = st.text_area("Annotated text to search for (separate multiple with comma)")
@@ -65,7 +70,7 @@ class DATA_FORM:
                 if author == "":
                     st.markdown(":red[no author given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt_auth"), txt, author, "")
+                    self.db_records(self.dict_searches.get("ants_srch_txt_auth"), txt, author, "", "", "")
 
     def srch_searchtext_bk(self):
         txt = st.text_area("Annotated text to search for (separate multiple with comma)")
@@ -78,7 +83,7 @@ class DATA_FORM:
                 if book == "":
                     st.markdown(":red[no book given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt_bk"), txt, "", book)
+                    self.db_records(self.dict_searches.get("ants_srch_txt_bk"), txt, "", book, "", "")
 
     def srch_bk(self):
         book = st.text_input("Book")
@@ -87,14 +92,40 @@ class DATA_FORM:
             if book == "":
                 st.markdown(":red[no book given.]")
             else:
-                self.db_records(self.dict_searches.get("ants_bk"), "", "", book)
+                self.db_records(self.dict_searches.get("ants_bk"), "", "", book, "", "")
+
+    def srch_auth(self):
+        author = st.text_input("Author")
+        searched = st.form_submit_button("Search")
+        if searched:
+            if author == "":
+                st.markdown(":red[no author given.]")
+            else:
+                self.db_records(self.dict_searches.get("ants_auth"), "", author, "", "", "")
+
+    def bks_all(self):
+        searched = st.form_submit_button("Search")
+        if searched:
+            self.db_records(self.dict_searches.get("bks_all"), "", "", "", "", "")
+
+    def bks_yr_read(self):
+        yearFrom = st.text_input("From year (yyyy)")
+        yearTo = st.text_input("To year (yyyy)")
+        searched = st.form_submit_button("Search")
+        if searched:
+            if yearFrom == "":
+                st.markdown(":red[no start year given.]")
+            else:
+                if yearTo == "":
+                    st.markdown(":red[no end year given.]")
+                else:
+                    self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
 
-    def db_records(self, searchSelection, searchText, auth, bk):
+    def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
         dbPath = sys.argv[1] + sys.argv[2]
-
         sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
         sourceData.is_ms_access_driver()
         conn = sourceData.db_connect()
@@ -134,11 +165,37 @@ class DATA_FORM:
             for ant in annots:
                 st.write(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
+        elif searchSelection == self.dict_searches.get("ants_auth"):
+            resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), auth)
+            annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), auth)
+            st.write("Found {} results.".format(resCountAuthor))
+            for ant in annots:
+                st.write(
+                    f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+        elif searchSelection == self.dict_searches.get("bks_all"):
+            resCountBooksAll = sourceData.resBooksAll(conn.cursor())
+            books = sourceData.selectBooksAll(conn.cursor())
+            st.write("Found {} results.".format(resCountBooksAll))
+            for bk in books:
+                st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+
+        elif searchSelection == self.dict_searches.get("bks_yr_read"):
+            resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+            annots = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+            st.write("Found {} results.".format(resCountBooksYearRead))
+            for ant in annots:
+                st.write(
+                    f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
+
         conn.close()
 
     dict_searches = {
         "ants_srch_txt": "Annotations by search text",
         "ants_srch_txt_auth": "Annotations by search text and author",
         "ants_srch_txt_bk": "Annotations by search text and book",
-        "ants_bk": "Annotations by book"
+        "ants_bk": "Annotations by book",
+        "ants_auth": "Annotations by Author",
+        "bks_all": "All books",
+        "bks_yr_read": "Books by year read"
     }
