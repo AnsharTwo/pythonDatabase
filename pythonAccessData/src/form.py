@@ -32,7 +32,7 @@ class DATA_FORM:
                 "All books",
                 "Books by year read",
                 "All annotations",
-                "Annotations by year/s read"
+                "Annotations by year read"
             ])
             st.form_submit_button("Go")
             if searchSelection == self.dict_searches.get("ants_srch_txt"):
@@ -49,6 +49,10 @@ class DATA_FORM:
                 self.bks_all()
             elif searchSelection == self.dict_searches.get("bks_yr_read"):
                 self.bks_yr_read()
+            elif searchSelection == self.dict_searches.get("ants_all"):
+                self.ants_all()
+            elif searchSelection == self.dict_searches.get("ants_yr_read"):
+                self.ants_yr_read()
 
     def srch_searchtext(self):
         txt = st.text_area("Annotated text to search for (separate multiple with comma)")
@@ -119,7 +123,32 @@ class DATA_FORM:
                 if yearTo == "":
                     st.markdown(":red[no end year given.]")
                 else:
-                    self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
+                    if yearFrom > yearTo:
+                        st.markdown(":red[From year cannot be greater than To year.]")
+                    else:
+                        self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
+
+    def ants_all(self):
+        st.write("NOTE: page may be slow to load searching on all annotations...")
+        searched = st.form_submit_button("Search")
+        if searched:
+            self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
+
+    def ants_yr_read(self):
+        yearFrom = st.text_input("From year (yyyy)")
+        yearTo = st.text_input("To year (yyyy)")
+        searched = st.form_submit_button("Search")
+        if searched:
+            if yearFrom == "":
+                st.markdown(":red[no start year given.]")
+            else:
+                if yearTo == "":
+                    st.markdown(":red[no end year given.]")
+                else:
+                    if yearFrom > yearTo:
+                        st.markdown(":red[From year cannot be greater than To year.]")
+                    else:
+                        self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
@@ -188,6 +217,20 @@ class DATA_FORM:
                 st.write(
                     f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
 
+        elif searchSelection == self.dict_searches.get("ants_all"):
+            resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
+            annots = sourceData.selectAnnotsAll(conn.cursor())
+            st.write("Found {} results.".format(resCountAnnotsAll))
+            for ant in annots:
+                st.write(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
+        elif searchSelection == self.dict_searches.get("ants_yr_read"):
+            resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+            annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+            st.write("Found {} results.".format(resCountAnnotsYearRead))
+            for ant in annots:
+                st.write(f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+
         conn.close()
 
     dict_searches = {
@@ -197,5 +240,7 @@ class DATA_FORM:
         "ants_bk": "Annotations by book",
         "ants_auth": "Annotations by Author",
         "bks_all": "All books",
-        "bks_yr_read": "Books by year read"
+        "bks_yr_read": "Books by year read",
+        "ants_all": "All annotations",
+        "ants_yr_read": "Annotations by year read"
     }
