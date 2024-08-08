@@ -167,7 +167,11 @@ class DATA_FORM:
             annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchText)
             st.write("Found {} results.".format(resCountSearchString))
             for ant in annots:
-                st.write(
+                st.markdown(":green[Title:] " + ":red[" + ant.__getattribute__('Book Title') +
+                            "]\r\r:blue[Author:] " + ant.Author +
+                            "\r\r:violet[page] " + ant.__getattribute__('Page No') +
+                            "\r\r" + ant.__getattribute__('Source Text'))
+                print(
                     f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
