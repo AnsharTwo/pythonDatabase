@@ -163,16 +163,7 @@ class DATA_FORM:
         st.header("Database Records")
 
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
-            resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchText)
-            annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchText)
-            st.write("Found {} results.".format(resCountSearchString))
-            for ant in annots:
-                st.markdown(":green[Title:] " + ":red[" + ant.__getattribute__('Book Title') +
-                            "]\r\r:blue[Author:] " + ant.Author +
-                            "\r\r:violet[page] " + ant.__getattribute__('Page No') +
-                            "\r\r" + ant.__getattribute__('Source Text'))
-                print(
-                    f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
 
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
             resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(), searchText, auth)
@@ -236,6 +227,34 @@ class DATA_FORM:
                 st.write(f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
 
         conn.close()
+
+    def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):
+        resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
+        annots = sourceData.selectAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
+        st.write("Found {} results.".format(resCountSearchString))
+        for ant in annots:
+            st.markdown(""":green[Title:] :red[{title}]
+                        \r\r:blue[Author: {author}]
+                        \r\r:violet[page] {pageno}
+                        \r\r{sourcetext}"""
+                .format(
+                    title = ant.__getattribute__('Book Title'),
+                    author = ant.Author,
+                    pageno = self.__format_page_no(ant.__getattribute__('Page No')),
+                    sourcetext = ant.__getattribute__('Source Text')
+                )
+            )
+
+    def __format_page_no(self, pageNo):
+        return pageNo.lstrip("0")
+
+    def __format_sql_wrap(self, searchDatum):
+        datum = searchDatum
+        if not searchDatum.startswith("%"):
+            datum = "%" + datum
+        if not searchDatum.endswith("%"):
+            datum = datum + "%"
+        return datum
 
     dict_searches = {
         "ants_srch_txt": "Annotations by search text",
