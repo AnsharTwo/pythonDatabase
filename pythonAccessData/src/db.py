@@ -143,17 +143,19 @@ class DATA_SOURCE:
                                      INNER JOIN Books 
                                      ON [Source Text].[Book No] = Books.[Book No] 
                                      WHERE Books.[Book Title] LIKE ('{}')""",
-        "annots_by_bk": """SELECT [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
+        "annots_by_bk": """SELECT [Source Text].[Book No], [Source Text].[Page No], Books.[Book Title], Books.Author,
+                                  [Source Text].[Source Text] 
                                FROM [Source Text] 
                                INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
                                WHERE Books.[Book Title] LIKE ('{}') 
-                               ORDER BY [Source Text].[Page No]""",
+                               ORDER BY Books.[Book Title], [Source Text].[Page No]""",
         "annots_by_auth_count": """SELECT COUNT(*) 
                                        FROM [Source Text] 
                                        INNER JOIN Books 
                                        ON [Source Text].[Book No] = Books.[Book No] 
                                        WHERE Books.Author LIKE ('{}')""",
-        "annots_by_auth": """SELECT Books.Author, [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
+        "annots_by_auth": """SELECT Books.Author, [Source Text].[Book No], [Source Text].[Page No], Books.[Book Title], 
+                                    [Source Text].[Source Text] 
                                  FROM [Source Text] 
                                  INNER JOIN Books 
                                  ON [Source Text].[Book No] = Books.[Book No] 

@@ -6,8 +6,6 @@ import db
 class DATA_FORM:
 
     # def __init__(self):
-
-
     def init_sidebar(self):
         annotDb = "Annotations database"
         urlExcel = "Excel URLs sheets"
@@ -164,38 +162,15 @@ class DATA_FORM:
 
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
             self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
-
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-            resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(), searchText, auth)
-            annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(),  searchText, auth)
-            st.write("Found {} results.".format(resCountSrchStrAndAuthor))
-            for ant in annots:
-                st.write(
-                    f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_auth_srch_txt(sourceData, conn, searchText, auth)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
-            resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), searchText, bk)
-            annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(), searchText, bk)
-            st.write("Found {} results.".format(resCountSrchStrAndBook))
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_bk_srch_txt(sourceData, conn, searchText, bk)
         elif searchSelection == self.dict_searches.get("ants_bk"):
-            # use \'' if single quote is in e.g. hitler's
-            resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), bk)
-            annots = sourceData.selectAnnotsbyBook(conn.cursor(), bk)
-            st.write("Found {} results.".format(resCountBooks))
-            st.write(bk)
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_bk(sourceData, conn, bk)
         elif searchSelection == self.dict_searches.get("ants_auth"):
-            resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), auth)
-            annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), auth)
-            st.write("Found {} results.".format(resCountAuthor))
-            for ant in annots:
-                st.write(
-                    f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            self.__show_srch_ants_auth(sourceData, conn, auth)
+
 
         elif searchSelection == self.dict_searches.get("bks_all"):
             resCountBooksAll = sourceData.resBooksAll(conn.cursor())
@@ -233,17 +208,54 @@ class DATA_FORM:
         annots = sourceData.selectAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
         st.write("Found {} results.".format(resCountSearchString))
         for ant in annots:
-            st.markdown(""":green[Title:] :red[{title}]
-                        \r\r:blue[Author: {author}]
-                        \r\r:violet[page] {pageno}
-                        \r\r{sourcetext}"""
-                .format(
-                    title = ant.__getattribute__('Book Title'),
-                    author = ant.Author,
-                    pageno = self.__format_page_no(ant.__getattribute__('Page No')),
-                    sourcetext = ant.__getattribute__('Source Text')
-                )
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_auth_srch_txt(self, sourceData, conn, searchText, auth):
+        resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
+                                                                          self.__format_sql_wrap(searchText),
+                                                                          self.__format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(searchText),
+                                                                          self.__format_sql_wrap(auth))
+        st.write("Found {} results.".format(resCountSrchStrAndAuthor))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_bk_srch_txt(self, sourceData, conn, searchText, bk):
+        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(searchText),
+                                                                                     self.__format_sql_wrap(bk))
+        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.__format_sql_wrap(searchText),
+                                                                         self.__format_sql_wrap(bk))
+        st.write("Found {} results.".format(resCountSrchStrAndBook))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_bk(self, sourceData, conn, bk):
+        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
+        annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
+        st.write("Found {} results.".format(resCountBooks))
+        st.write(bk)
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_auth(self, sourceData, conn, auth):
+        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        st.write("Found {} results.".format(resCountAuthor))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __markdown_srch_res(self, ant):
+        st.markdown(""":green[Title:] :red[{title}]
+                    \r\r:blue[Author: {author}]
+                    \r\r:violet[page] {pageno}
+                    \r\r{sourcetext}"""
+            .format(
+                title=ant.__getattribute__('Book Title'),
+                author=ant.Author,
+                pageno=self.__format_page_no(ant.__getattribute__('Page No')),
+                sourcetext=ant.__getattribute__('Source Text')
             )
+        )
 
     def __format_page_no(self, pageNo):
         return pageNo.lstrip("0")
