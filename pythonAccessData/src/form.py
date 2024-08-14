@@ -170,14 +170,8 @@ class DATA_FORM:
             self.__show_srch_ants_bk(sourceData, conn, bk)
         elif searchSelection == self.dict_searches.get("ants_auth"):
             self.__show_srch_ants_auth(sourceData, conn, auth)
-
-
         elif searchSelection == self.dict_searches.get("bks_all"):
-            resCountBooksAll = sourceData.resBooksAll(conn.cursor())
-            books = sourceData.selectBooksAll(conn.cursor())
-            st.write("Found {} results.".format(resCountBooksAll))
-            for bk in books:
-                st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+            self.__show_srch_bk_all(sourceData, conn)
 
         elif searchSelection == self.dict_searches.get("bks_yr_read"):
             resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
@@ -243,6 +237,28 @@ class DATA_FORM:
         st.write("Found {} results.".format(resCountAuthor))
         for ant in annots:
             self.__markdown_srch_res(ant)
+
+    def __show_srch_bk_all(self, sourceData, conn):
+        resCountBooksAll = sourceData.resBooksAll(conn.cursor())
+        books = sourceData.selectBooksAll(conn.cursor())
+        st.write("Found {} results.".format(resCountBooksAll))
+
+        bk_ttl, auth, pblshr, dt, yr_rd, pb_lctn, edtn, fst_edtn, fst_edtn_lctn, fst_edtn_nm, fst_edn_pblshr = st.columns(11,
+                                                                                                    vertical_alignment="bottom")
+        bk_ttl.write("Title")
+        auth.write("Author")
+        pblshr.write("Publisher")
+        dt.write("Date")
+        yr_rd.write("Year read")
+        pb_lctn.write("Where published")
+        edtn.write("Edition")
+        fst_edtn.write("First edition")
+        fst_edtn_lctn.markdown("First edition location")
+        fst_edtn_nm.write("First edition name")
+        fst_edn_pblshr.write("First edition publisher")
+
+        #for bk in books:
+            #st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
 
     def __markdown_srch_res(self, ant):
         st.markdown(""":green[Title:] :red[{title}]
