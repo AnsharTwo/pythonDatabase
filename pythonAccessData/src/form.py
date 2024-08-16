@@ -1,4 +1,7 @@
 import sys
+
+import numpy
+import pandas as pd
 import streamlit as st
 
 import db
@@ -243,19 +246,19 @@ class DATA_FORM:
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
 
-        bk_ttl, auth, pblshr, dt, yr_rd, pb_lctn, edtn, fst_edtn, fst_edtn_lctn, fst_edtn_nm, fst_edn_pblshr = st.columns(11,
-                                                                                                    vertical_alignment="bottom")
-        bk_ttl.write("Title")
-        auth.write("Author")
-        pblshr.write("Publisher")
-        dt.write("Date")
-        yr_rd.write("Year read")
-        pb_lctn.write("Where published")
-        edtn.write("Edition")
-        fst_edtn.write("First edition")
-        fst_edtn_lctn.markdown("First edition location")
-        fst_edtn_nm.write("First edition name")
-        fst_edn_pblshr.write("First edition publisher")
+        # SHOULD ADD COLUMN
+        # Author = pd.Series({bk.Author for bk in books})
+
+        df = pd.DataFrame({'Book': [bk.__getattribute__('Book Title') for bk in books]},
+                                index=([i for i in range(resCountBooksAll)]))
+        # SHOULD ADD COLUMN
+        # df["Author"] = Author
+
+        # df = pd.DataFrame({'Book': [bk.__getattribute__('Book Title') for bk in books],
+        #                        'Author': [bk.Author for bk in books]},
+        #                        index=([i for i in range(resCountBooksAll)]))
+
+        st.table(df)
 
         #for bk in books:
             #st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
