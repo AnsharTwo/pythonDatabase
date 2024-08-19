@@ -246,13 +246,30 @@ class DATA_FORM:
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
 
-        # SHOULD ADD COLUMN
-        # Author = pd.Series({bk.Author for bk in books})
+        booksArray = []
+        authorArray = []
+        for bk in books:
+            booksArray.append(bk.__getattribute__('Book Title'))
+            authorArray.append(bk.Author)
 
-        df = pd.DataFrame({'Book': [bk.__getattribute__('Book Title') for bk in books]},
-                                index=([i for i in range(resCountBooksAll)]))
+
         # SHOULD ADD COLUMN
-        # df["Author"] = Author
+        # title = pd.Series([booksArray])
+        # author = pd.Series([bk.Author for bk in books], name="Author")
+        # publisher = pd.Series([bk.Publisher for bk in books], name="Publisher")
+
+        # df = pd.DataFrame(author, index=([i for i in range(resCountBooksAll)]))
+
+        # df = pd.DataFrame({'Author': [bk.Author for bk in books]},
+        #                        index=([i for i in range(resCountBooksAll)]), )
+
+        df = pd.DataFrame({"Title": [booksArray], "Author":[authorArray]})
+
+        # SHOULD ADD COLUMN
+
+        # df["Title"] = title
+        # df["Author"] = author
+        # df["Publisher"] = publisher
 
         # df = pd.DataFrame({'Book': [bk.__getattribute__('Book Title') for bk in books],
         #                        'Author': [bk.Author for bk in books]},
@@ -260,8 +277,8 @@ class DATA_FORM:
 
         st.table(df)
 
-        #for bk in books:
-            #st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
+        # for bk in books:
+        #    st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
 
     def __markdown_srch_res(self, ant):
         st.markdown(""":green[Title:] :red[{title}]
