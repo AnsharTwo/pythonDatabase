@@ -174,28 +174,12 @@ class DATA_FORM:
             self.__show_srch_ants_auth(sourceData, conn, auth)
         elif searchSelection == self.dict_searches.get("bks_all"):
             self.__show_srch_bk_all(sourceData, conn)
-
         elif searchSelection == self.dict_searches.get("bks_yr_read"):
-            resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-            annots = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-            st.write("Found {} results.".format(resCountBooksYearRead))
-            for ant in annots:
-                st.write(
-                    f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
-
+            self.__show_srch_bks_yr_rd(sourceData, conn, yearFrom, yearTo)
         elif searchSelection == self.dict_searches.get("ants_all"):
-            resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
-            annots = sourceData.selectAnnotsAll(conn.cursor())
-            st.write("Found {} results.".format(resCountAnnotsAll))
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("ants_yr_read"):
-            resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-            annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-            st.write("Found {} results.".format(resCountAnnotsYearRead))
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            self.__show_srch_ants_yr_rd(sourceData, conn, yearFrom, yearTo)
 
         conn.close()
 
@@ -244,7 +228,8 @@ class DATA_FORM:
         resCountBooksAll = sourceData.resBooksAll(conn.cursor())
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
-        df = pd.DataFrame(([bk.__getattribute__('Book Title'),
+        df = pd.DataFrame(([bk.__getattribute__('Book No').lstrip("0"),
+                            bk.__getattribute__('Book Title'),
                             bk.Author,
                             bk.Date,
                             bk.__getattribute__('Year Read'),
@@ -256,7 +241,8 @@ class DATA_FORM:
                             bk.__getattribute__('First Edition Publisher')
                             ] for bk in books),
                     None,
-                          columns=['Title',
+                          columns=['Book no.',
+                                   'Title',
                                    'Author',
                                    'Date',
                                    'Year read',
@@ -268,8 +254,40 @@ class DATA_FORM:
                                    'First Edition Publisher'
                                    ]
                           )
-        st.table(df)
+        st.dataframe(df, None, height=625, hide_index=True)
 
+    def __show_srch_bks_yr_rd(self, sourceData, conn, yearFrom, yearTo):
+        resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+        books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+        st.write("Found {} results.".format(resCountBooksYearRead))
+        df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
+                            bk.__getattribute__('Book Title'),
+                            bk.Author,
+                            bk.__getattribute__('Year Read'),
+                            ] for bk in books),
+                    None,
+                          columns=['Book no.',
+                                   'Title',
+                                   'Author',
+                                   'Year read'
+                                   ]
+                          )
+        st.dataframe(df, None, height=625, hide_index=True)
+
+    def __show_srch_ants_all(self, sourceData, conn):
+        resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
+        annots = sourceData.selectAnnotsAll(conn.cursor())
+        st.write("Found {} results.".format(resCountAnnotsAll))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_yr_rd(self, sourceData, conn, yearFrom, yearTo):
+        resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+        annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+        st.write("Found {} results.".format(resCountAnnotsYearRead))
+        for ant in annots:
+            st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
+            self.__markdown_srch_res(ant)
     def __markdown_srch_res(self, ant):
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
@@ -285,6 +303,9 @@ class DATA_FORM:
 
     def __format_page_no(self, pageNo):
         return pageNo.lstrip("0")
+
+    def __format_book_no(self, bookNo):
+        return bookNo.lstrip("0")
 
     def __format_sql_wrap(self, searchDatum):
         datum = searchDatum

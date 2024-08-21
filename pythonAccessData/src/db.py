@@ -135,9 +135,11 @@ class DATA_SOURCE:
                             ORDER BY [Book No]""",
         "annots_all_count": """SELECT COUNT(*) 
                                    FROM [Source Text]""",
-        "annots_all": """SELECT * 
-                             FROM [Source Text] 
-                             ORDER BY [Book No]""",
+        "annots_all": """SELECT Books.[Book Title], Books.Author, [Source Text].[Page No], [Source Text].[Source Text]  
+                             FROM [Source Text]
+                             INNER JOIN Books
+                             ON [Source Text].[Book No] = Books.[Book No] 
+                             ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
         "annots_by_bk_count": """SELECT COUNT(*) 
                                      FROM [Source Text] 
                                      INNER JOIN Books 
