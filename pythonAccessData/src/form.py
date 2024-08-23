@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime, date
 
 import pandas as pd
 import streamlit as st
@@ -123,10 +124,18 @@ class DATA_FORM:
                 if yearTo == "":
                     st.markdown(":red[no end year given.]")
                 else:
-                    if yearFrom > yearTo:
-                        st.markdown(":red[From year cannot be greater than To year.]")
+                    if not self.__isValidYearFormat(yearFrom, "%Y"):
+                        st.markdown(":red[From year is not in format yyyy.]")
                     else:
-                        self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
+                        if not self.__isValidYearFormat(yearTo, "%Y"):
+                            st.markdown(":red[To year is not in format yyyy.]")
+                        else:
+                            objyearFrom = date(int(yearFrom), 1, 1)
+                            objyearTo = date(int(yearTo), 1, 1)
+                            if objyearFrom > objyearTo:
+                                st.markdown(":red[From year cannot be greater than To year.]")
+                            else:
+                                self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
 
     def ants_all(self):
         st.write("NOTE: page may be slow to load searching on all annotations...")
@@ -145,10 +154,18 @@ class DATA_FORM:
                 if yearTo == "":
                     st.markdown(":red[no end year given.]")
                 else:
-                    if yearFrom > yearTo:
-                        st.markdown(":red[From year cannot be greater than To year.]")
+                    if not self.__isValidYearFormat(yearFrom, "%Y"):
+                        st.markdown(":red[From year is not in format yyyy.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
+                        if not self.__isValidYearFormat(yearTo, "%Y"):
+                            st.markdown(":red[To year is not in format yyyy.]")
+                        else:
+                            objyearFrom = date(int(yearFrom), 1, 1)
+                            objyearTo = date(int(yearTo), 1, 1)
+                            if objyearFrom > objyearTo:
+                                st.markdown(":red[From year cannot be greater than To year.]")
+                            else:
+                                self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
@@ -228,51 +245,53 @@ class DATA_FORM:
         resCountBooksAll = sourceData.resBooksAll(conn.cursor())
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
-        df = pd.DataFrame(([bk.__getattribute__('Book No').lstrip("0"),
-                            bk.__getattribute__('Book Title'),
-                            bk.Author,
-                            bk.Date,
-                            bk.__getattribute__('Year Read'),
-                            bk.__getattribute__('Publication Locale'),
-                            bk.Edition,
-                            bk.__getattribute__('First Edition'),
-                            bk.__getattribute__('First Edition Locale'),
-                            bk.__getattribute__('First Edition Name'),
-                            bk.__getattribute__('First Edition Publisher')
-                            ] for bk in books),
-                    None,
-                          columns=['Book no.',
-                                   'Title',
-                                   'Author',
-                                   'Date',
-                                   'Year read',
-                                   'Locale',
-                                   'Edition',
-                                   'First Edition',
-                                   'First Edition Locale',
-                                   'First Edition Name',
-                                   'First Edition Publisher'
-                                   ]
-                          )
-        st.dataframe(df, None, height=625, hide_index=True)
+        if resCountBooksAll > 0:
+            df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
+                                bk.__getattribute__('Book Title'),
+                                bk.Author,
+                                bk.Date,
+                                bk.__getattribute__('Year Read'),
+                                bk.__getattribute__('Publication Locale'),
+                                bk.Edition,
+                                bk.__getattribute__('First Edition'),
+                                bk.__getattribute__('First Edition Locale'),
+                                bk.__getattribute__('First Edition Name'),
+                                bk.__getattribute__('First Edition Publisher')
+                                ] for bk in books),
+                        None,
+                              columns=['Book no.',
+                                       'Title',
+                                       'Author',
+                                       'Date',
+                                       'Year read',
+                                       'Locale',
+                                       'Edition',
+                                       'First Edition',
+                                       'First Edition Locale',
+                                       'First Edition Name',
+                                       'First Edition Publisher'
+                                ]
+                            )
+            st.dataframe(df, None, height=625, hide_index=True)
 
     def __show_srch_bks_yr_rd(self, sourceData, conn, yearFrom, yearTo):
         resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
         books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
         st.write("Found {} results.".format(resCountBooksYearRead))
-        df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
-                            bk.__getattribute__('Book Title'),
-                            bk.Author,
-                            bk.__getattribute__('Year Read'),
-                            ] for bk in books),
-                    None,
-                          columns=['Book no.',
-                                   'Title',
-                                   'Author',
-                                   'Year read'
-                                   ]
-                          )
-        st.dataframe(df, None, height=625, hide_index=True)
+        if resCountBooksYearRead > 0:
+            df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
+                                bk.__getattribute__('Book Title'),
+                                bk.Author,
+                                bk.__getattribute__('Year Read'),
+                                ] for bk in books),
+                        None,
+                                columns=['Book no.',
+                                        'Title',
+                                        'Author',
+                                        'Year read'
+                                ]
+                            )
+            st.dataframe(df, None, height=625, hide_index=True)
 
     def __show_srch_ants_all(self, sourceData, conn):
         resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
@@ -288,6 +307,7 @@ class DATA_FORM:
         for ant in annots:
             st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
             self.__markdown_srch_res(ant)
+
     def __markdown_srch_res(self, ant):
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
@@ -314,6 +334,13 @@ class DATA_FORM:
         if not searchDatum.endswith("%"):
             datum = datum + "%"
         return datum
+
+    def __isValidYearFormat(self,year, format):
+        try:
+            res = bool(datetime.strptime(year, format))
+        except ValueError:
+            res = False
+        return res
 
     dict_searches = {
         "ants_srch_txt": "Annotations by search text",
