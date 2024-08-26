@@ -1,4 +1,7 @@
 import sys
+from datetime import datetime, date
+
+import pandas as pd
 import streamlit as st
 
 import db
@@ -6,8 +9,6 @@ import db
 class DATA_FORM:
 
     # def __init__(self):
-
-
     def init_sidebar(self):
         annotDb = "Annotations database"
         urlExcel = "Excel URLs sheets"
@@ -28,7 +29,8 @@ class DATA_FORM:
                 "Annotations by search text and author",
                 "Annotations by search text and book",
                 "Annotations by book",
-                "Annotations by Author",
+                "Annotations by author",
+                "Books by author",
                 "All books",
                 "Books by year read",
                 "All annotations",
@@ -45,6 +47,8 @@ class DATA_FORM:
                 self.srch_bk()
             elif searchSelection == self.dict_searches.get("ants_auth"):
                 self.srch_auth()
+            elif searchSelection == self.dict_searches.get("bks_auth"):
+                self.bks_auth()
             elif searchSelection == self.dict_searches.get("bks_all"):
                 self.bks_all()
             elif searchSelection == self.dict_searches.get("bks_yr_read"):
@@ -107,6 +111,15 @@ class DATA_FORM:
             else:
                 self.db_records(self.dict_searches.get("ants_auth"), "", author, "", "", "")
 
+    def bks_auth(self):
+        author = st.text_input("Author")
+        searched = st.form_submit_button("Search")
+        if searched:
+            if author == "":
+                st.markdown(":red[no author given.]")
+            else:
+                self.db_records(self.dict_searches.get("bks_auth"), "", author, "", "", "")
+
     def bks_all(self):
         searched = st.form_submit_button("Search")
         if searched:
@@ -123,10 +136,16 @@ class DATA_FORM:
                 if yearTo == "":
                     st.markdown(":red[no end year given.]")
                 else:
-                    if yearFrom > yearTo:
-                        st.markdown(":red[From year cannot be greater than To year.]")
+                    if not self.__isValidYearFormat(yearFrom, "%Y"):
+                        st.markdown(":red[From year is not in format yyyy.]")
                     else:
-                        self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
+                        if not self.__isValidYearFormat(yearTo, "%Y"):
+                            st.markdown(":red[To year is not in format yyyy.]")
+                        else:
+                            if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                st.markdown(":red[From year cannot be greater than To year.]")
+                            else:
+                                self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
 
     def ants_all(self):
         st.write("NOTE: page may be slow to load searching on all annotations...")
@@ -145,10 +164,16 @@ class DATA_FORM:
                 if yearTo == "":
                     st.markdown(":red[no end year given.]")
                 else:
-                    if yearFrom > yearTo:
-                        st.markdown(":red[From year cannot be greater than To year.]")
+                    if not self.__isValidYearFormat(yearFrom, "%Y"):
+                        st.markdown(":red[From year is not in format yyyy.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
+                        if not self.__isValidYearFormat(yearTo, "%Y"):
+                            st.markdown(":red[To year is not in format yyyy.]")
+                        else:
+                            if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                st.markdown(":red[From year cannot be greater than To year.]")
+                            else:
+                                self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
 
     def select_url_search(self):
         st.write("Page is pending, under construction")
@@ -163,82 +188,197 @@ class DATA_FORM:
         st.header("Database Records")
 
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
-            resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchText)
-            annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchText)
-            st.write("Found {} results.".format(resCountSearchString))
-            for ant in annots:
-                st.write(
-                    f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-            resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(), searchText, auth)
-            annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(),  searchText, auth)
-            st.write("Found {} results.".format(resCountSrchStrAndAuthor))
-            for ant in annots:
-                st.write(
-                    f"{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_auth_srch_txt(sourceData, conn, searchText, auth)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
-            resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), searchText, bk)
-            annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(), searchText, bk)
-            st.write("Found {} results.".format(resCountSrchStrAndBook))
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Book Title')}\t{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_bk_srch_txt(sourceData, conn, searchText, bk)
         elif searchSelection == self.dict_searches.get("ants_bk"):
-            # use \'' if single quote is in e.g. hitler's
-            resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), bk)
-            annots = sourceData.selectAnnotsbyBook(conn.cursor(), bk)
-            st.write("Found {} results.".format(resCountBooks))
-            st.write(bk)
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_bk(sourceData, conn, bk)
         elif searchSelection == self.dict_searches.get("ants_auth"):
-            resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), auth)
-            annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), auth)
-            st.write("Found {} results.".format(resCountAuthor))
-            for ant in annots:
-                st.write(
-                    f"{ant.Author}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_auth(sourceData, conn, auth)
+        elif searchSelection == self.dict_searches.get("bks_auth"):
+            self.__show_srch_bks_auth(sourceData, conn, auth)
         elif searchSelection == self.dict_searches.get("bks_all"):
-            resCountBooksAll = sourceData.resBooksAll(conn.cursor())
-            books = sourceData.selectBooksAll(conn.cursor())
-            st.write("Found {} results.".format(resCountBooksAll))
-            for bk in books:
-                st.write(f"{bk.__getattribute__('Book No')}\t{bk.__getattribute__('Book Title')}\t{bk.Author}")
-
+            self.__show_srch_bk_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("bks_yr_read"):
-            resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-            annots = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-            st.write("Found {} results.".format(resCountBooksYearRead))
-            for ant in annots:
-                st.write(
-                    f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}")
-
+            self.__show_srch_bks_yr_rd(sourceData, conn, yearFrom, yearTo)
         elif searchSelection == self.dict_searches.get("ants_all"):
-            resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
-            annots = sourceData.selectAnnotsAll(conn.cursor())
-            st.write("Found {} results.".format(resCountAnnotsAll))
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
-
+            self.__show_srch_ants_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("ants_yr_read"):
-            resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-            annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-            st.write("Found {} results.".format(resCountAnnotsYearRead))
-            for ant in annots:
-                st.write(f"{ant.__getattribute__('Year Read')}\t{ant.Author}\t{ant.__getattribute__('Book Title')}\t{ant.__getattribute__('Book No')}\t{ant.__getattribute__('Page No')}\t{ant.__getattribute__('Source Text')}")
+            self.__show_srch_ants_yr_rd(sourceData, conn, yearFrom, yearTo)
 
         conn.close()
+
+    def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):
+        resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
+        annots = sourceData.selectAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
+        st.write("Found {} results.".format(resCountSearchString))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_auth_srch_txt(self, sourceData, conn, searchText, auth):
+        resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
+                                                                          self.__format_sql_wrap(searchText),
+                                                                          self.__format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(searchText),
+                                                                          self.__format_sql_wrap(auth))
+        st.write("Found {} results.".format(resCountSrchStrAndAuthor))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_bk_srch_txt(self, sourceData, conn, searchText, bk):
+        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(searchText),
+                                                                                     self.__format_sql_wrap(bk))
+        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.__format_sql_wrap(searchText),
+                                                                         self.__format_sql_wrap(bk))
+        st.write("Found {} results.".format(resCountSrchStrAndBook))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_bk(self, sourceData, conn, bk):
+        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
+        annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
+        st.write("Found {} results.".format(resCountBooks))
+        st.write(bk)
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_auth(self, sourceData, conn, auth):
+        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        st.write("Found {} results.".format(resCountAuthor))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_bks_auth(self, sourceData, conn, auth):
+        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        annots = sourceData.selectBooksByAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        st.write("Found {} results.".format(resCountBks))
+        for ant in annots:
+            self.__markdown_bks_res(ant)
+
+    def __show_srch_bk_all(self, sourceData, conn):
+        resCountBooksAll = sourceData.resBooksAll(conn.cursor())
+        books = sourceData.selectBooksAll(conn.cursor())
+        st.write("Found {} results.".format(resCountBooksAll))
+        if resCountBooksAll > 0:
+            df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
+                                bk.__getattribute__('Book Title'),
+                                bk.Author,
+                                bk.Date,
+                                bk.__getattribute__('Year Read'),
+                                bk.__getattribute__('Publication Locale'),
+                                bk.Edition,
+                                bk.__getattribute__('First Edition'),
+                                bk.__getattribute__('First Edition Locale'),
+                                bk.__getattribute__('First Edition Name'),
+                                bk.__getattribute__('First Edition Publisher')
+                                ] for bk in books),
+                        None,
+                              columns=['Book no.',
+                                       'Title',
+                                       'Author',
+                                       'Date',
+                                       'Year read',
+                                       'Locale',
+                                       'Edition',
+                                       'First Edition',
+                                       'First Edition Locale',
+                                       'First Edition Name',
+                                       'First Edition Publisher'
+                                ]
+                            )
+            st.dataframe(df, None, height=625, hide_index=True)
+
+    def __show_srch_bks_yr_rd(self, sourceData, conn, yearFrom, yearTo):
+        resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+        books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+        st.write("Found {} results.".format(resCountBooksYearRead))
+        if resCountBooksYearRead > 0:
+            df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
+                                bk.__getattribute__('Book Title'),
+                                bk.Author,
+                                bk.__getattribute__('Year Read'),
+                                ] for bk in books),
+                        None,
+                                columns=['Book no.',
+                                        'Title',
+                                        'Author',
+                                        'Year read'
+                                ]
+                            )
+            st.dataframe(df, None, height=625, hide_index=True)
+
+    def __show_srch_ants_all(self, sourceData, conn):
+        resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
+        annots = sourceData.selectAnnotsAll(conn.cursor())
+        st.write("Found {} results.".format(resCountAnnotsAll))
+        for ant in annots:
+            self.__markdown_srch_res(ant)
+
+    def __show_srch_ants_yr_rd(self, sourceData, conn, yearFrom, yearTo):
+        resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+        annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+        st.write("Found {} results.".format(resCountAnnotsYearRead))
+        for ant in annots:
+            st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
+            self.__markdown_srch_res(ant)
+
+    def __markdown_srch_res(self, ant):
+        st.markdown(""":green[Title:] :red[{title}]
+                    \r\r:blue[Author: {author}]
+                    \r\r:violet[page] {pageno}
+                    \r\r{sourcetext}"""
+            .format(
+                title=ant.__getattribute__('Book Title'),
+                author=ant.Author,
+                pageno=self.__format_page_no(ant.__getattribute__('Page No')),
+                sourcetext=ant.__getattribute__('Source Text')
+            )
+        )
+
+    def __markdown_bks_res(self, ant):
+        st.markdown(""":green[Title:] :red[{title}]
+                    \r\r:blue[Author:] {author}
+                    \r\r:violet[Publisher:] {publisher}
+                    \r\r:orange[Date:] {date}"""
+            .format(
+                title=ant.__getattribute__('Book Title'),
+                author=ant.Author,
+                publisher=ant.Publisher,
+                date=ant.Date
+            )
+        )
+
+    def __format_page_no(self, pageNo):
+        return pageNo.lstrip("0")
+
+    def __format_book_no(self, bookNo):
+        return bookNo.lstrip("0")
+
+    def __format_sql_wrap(self, searchDatum):
+        datum = searchDatum
+        if not searchDatum.startswith("%"):
+            datum = "%" + datum
+        if not searchDatum.endswith("%"):
+            datum = datum + "%"
+        return datum
+
+    def __isValidYearFormat(self,year, format):
+        try:
+            res = bool(datetime.strptime(year, format))
+        except ValueError:
+            res = False
+        return res
 
     dict_searches = {
         "ants_srch_txt": "Annotations by search text",
         "ants_srch_txt_auth": "Annotations by search text and author",
         "ants_srch_txt_bk": "Annotations by search text and book",
         "ants_bk": "Annotations by book",
-        "ants_auth": "Annotations by Author",
+        "ants_auth": "Annotations by author",
+        "bks_auth": "Books by author",
         "bks_all": "All books",
         "bks_yr_read": "Books by year read",
         "ants_all": "All annotations",

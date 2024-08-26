@@ -71,6 +71,18 @@ class DATA_SOURCE:
 
         return annots
 
+    def resBooksByAuthor(self, cursor, author):
+        results = cursor.execute(
+            self.dict_queries.get("books_by_auth_count").format(author))
+
+        res = results.fetchone()
+        return res[0]
+
+    def selectBooksByAuthor(self, cursor, author):
+        annots = cursor.execute(self.dict_queries.get("books_by_auth").format(author))
+
+        return annots
+
     def resAnnotsbySearchString(self, cursor, searchString):
         results = cursor.execute(self.dict_queries.get("annots_by_sch_str_count").format(searchString))
 
@@ -135,30 +147,42 @@ class DATA_SOURCE:
                             ORDER BY [Book No]""",
         "annots_all_count": """SELECT COUNT(*) 
                                    FROM [Source Text]""",
-        "annots_all": """SELECT * 
-                             FROM [Source Text] 
-                             ORDER BY [Book No]""",
+        "annots_all": """SELECT Books.[Book Title], Books.Author, [Source Text].[Page No], [Source Text].[Source Text]  
+                             FROM [Source Text]
+                             INNER JOIN Books
+                             ON [Source Text].[Book No] = Books.[Book No] 
+                             ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
         "annots_by_bk_count": """SELECT COUNT(*) 
                                      FROM [Source Text] 
                                      INNER JOIN Books 
                                      ON [Source Text].[Book No] = Books.[Book No] 
                                      WHERE Books.[Book Title] LIKE ('{}')""",
-        "annots_by_bk": """SELECT [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
+        "annots_by_bk": """SELECT [Source Text].[Book No], [Source Text].[Page No], Books.[Book Title], Books.Author,
+                                  [Source Text].[Source Text] 
                                FROM [Source Text] 
                                INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
                                WHERE Books.[Book Title] LIKE ('{}') 
-                               ORDER BY [Source Text].[Page No]""",
+                               ORDER BY Books.[Book Title], [Source Text].[Page No]""",
         "annots_by_auth_count": """SELECT COUNT(*) 
                                        FROM [Source Text] 
                                        INNER JOIN Books 
                                        ON [Source Text].[Book No] = Books.[Book No] 
                                        WHERE Books.Author LIKE ('{}')""",
-        "annots_by_auth": """SELECT Books.Author, [Source Text].[Book No], [Source Text].[Page No], [Source Text].[Source Text] 
+        "annots_by_auth": """SELECT Books.Author, [Source Text].[Book No], [Source Text].[Page No], Books.[Book Title], 
+                                    [Source Text].[Source Text] 
                                  FROM [Source Text] 
                                  INNER JOIN Books 
                                  ON [Source Text].[Book No] = Books.[Book No] 
                                  WHERE Books.Author LIKE ('{}') 
                                  ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
+        "books_by_auth_count": """SELECT COUNT(*) 
+                                    FROM [Books] 
+                                    WHERE Books.Author LIKE ('{}')""",
+        "books_by_auth": """SELECT [Books].[Book No], Books.[Book Title], [Books].[Author], Books.Publisher,
+                                    Books.Date 
+                                FROM [Books] 
+                                WHERE Books.Author LIKE ('{}') 
+                                ORDER BY [Books].[Book No]""",
         "annots_by_sch_str_count": """SELECT COUNT(*) 
                                           FROM [Source Text] 
                                           INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
