@@ -29,7 +29,8 @@ class DATA_FORM:
                 "Annotations by search text and author",
                 "Annotations by search text and book",
                 "Annotations by book",
-                "Annotations by Author",
+                "Annotations by author",
+                "Books by author",
                 "All books",
                 "Books by year read",
                 "All annotations",
@@ -46,6 +47,8 @@ class DATA_FORM:
                 self.srch_bk()
             elif searchSelection == self.dict_searches.get("ants_auth"):
                 self.srch_auth()
+            elif searchSelection == self.dict_searches.get("bks_auth"):
+                self.bks_auth()
             elif searchSelection == self.dict_searches.get("bks_all"):
                 self.bks_all()
             elif searchSelection == self.dict_searches.get("bks_yr_read"):
@@ -108,6 +111,15 @@ class DATA_FORM:
             else:
                 self.db_records(self.dict_searches.get("ants_auth"), "", author, "", "", "")
 
+    def bks_auth(self):
+        author = st.text_input("Author")
+        searched = st.form_submit_button("Search")
+        if searched:
+            if author == "":
+                st.markdown(":red[no author given.]")
+            else:
+                self.db_records(self.dict_searches.get("bks_auth"), "", author, "", "", "")
+
     def bks_all(self):
         searched = st.form_submit_button("Search")
         if searched:
@@ -130,9 +142,7 @@ class DATA_FORM:
                         if not self.__isValidYearFormat(yearTo, "%Y"):
                             st.markdown(":red[To year is not in format yyyy.]")
                         else:
-                            objyearFrom = date(int(yearFrom), 1, 1)
-                            objyearTo = date(int(yearTo), 1, 1)
-                            if objyearFrom > objyearTo:
+                            if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
                                 st.markdown(":red[From year cannot be greater than To year.]")
                             else:
                                 self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
@@ -160,9 +170,7 @@ class DATA_FORM:
                         if not self.__isValidYearFormat(yearTo, "%Y"):
                             st.markdown(":red[To year is not in format yyyy.]")
                         else:
-                            objyearFrom = date(int(yearFrom), 1, 1)
-                            objyearTo = date(int(yearTo), 1, 1)
-                            if objyearFrom > objyearTo:
+                            if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
                                 st.markdown(":red[From year cannot be greater than To year.]")
                             else:
                                 self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
@@ -189,6 +197,8 @@ class DATA_FORM:
             self.__show_srch_ants_bk(sourceData, conn, bk)
         elif searchSelection == self.dict_searches.get("ants_auth"):
             self.__show_srch_ants_auth(sourceData, conn, auth)
+        elif searchSelection == self.dict_searches.get("bks_auth"):
+            self.__show_srch_bks_auth(sourceData, conn, auth)
         elif searchSelection == self.dict_searches.get("bks_all"):
             self.__show_srch_bk_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("bks_yr_read"):
@@ -240,6 +250,13 @@ class DATA_FORM:
         st.write("Found {} results.".format(resCountAuthor))
         for ant in annots:
             self.__markdown_srch_res(ant)
+
+    def __show_srch_bks_auth(self, sourceData, conn, auth):
+        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        annots = sourceData.selectBooksByAuthor(conn.cursor(), self.__format_sql_wrap(auth))
+        st.write("Found {} results.".format(resCountBks))
+        for ant in annots:
+            self.__markdown_bks_res(ant)
 
     def __show_srch_bk_all(self, sourceData, conn):
         resCountBooksAll = sourceData.resBooksAll(conn.cursor())
@@ -321,6 +338,19 @@ class DATA_FORM:
             )
         )
 
+    def __markdown_bks_res(self, ant):
+        st.markdown(""":green[Title:] :red[{title}]
+                    \r\r:blue[Author:] {author}
+                    \r\r:violet[Publisher:] {publisher}
+                    \r\r:orange[Date:] {date}"""
+            .format(
+                title=ant.__getattribute__('Book Title'),
+                author=ant.Author,
+                publisher=ant.Publisher,
+                date=ant.Date
+            )
+        )
+
     def __format_page_no(self, pageNo):
         return pageNo.lstrip("0")
 
@@ -347,7 +377,8 @@ class DATA_FORM:
         "ants_srch_txt_auth": "Annotations by search text and author",
         "ants_srch_txt_bk": "Annotations by search text and book",
         "ants_bk": "Annotations by book",
-        "ants_auth": "Annotations by Author",
+        "ants_auth": "Annotations by author",
+        "bks_auth": "Books by author",
         "bks_all": "All books",
         "bks_yr_read": "Books by year read",
         "ants_all": "All annotations",
