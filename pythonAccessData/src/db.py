@@ -84,14 +84,15 @@ class DATA_SOURCE:
         return annots
 
     def resAnnotsbySearchString(self, cursor, searchString):
+        # results = cursor.execute(self.dict_queries.get("annots_by_sch_str_count").format(searchString))
         results = cursor.execute(self.dict_queries.get("annots_by_sch_str_count").format(searchString))
 
         res = results.fetchone()
         return res[0]
 
     def selectAnnotsbySearchString(self, cursor, searchString):
+        # annots = cursor.execute(self.dict_queries.get("annots_by_sch_str").format(searchString))
         annots = cursor.execute(self.dict_queries.get("annots_by_sch_str").format(searchString))
-
         return annots
 
     def resAnnotsbySrchStrAndBook(self, cursor, searchString, book):
@@ -186,12 +187,12 @@ class DATA_SOURCE:
         "annots_by_sch_str_count": """SELECT COUNT(*) 
                                           FROM [Source Text] 
                                           INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
-                                          WHERE [Source Text].[Source Text] LIKE ('{}') """,
+                                          WHERE [Source Text].[Source Text] IN ('{}') """,
         "annots_by_sch_str": """SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No], 
                                         [Source Text].[Source Text] 
                                     FROM [Source Text] 
                                     INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
-                                    WHERE [Source Text].[Source Text] LIKE ('{}') 
+                                    WHERE [Source Text].[Source Text] IN ('{}') 
                                     ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
         "annots_by_schstr_and_bk_count": """SELECT COUNT(*) 
                                                 FROM [Source Text] 
