@@ -190,7 +190,7 @@ class DATA_FORM:
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
             self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-            self.__show_srch_ants_auth_srch_txt(sourceData, conn, searchText, auth)
+            self.__show_srch_ants_auth_srch_txt(sourceData, conn, auth, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
             self.__show_srch_ants_bk_srch_txt(sourceData, conn, searchText, bk)
         elif searchSelection == self.dict_searches.get("ants_bk"):
@@ -211,10 +211,7 @@ class DATA_FORM:
         conn.close()
 
     def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):
-
         searchTxtArr = self.__formatSearchText(searchText)
-
-        # HERE ################################################
         resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchTxtArr)
         annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchTxtArr)
 
@@ -222,10 +219,11 @@ class DATA_FORM:
         for ant in annots:
             self.__markdown_srch_res(ant)
 
-    def __show_srch_ants_auth_srch_txt(self, sourceData, conn, searchText, auth):
+    def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
+        searchTxtArr = self.__formatSearchText(searchText)
         resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                                                          self.__format_sql_wrap(searchText),
-                                                                          self.__format_sql_wrap(auth))
+                                                                          self.__format_sql_wrap(auth),
+                                                                          searchTxtArr)
         annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(searchText),
                                                                           self.__format_sql_wrap(auth))
         st.write("Found {} results.".format(resCountSrchStrAndAuthor))

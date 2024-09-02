@@ -84,15 +84,26 @@ class DATA_SOURCE:
         return annots
 
     def resAnnotsbySearchString(self, cursor, searchString):
-        # results = cursor.execute(self.dict_queries.get("annots_by_sch_str_count").format(searchString))
-        results = cursor.execute(self.dict_queries.get("annots_by_sch_str_count").format(searchString))
-
+        sqlStr = self.dict_queries.get("annots_by_sch_str_count")
+        if len(searchString) == 1:
+            results = cursor.execute(sqlStr.format(str(searchString[0])))
+        else:
+            sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
+            for srchStrs in range(1, len(searchString)):
+                sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
+            results = cursor.execute(sqlStr)
         res = results.fetchone()
         return res[0]
 
     def selectAnnotsbySearchString(self, cursor, searchString):
-        # annots = cursor.execute(self.dict_queries.get("annots_by_sch_str").format(searchString))
-        annots = cursor.execute(self.dict_queries.get("annots_by_sch_str").format(searchString))
+        sqlStr = self.dict_queries.get("annots_by_sch_str")
+        if len(searchString) == 1:
+            annots = cursor.execute(sqlStr.format(str(searchString[0])))
+        else:
+            sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
+            for srchStrs in range(1, len(searchString)):
+                sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
+            annots = cursor.execute(sqlStr)
         return annots
 
     def resAnnotsbySrchStrAndBook(self, cursor, searchString, book):
@@ -105,15 +116,30 @@ class DATA_SOURCE:
         annots = cursor.execute(self.dict_queries.get("annots_by_schstr_and_bk").format(searchString, book))
 
         return annots
-    def resAnnotsbySrchStrAndAuthor(self, cursor, searchString, author):
-        results = cursor.execute(
-            self.dict_queries.get("annots_schstr_and_auth_count").format(searchString, author))
-
+    def resAnnotsbySrchStrAndAuthor(self, cursor, author, searchString):
+        sqlStr = self.dict_queries.get("annots_schstr_and_auth_count")
+        if len(searchString) == 1:
+            results = cursor.execute(sqlStr.format(author, str(searchString[0])))
+        else:
+            sqlStr = sqlStr.replace("('{}')", "('{}')".format(author, str(searchString[0])))
+            for srchStrs in range(1, len(searchString)):
+                sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
+            results = cursor.execute(sqlStr)
         res = results.fetchone()
         return res[0]
 
     def selectAnnotsbySrchStrAndAuthor(self, cursor, searchString, author):
-        annots = cursor.execute(self.dict_queries.get("annots_schstr_and_auth").format(searchString, author))
+
+        sqlStr = self.dict_queries.get("annots_schstr_and_auth")
+        print("LEN IS " + str(len(searchString)))
+        if len(searchString) == 1:
+            annots = cursor.execute(sqlStr.format(author, str(searchString[0])))
+        else:
+            sqlStr = sqlStr.replace("('{}')", "('{}')".format(author, str(searchString[0])))
+            for srchStrs in range(1, len(searchString)):
+                sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
+            print("QQQQQQ " + sqlStr)
+            annots = cursor.execute(sqlStr)
 
         return annots
 
@@ -187,12 +213,12 @@ class DATA_SOURCE:
         "annots_by_sch_str_count": """SELECT COUNT(*) 
                                           FROM [Source Text] 
                                           INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
-                                          WHERE [Source Text].[Source Text] IN ('{}') """,
+                                          WHERE [Source Text].[Source Text] Like ('{}')""",
         "annots_by_sch_str": """SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No], 
                                         [Source Text].[Source Text] 
                                     FROM [Source Text] 
                                     INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
-                                    WHERE [Source Text].[Source Text] IN ('{}') 
+                                    WHERE [Source Text].[Source Text] LIKE ('{}') 
                                     ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
         "annots_by_schstr_and_bk_count": """SELECT COUNT(*) 
                                                 FROM [Source Text] 
@@ -211,9 +237,8 @@ class DATA_SOURCE:
                                                FROM [Source Text] 
                                                INNER JOIN Books 
                                                ON [Source Text].[Book No] = Books.[Book No]
-                                               WHERE[Source Text].[Source Text] 
-                                               LIKE('{}') 
-                                               AND Books.[Author] LIKE('{}') """,
+                                               WHERE Books.[Author] LIKE('{}') 
+                                               AND [Source Text].[Source Text] LIKE('{}')""",
         "annots_schstr_and_auth": """SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No],
                             [Source Text].[Source Text]
                     FROM [Source Text] 
@@ -240,5 +265,6 @@ class DATA_SOURCE:
                     WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}')""",
         "books_by_yr_read": """SELECT * FROM Books 
                 WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}') 
-                ORDER BY Books.[Book No]"""
+                ORDER BY Books.[Book No]""",
+        "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')"
     }
