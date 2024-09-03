@@ -98,11 +98,13 @@ class DATA_SOURCE:
     def selectAnnotsbySearchString(self, cursor, searchString):
         sqlStr = self.dict_queries.get("annots_by_sch_str")
         if len(searchString) == 1:
+            sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
             annots = cursor.execute(sqlStr.format(str(searchString[0])))
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
             for srchStrs in range(1, len(searchString)):
                 sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
+            sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
             annots = cursor.execute(sqlStr)
         return annots
 
@@ -118,12 +120,17 @@ class DATA_SOURCE:
         return annots
     def resAnnotsbySrchStrAndAuthor(self, cursor, author, searchString):
         sqlStr = self.dict_queries.get("annots_schstr_and_auth_count")
+        print(str(searchString))
         if len(searchString) == 1:
             results = cursor.execute(sqlStr.format(author, str(searchString[0])))
         else:
-            sqlStr = sqlStr.replace("('{}')", "('{}')".format(author, str(searchString[0])))
+            sqlStr = sqlStr.replace("('{}')", "('{}')".format(author), 1)
+            sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])), 1)
             for srchStrs in range(1, len(searchString)):
-                sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
+                sqlTemp = self.dict_queries.get("insert_srch_txt_auth")
+                sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(author), 1)
+                sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(str(searchString[srchStrs])), 1)
+                sqlStr = sqlStr + sqlTemp
             results = cursor.execute(sqlStr)
         res = results.fetchone()
         return res[0]
@@ -218,8 +225,7 @@ class DATA_SOURCE:
                                         [Source Text].[Source Text] 
                                     FROM [Source Text] 
                                     INNER JOIN Books ON [Source Text].[Book No] = Books.[Book No] 
-                                    WHERE [Source Text].[Source Text] LIKE ('{}') 
-                                    ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
+                                    WHERE [Source Text].[Source Text] LIKE ('{}')""",
         "annots_by_schstr_and_bk_count": """SELECT COUNT(*) 
                                                 FROM [Source Text] 
                                                 INNER JOIN Books 
@@ -237,8 +243,8 @@ class DATA_SOURCE:
                                                FROM [Source Text] 
                                                INNER JOIN Books 
                                                ON [Source Text].[Book No] = Books.[Book No]
-                                               WHERE Books.[Author] LIKE('{}') 
-                                               AND [Source Text].[Source Text] LIKE('{}')""",
+                                               WHERE (Books.[Author] LIKE('{}') 
+                                               AND [Source Text].[Source Text] LIKE('{}'))""",
         "annots_schstr_and_auth": """SELECT Books.[Book Title], Books.Author, [Source Text].[Book No], [Source Text].[Page No],
                             [Source Text].[Source Text]
                     FROM [Source Text] 
@@ -266,5 +272,7 @@ class DATA_SOURCE:
         "books_by_yr_read": """SELECT * FROM Books 
                 WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}') 
                 ORDER BY Books.[Book No]""",
-        "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')"
+        "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')",
+        "append_srch_txt_order_by": " ORDER BY [Source Text].[Book No], [Source Text].[Page No]",
+        "insert_srch_txt_auth": " OR (Books.[Author] LIKE('{}') AND [Source Text].[Source Text] LIKE('{}'))"
     }
