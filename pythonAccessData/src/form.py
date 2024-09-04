@@ -192,7 +192,7 @@ class DATA_FORM:
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
             self.__show_srch_ants_auth_srch_txt(sourceData, conn, auth, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
-            self.__show_srch_ants_bk_srch_txt(sourceData, conn, searchText, bk)
+            self.__show_srch_ants_bk_srch_txt(sourceData, conn, bk, searchText)
         elif searchSelection == self.dict_searches.get("ants_bk"):
             self.__show_srch_ants_bk(sourceData, conn, bk)
         elif searchSelection == self.dict_searches.get("ants_auth"):
@@ -230,7 +230,7 @@ class DATA_FORM:
         for ant in annots:
             self.__markdown_srch_res(ant)
 
-    def __show_srch_ants_bk_srch_txt(self, sourceData, conn, searchText, bk):
+    def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
         resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(bk),
                                                                                      searchTxtArr)
