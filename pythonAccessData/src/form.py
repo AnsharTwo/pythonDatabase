@@ -224,17 +224,18 @@ class DATA_FORM:
         resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
                                                                           self.__format_sql_wrap(auth),
                                                                           searchTxtArr)
-        #annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(searchText),
-        #                                                                  self.__format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(auth),
+                                                                          searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndAuthor))
-        #for ant in annots:
-        #    self.__markdown_srch_res(ant)
+        for ant in annots:
+            self.__markdown_srch_res(ant)
 
     def __show_srch_ants_bk_srch_txt(self, sourceData, conn, searchText, bk):
-        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(searchText),
-                                                                                     self.__format_sql_wrap(bk))
-        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.__format_sql_wrap(searchText),
-                                                                         self.__format_sql_wrap(bk))
+        searchTxtArr = self.__formatSearchText(searchText)
+        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(bk),
+                                                                                     searchTxtArr)
+        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.__format_sql_wrap(bk),
+                                                                         searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndBook))
         for ant in annots:
             self.__markdown_srch_res(ant)
