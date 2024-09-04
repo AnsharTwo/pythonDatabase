@@ -190,9 +190,9 @@ class DATA_FORM:
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
             self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-            self.__show_srch_ants_auth_srch_txt(sourceData, conn, searchText, auth)
+            self.__show_srch_ants_auth_srch_txt(sourceData, conn, auth, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
-            self.__show_srch_ants_bk_srch_txt(sourceData, conn, searchText, bk)
+            self.__show_srch_ants_bk_srch_txt(sourceData, conn, bk, searchText)
         elif searchSelection == self.dict_searches.get("ants_bk"):
             self.__show_srch_ants_bk(sourceData, conn, bk)
         elif searchSelection == self.dict_searches.get("ants_auth"):
@@ -211,27 +211,31 @@ class DATA_FORM:
         conn.close()
 
     def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):
-        resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
-        annots = sourceData.selectAnnotsbySearchString(conn.cursor(), self.__format_sql_wrap(searchText))
+        searchTxtArr = self.__formatSearchText(searchText)
+        resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchTxtArr)
+        annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchTxtArr)
+
         st.write("Found {} results.".format(resCountSearchString))
         for ant in annots:
             self.__markdown_srch_res(ant)
 
-    def __show_srch_ants_auth_srch_txt(self, sourceData, conn, searchText, auth):
+    def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
+        searchTxtArr = self.__formatSearchText(searchText)
         resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                                                          self.__format_sql_wrap(searchText),
-                                                                          self.__format_sql_wrap(auth))
-        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(searchText),
-                                                                          self.__format_sql_wrap(auth))
+                                                                          self.__format_sql_wrap(auth),
+                                                                          searchTxtArr)
+        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.__format_sql_wrap(auth),
+                                                                          searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndAuthor))
         for ant in annots:
             self.__markdown_srch_res(ant)
 
-    def __show_srch_ants_bk_srch_txt(self, sourceData, conn, searchText, bk):
-        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(searchText),
-                                                                                     self.__format_sql_wrap(bk))
-        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.__format_sql_wrap(searchText),
-                                                                         self.__format_sql_wrap(bk))
+    def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
+        searchTxtArr = self.__formatSearchText(searchText)
+        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.__format_sql_wrap(bk),
+                                                                                     searchTxtArr)
+        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.__format_sql_wrap(bk),
+                                                                         searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndBook))
         for ant in annots:
             self.__markdown_srch_res(ant)
@@ -356,6 +360,16 @@ class DATA_FORM:
 
     def __format_book_no(self, bookNo):
         return bookNo.lstrip("0")
+
+    def __formatSearchText(self, searchText):
+        searchArr = []
+        if searchText.find(",") == -1:
+            searchArr.append(self.__format_sql_wrap(searchText))
+        else:
+            searchTxt = searchText.split(",")
+            for txt in searchTxt:
+                searchArr.append(self.__format_sql_wrap(txt))
+        return searchArr
 
     def __format_sql_wrap(self, searchDatum):
         datum = searchDatum
