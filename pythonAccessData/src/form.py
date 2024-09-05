@@ -217,7 +217,7 @@ class DATA_FORM:
 
         st.write("Found {} results.".format(resCountSearchString))
         for ant in annots:
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res_temp(ant,searchTxtArr)
 
     def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
@@ -339,6 +339,24 @@ class DATA_FORM:
                 author=ant.Author,
                 pageno=self.__format_page_no(ant.__getattribute__('Page No')),
                 sourcetext=ant.__getattribute__('Source Text')
+            )
+        )
+
+    def __markdown_srch_res_temp(self, ant, searchTxts):
+        srcText = str(ant.__getattribute__('Source Text'))
+        for txt in searchTxts:
+            strForHghlghts = str(str(txt))
+            strForHghlghts = strForHghlghts.lstrip("%").rstrip("%")
+            srcText = srcText.replace(strForHghlghts, ":orange-background[{}]".format(strForHghlghts))
+        st.markdown(""":green[Title:] :red[{title}]
+                    \r\r:blue[Author: {author}]
+                    \r\r:violet[page] {pageno}
+                    \r\r{sourcetext}"""
+            .format(
+                title=ant.__getattribute__('Book Title'),
+                author=ant.Author,
+                pageno=self.__format_page_no(ant.__getattribute__('Page No')),
+                sourcetext=srcText
             )
         )
 
