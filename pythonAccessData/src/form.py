@@ -345,9 +345,12 @@ class DATA_FORM:
     def __markdown_srch_res_temp(self, ant, searchTxts):
         srcText = str(ant.__getattribute__('Source Text'))
         for txt in searchTxts:
-            strForHghlghts = str(str(txt))
+            strForHghlghts = str(txt)
             strForHghlghts = strForHghlghts.lstrip("%").rstrip("%")
             srcText = srcText.replace(strForHghlghts, ":orange-background[{}]".format(strForHghlghts))
+            srcText = srcText.replace(strForHghlghts.capitalize(), ":orange-background[{}]".format(strForHghlghts.capitalize()))
+            srcText = srcText.replace(strForHghlghts.lower(), ":orange-background[{}]".format(strForHghlghts.lower()))
+            srcText = srcText.replace(strForHghlghts.upper(), ":orange-background[{}]".format(strForHghlghts.upper()))
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
                     \r\r:violet[page] {pageno}
