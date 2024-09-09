@@ -345,12 +345,31 @@ class DATA_FORM:
     def __markdown_srch_res_temp(self, ant, searchTxts):
         srcText = str(ant.__getattribute__('Source Text'))
         for txt in searchTxts:
-            strForHghlghts = str(txt)
-            strForHghlghts = strForHghlghts.lstrip("%").rstrip("%")
-            srcText = srcText.replace(strForHghlghts, ":orange-background[{}]".format(strForHghlghts))
-            srcText = srcText.replace(strForHghlghts.capitalize(), ":orange-background[{}]".format(strForHghlghts.capitalize()))
-            srcText = srcText.replace(strForHghlghts.lower(), ":orange-background[{}]".format(strForHghlghts.lower()))
-            srcText = srcText.replace(strForHghlghts.upper(), ":orange-background[{}]".format(strForHghlghts.upper()))
+            txt = str(txt).lstrip("%").rstrip("%")
+            srcText = srcText.replace(txt, ":orange-background[{}]".format(txt))
+            strForHghlghts = txt.split(" ")
+            print("PHRASE ARRAY IS " + str(strForHghlghts))
+            for wrd in range(0, len(strForHghlghts)):
+                tempStr = ""
+                tempwrd = strForHghlghts[wrd].capitalize()
+                print("WRD CHANGED IS " + tempwrd)
+                for wrdIndx in range(0, len(strForHghlghts)):
+                    if wrd == wrdIndx:
+                        tempStr = tempStr + " " + tempwrd
+                    else:
+                        tempStr = tempStr + " " + str(strForHghlghts[wrdIndx])
+                tempStr = tempStr.strip()
+                print("APPENDED SRCH STRING IS " + tempStr)
+                srcText = srcText.replace(tempStr,
+                                        ":orange-background[{}]".format(tempStr))
+
+            # strForHghlghts = str(txt)
+            # strForHghlghts = strForHghlghts.lstrip("%").rstrip("%")
+            # srcText = srcText.replace(strForHghlghts, ":orange-background[{}]".format(strForHghlghts))
+            # srcText = srcText.replace(strForHghlghts.capitalize(), ":orange-background[{}]".format(strForHghlghts.capitalize()))
+            # srcText = srcText.replace(strForHghlghts.lower(), ":orange-background[{}]".format(strForHghlghts.lower()))
+            # srcText = srcText.replace(strForHghlghts.upper(), ":orange-background[{}]".format(strForHghlghts.upper()))
+
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
                     \r\r:violet[page] {pageno}
