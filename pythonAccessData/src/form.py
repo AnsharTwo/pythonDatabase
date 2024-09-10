@@ -346,30 +346,16 @@ class DATA_FORM:
         srcText = str(ant.__getattribute__('Source Text'))
         for txt in searchTxts:
             txt = str(txt).lstrip("%").rstrip("%")
+
+            strForHghlghts = txt
+            srcText = srcText.replace(strForHghlghts, ":orange-background[{}]".format(strForHghlghts))
+            srcText = srcText.replace(strForHghlghts.lower(), ":orange-background[{}]".format(strForHghlghts.lower()))
+            srcText = srcText.replace(strForHghlghts.upper(), ":orange-background[{}]".format(strForHghlghts.upper()))
             srcText = srcText.replace(txt, ":orange-background[{}]".format(txt))
-            strForHghlghts = txt.split(" ")
-            print("PHRASE ARRAY IS " + str(strForHghlghts))
-            for wrd in range(0, len(strForHghlghts)):
-                tempStr = ""
-                tempwrd = strForHghlghts[wrd].capitalize()
-                print("WRD CHANGED IS " + tempwrd)
-                for wrdIndx in range(0, len(strForHghlghts)):
-                    if wrd == wrdIndx:
-                        tempStr = tempStr + " " + tempwrd
-                    else:
-                        tempStr = tempStr + " " + str(strForHghlghts[wrdIndx])
-                tempStr = tempStr.strip()
-                print("APPENDED SRCH STRING IS " + tempStr)
-                srcText = srcText.replace(tempStr,
-                                        ":orange-background[{}]".format(tempStr))
-
-            # strForHghlghts = str(txt)
-            # strForHghlghts = strForHghlghts.lstrip("%").rstrip("%")
-            # srcText = srcText.replace(strForHghlghts, ":orange-background[{}]".format(strForHghlghts))
-            # srcText = srcText.replace(strForHghlghts.capitalize(), ":orange-background[{}]".format(strForHghlghts.capitalize()))
-            # srcText = srcText.replace(strForHghlghts.lower(), ":orange-background[{}]".format(strForHghlghts.lower()))
-            # srcText = srcText.replace(strForHghlghts.upper(), ":orange-background[{}]".format(strForHghlghts.upper()))
-
+            srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "capitalise")
+            srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "capitaliseAll")
+            srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "lower")
+            srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "upper")
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
                     \r\r:violet[page] {pageno}
@@ -381,6 +367,43 @@ class DATA_FORM:
                 sourcetext=srcText
             )
         )
+
+    def __srcTxtCaseHghlghtsByWrd(self,srcText, txt, case):
+
+        sText = srcText
+        strForHghlghts = txt.split(" ")
+        print("PHRASE ARRAY IS " + str(strForHghlghts))
+        capAllStr = ""
+        if case == "capitaliseAll":
+            for wrd in range(0, len(strForHghlghts)):
+                capAllStr = capAllStr + str(strForHghlghts[wrd]).capitalize() + " "
+            capAllStr = capAllStr.strip()
+            print("CAP STRRRR IS " + capAllStr)
+            print("LENGTH OF CAP STRRRR IS " + str(len(capAllStr)))
+
+            sText = sText.replace(capAllStr,
+                                  ":orange-background[{}]".format(capAllStr))
+        else:
+            for wrd in range(0, len(strForHghlghts)):
+                tempStr = ""
+                tempwrd = ""
+                if case == "capitalise":
+                    tempwrd = strForHghlghts[wrd].capitalize()
+                elif case == "lower":
+                    tempwrd = strForHghlghts[wrd].lower()
+                elif case == "upper":
+                    tempwrd = strForHghlghts[wrd].upper()
+                print("WRD CHANGED IS " + tempwrd)
+                for wrdIndx in range(0, len(strForHghlghts)):
+                    if wrd == wrdIndx:
+                        tempStr = tempStr + " " + tempwrd
+                    else:
+                        tempStr = tempStr + " " + str(strForHghlghts[wrdIndx])
+                tempStr = tempStr.strip()
+                print("APPENDED SRCH STRING IS " + tempStr)
+                sText = sText.replace(tempStr,
+                                      ":orange-background[{}]".format(tempStr))
+        return sText
 
     def __markdown_bks_res(self, ant):
         st.markdown(""":green[Title:] :red[{title}]
