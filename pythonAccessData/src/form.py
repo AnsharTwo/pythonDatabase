@@ -148,7 +148,7 @@ class DATA_FORM:
                                 self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
 
     def ants_all(self):
-        st.write("NOTE: page may be slow to load searching on all annotations...")
+        st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
         searched = st.form_submit_button("Search")
         if searched:
             self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
@@ -217,7 +217,7 @@ class DATA_FORM:
 
         st.write("Found {} results.".format(resCountSearchString))
         for ant in annots:
-            self.__markdown_srch_res_temp(ant,searchTxtArr)
+            self.__markdown_srch_res(ant,searchTxtArr)
 
     def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
@@ -228,7 +228,7 @@ class DATA_FORM:
                                                                           searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndAuthor))
         for ant in annots:
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res(ant,searchTxtArr)
 
     def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
@@ -238,7 +238,7 @@ class DATA_FORM:
                                                                          searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndBook))
         for ant in annots:
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res(ant, searchTxtArr)
 
     def __show_srch_ants_bk(self, sourceData, conn, bk):
         resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
@@ -246,14 +246,14 @@ class DATA_FORM:
         st.write("Found {} results.".format(resCountBooks))
         st.write(bk)
         for ant in annots:
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res(ant, "")
 
     def __show_srch_ants_auth(self, sourceData, conn, auth):
         resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.__format_sql_wrap(auth))
         annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.__format_sql_wrap(auth))
         st.write("Found {} results.".format(resCountAuthor))
         for ant in annots:
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res(ant, "")
 
     def __show_srch_bks_auth(self, sourceData, conn, auth):
         resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.__format_sql_wrap(auth))
@@ -319,7 +319,7 @@ class DATA_FORM:
         annots = sourceData.selectAnnotsAll(conn.cursor())
         st.write("Found {} results.".format(resCountAnnotsAll))
         for ant in annots:
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res(ant, "")
 
     def __show_srch_ants_yr_rd(self, sourceData, conn, yearFrom, yearTo):
         resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
@@ -327,46 +327,34 @@ class DATA_FORM:
         st.write("Found {} results.".format(resCountAnnotsYearRead))
         for ant in annots:
             st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
-            self.__markdown_srch_res(ant)
+            self.__markdown_srch_res(ant, "")
 
-    def __markdown_srch_res(self, ant):
-        st.markdown(""":green[Title:] :red[{title}]
-                    \r\r:blue[Author: {author}]
-                    \r\r:violet[page] {pageno}
-                    \r\r{sourcetext}"""
-            .format(
-                title=ant.__getattribute__('Book Title'),
-                author=ant.Author,
-                pageno=self.__format_page_no(ant.__getattribute__('Page No')),
-                sourcetext=ant.__getattribute__('Source Text')
-            )
-        )
 
-    def __markdown_srch_res_temp(self, ant, searchTxts):
+    def __markdown_srch_res(self, ant, searchTxts):
         srcText = str(ant.__getattribute__('Source Text'))
-        for txt in searchTxts:
-            txt = str(txt).lstrip("%").rstrip("%")
-            srcText = srcText.replace(txt, ":orange-background[{}]".format(txt))
-            srcText = srcText.replace(txt.capitalize(),
-                                      ":orange-background[{}]".format(txt.capitalize()))
-            srcText = srcText.replace(txt.lower(),
+        if searchTxts != "":
+            for txt in searchTxts:
+                txt = str(txt).lstrip("%").rstrip("%")
+                srcText = srcText.replace(txt, ":orange-background[{}]".format(txt))
+                srcText = srcText.replace(txt.capitalize(),
+                                          ":orange-background[{}]".format(txt.capitalize()))
+                srcText = srcText.replace(txt.lower(),
                                           ":orange-background[{}]".format(txt.lower()))
-            srcText = srcText.replace(txt.upper(),
-                                      ":orange-background[{}]".format(txt.upper()))
-            strForHghlghts = txt.split(" ")
-            if len(strForHghlghts) > 1:
-                # is this covered above?
-                srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "capitalise")
-
-                srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "capitaliseAll")
-                srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "lower")
-                srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, "upper")
-                capAllStr = ""
-                for wrd in range(0, len(strForHghlghts)):
-                    capAllStr = capAllStr + str(strForHghlghts[wrd]).capitalize() + " "
-                capAllStr = capAllStr.strip()
-                srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, capAllStr, "lower")
-                srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, capAllStr, "upper")
+                srcText = srcText.replace(txt.upper(),
+                                          ":orange-background[{}]".format(txt.upper()))
+                strForHghlghts = txt.split(" ")
+                if len(strForHghlghts) > 1:
+                    srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, self.dict_hlght_cases.get("cap_all"))
+                    srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, self.dict_hlght_cases.get("lwr"))
+                    srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, txt, self.dict_hlght_cases.get("upr"))
+                    capAllStr = ""
+                    for wrd in range(0, len(strForHghlghts)):
+                        capAllStr = capAllStr + str(strForHghlghts[wrd]).capitalize() + " "
+                    capAllStr = capAllStr.strip()
+                    srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, capAllStr, self.dict_hlght_cases.get("lwr"))
+                    srcText = self.__srcTxtCaseHghlghtsByWrd(srcText, capAllStr, self.dict_hlght_cases.get("upr"))
+            if srcText.find(":orange-background[") == -1:
+                st.write(":green-background[The text you searched for was found but cannot be highlighted ¬]")
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
                     \r\r:violet[page] {pageno}
@@ -383,7 +371,7 @@ class DATA_FORM:
         sText = srcText
         strForHghlghts = txt.split(" ")
         capAllStr = ""
-        if case == "capitaliseAll":
+        if case == self.dict_hlght_cases.get("cap_all"):
             for wrd in range(0, len(strForHghlghts)):
                 capAllStr = capAllStr + str(strForHghlghts[wrd]).capitalize() + " "
             capAllStr = capAllStr.strip()
@@ -393,11 +381,11 @@ class DATA_FORM:
             for wrd in range(0, len(strForHghlghts)):
                 tempStr = ""
                 tempwrd = ""
-                if case == "capitalise":
+                if case == self.dict_hlght_cases.get("cap"):
                     tempwrd = strForHghlghts[wrd].capitalize()
-                elif case == "lower":
+                elif case == self.dict_hlght_cases.get("lwr"):
                     tempwrd = strForHghlghts[wrd].lower()
-                elif case == "upper":
+                elif case == self.dict_hlght_cases.get("upr"):
                     tempwrd = strForHghlghts[wrd].upper()
                 for wrdIndx in range(0, len(strForHghlghts)):
                     if wrd == wrdIndx:
@@ -464,4 +452,11 @@ class DATA_FORM:
         "bks_yr_read": "Books by year read",
         "ants_all": "All annotations",
         "ants_yr_read": "Annotations by year read"
+    }
+
+    dict_hlght_cases = {
+        "cap": "capitalise",
+        "cap_all": "capitaliseAll",
+        "lwr": "lower",
+        "upr": "upper"
     }
