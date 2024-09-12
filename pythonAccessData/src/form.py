@@ -8,18 +8,6 @@ import db
 
 class DATA_FORM:
 
-    # def __init__(self):
-    def init_sidebar(self):
-        annotDb = "Annotations database"
-        urlExcel = "Excel URLs sheets"
-
-        st.sidebar.title("Annotations and URL manager")
-        form = st.sidebar.selectbox("Select to do", [annotDb, urlExcel])
-        if form == annotDb:
-            self.select_search()
-        elif form == urlExcel:
-            self.select_url_search()
-
     def select_search(self):
         with st.form("Search"):
             st.header("Select search")
@@ -174,9 +162,6 @@ class DATA_FORM:
                                 st.markdown(":red[From year cannot be greater than To year.]")
                             else:
                                 self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
-
-    def select_url_search(self):
-        st.write("Page is pending, under construction")
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
         dbPath = sys.argv[1] + sys.argv[2]

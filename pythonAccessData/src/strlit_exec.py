@@ -1,5 +1,4 @@
-import form
+import sidebar
 
-dataForm = form.DATA_FORM()
-
-dataForm.init_sidebar()
+sbar = sidebar.SIDEBAR()
+sbar.init_sidebars()
