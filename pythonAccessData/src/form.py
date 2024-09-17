@@ -320,6 +320,8 @@ class DATA_FORM:
         if searchTxts != "":
             for txt in searchTxts:
                 txt = str(txt).lstrip("%").rstrip("%")
+                txt = txt.replace("''", "'")
+                txt = txt.replace("[[]", "[")
                 srcText = srcText.replace(txt, ":orange-background[{}]".format(txt))
                 srcText = srcText.replace(txt.capitalize(),
                                           ":orange-background[{}]".format(txt.capitalize()))
@@ -417,7 +419,13 @@ class DATA_FORM:
             datum = "%" + datum
         if not searchDatum.endswith("%"):
             datum = datum + "%"
+        datum = self.__formatSQLSpecialChars(datum)
         return datum
+
+    def __formatSQLSpecialChars(self, searchDatum):
+        formattedDatum = searchDatum.replace("'", "\''")
+        formattedDatum = formattedDatum.replace("[", "[[]")
+        return formattedDatum
 
     def __isValidYearFormat(self,year, format):
         try:

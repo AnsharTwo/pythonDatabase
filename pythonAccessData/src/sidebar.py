@@ -34,7 +34,6 @@ class SIDEBAR:
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
 
         st.sidebar.title("Annotations and URL manager")
-        st.session_state.disabled = False
 
         dropSelectApp = st.sidebar.selectbox("Select to view", [self.dict_data_app.get("annotDb"),
                                                                 self.dict_data_app.get("urlExcel"), "None"]
