@@ -8,21 +8,41 @@ import db
 
 class DATA_FORM:
 
+    dict_searches = {
+        "ants_srch_txt": "Annotations by search text",
+        "ants_srch_txt_auth": "Annotations by search text and author",
+        "ants_srch_txt_bk": "Annotations by search text and book",
+        "ants_bk": "Annotations by book",
+        "ants_auth": "Annotations by author",
+        "bks_auth": "Books by author",
+        "bks_all": "All books",
+        "bks_yr_read": "Books by year read",
+        "ants_all": "All annotations",
+        "ants_yr_read": "Annotations by year read"
+    }
+
+    dict_hlght_cases = {
+        "cap": "capitalise",
+        "cap_all": "capitaliseAll",
+        "lwr": "lower",
+        "upr": "upper"
+    }
+
     def select_search(self):
         with st.form("Search"):
-            st.header("Select search")
+            st.header("Select annotations search")
             searchSelection = st.selectbox("Select search type",[
                 "---",
-                "Annotations by search text",
-                "Annotations by search text and author",
-                "Annotations by search text and book",
-                "Annotations by book",
-                "Annotations by author",
-                "Books by author",
-                "All books",
-                "Books by year read",
-                "All annotations",
-                "Annotations by year read"
+                self.dict_searches.get("ants_srch_txt"),
+                self.dict_searches.get("ants_srch_txt_auth"),
+                self.dict_searches.get("ants_srch_txt_bk"),
+                self.dict_searches.get("ants_bk"),
+                self.dict_searches.get("ants_auth"),
+                self.dict_searches.get("bks_auth"),
+                self.dict_searches.get("bks_all"),
+                self.dict_searches.get("bks_yr_read"),
+                self.dict_searches.get("ants_all"),
+                self.dict_searches.get("ants_yr_read")
             ])
             st.form_submit_button("Go")
             if searchSelection == self.dict_searches.get("ants_srch_txt"):
@@ -433,23 +453,3 @@ class DATA_FORM:
         except ValueError:
             res = False
         return res
-
-    dict_searches = {
-        "ants_srch_txt": "Annotations by search text",
-        "ants_srch_txt_auth": "Annotations by search text and author",
-        "ants_srch_txt_bk": "Annotations by search text and book",
-        "ants_bk": "Annotations by book",
-        "ants_auth": "Annotations by author",
-        "bks_auth": "Books by author",
-        "bks_all": "All books",
-        "bks_yr_read": "Books by year read",
-        "ants_all": "All annotations",
-        "ants_yr_read": "Annotations by year read"
-    }
-
-    dict_hlght_cases = {
-        "cap": "capitalise",
-        "cap_all": "capitaliseAll",
-        "lwr": "lower",
-        "upr": "upper"
-    }
