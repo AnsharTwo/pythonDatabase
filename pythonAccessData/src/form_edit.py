@@ -1,4 +1,8 @@
+import sys
+
 import streamlit as st
+
+import db
 
 class EDIT_FORM:
 
@@ -10,6 +14,12 @@ class EDIT_FORM:
         "ants_edt_dlt": "Delete an annotation",
         "ants_add_bk": "Add a new book"
     }
+
+    dict_db_fld_validations = {
+        "books_bk_ttl_len": "250",
+        "books_auth_len": "50"
+    }
+
     def select_edit_form(self):
         with st.form("Edit"):
             st.header("Edit annotations data")
@@ -31,8 +41,9 @@ class EDIT_FORM:
                 self.add_new_bk()
 
     def edt_new_annot(self):
-        book_title = st.text_input("Book title")
-        author = st.text_input("Author")
+        st.write(":green[Add new annotation]")
+        book_title = st.text_input("Book title:red[*]")
+        author = st.text_input("Author:red[*]")
         publisher = st.text_input("Publisher")
         date = st.text_input("Date")
         txt = st.text_area("Enter new annotation")
@@ -48,9 +59,9 @@ class EDIT_FORM:
         st.write("Page is under construction - delete annotation. Check back real soon.")
 
     def add_new_bk(self):
-        st.write("Add new book")
-        book_title = st.text_input("Book title")
-        author = st.text_input("Author")
+        st.write(":green[Add new book]")
+        book_title = st.text_input("Book title:red[*]")
+        author = st.text_input("Author:red[*]")
         publisher = st.text_input("Publisher")
         date = st.text_input("Date")
         year_read = st.text_input("Year read")
@@ -62,4 +73,51 @@ class EDIT_FORM:
         first_edition_publisher = st.text_input("First edition publisher")
         add = st.form_submit_button("Add")
         if add:
-            st.write("temp")
+            if book_title == "":
+                st.markdown(":red[No book title given]")
+            else:
+                if  len(book_title) > int(self.dict_db_fld_validations.get("books_bk_ttl_len")):
+                    st.markdown(":red[Book title cannot be longer than {} characters]"
+                                .format(self.dict_db_fld_validations.get("books_bk_ttl_len")))
+                else:
+                    if author == "":
+                        st.markdown(":red[No author given]")
+                    else:
+                        if len(author) > int(self.dict_db_fld_validations.get("books_auth_len")):
+                            st.markdown(":red[Author cannot be longer than {} characters]"
+                                        .format(self.dict_db_fld_validations.get("books_auth_len")))
+                        else:
+                            # TODO add field len valid for all other fields here
+                            book = []
+                            book.append(book_title)
+                            book.append(author)
+                            book.append(publisher)
+                            book.append(date)
+                            book.append(year_read)
+                            book.append(pub_location)
+                            book.append(edition)
+                            book.append(first_edition)
+                            book.append(first_edition_locale)
+                            book.append(first_edition_name)
+                            book.append(first_edition_publisher)
+                            self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book)
+
+    def db_records(self, searchSelection, record):
+        dbPath = sys.argv[1] + sys.argv[2]
+        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
+        sourceData.is_ms_access_driver()
+        conn = sourceData.db_connect()
+        sourceData.report_tables(conn.cursor())
+
+        if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
+            self.__add_book(sourceData, conn, record)
+
+        conn.close()
+
+    def __add_book(self, sourceData, conn, book):
+        for i in range(0, len(book)):
+            if book[i] == "":
+                print("is blank")
+            else:
+                print(book[i])
+        print("array is " + str(len(book)))

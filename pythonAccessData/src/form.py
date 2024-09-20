@@ -275,6 +275,7 @@ class DATA_FORM:
             df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
+                                bk.Publisher,
                                 bk.Date,
                                 bk.__getattribute__('Year Read'),
                                 bk.__getattribute__('Publication Locale'),
@@ -288,6 +289,7 @@ class DATA_FORM:
                               columns=['Book no.',
                                        'Title',
                                        'Author',
+                                       'Publisher',
                                        'Date',
                                        'Year read',
                                        'Locale',
@@ -308,12 +310,14 @@ class DATA_FORM:
             df = pd.DataFrame(([self.__format_book_no(bk.__getattribute__('Book No')),
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
+                                bk.Publisher,
                                 bk.__getattribute__('Year Read'),
                                 ] for bk in books),
                         None,
                                 columns=['Book no.',
                                         'Title',
                                         'Author',
+                                        'Publisher',
                                         'Year read'
                                 ]
                             )
