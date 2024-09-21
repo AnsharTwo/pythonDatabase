@@ -186,6 +186,22 @@ class DATA_SOURCE:
         annots = cursor.execute(self.dict_queries.get("books_by_yr_read").format(fromYear, toYear))
         return annots
 
+    def addNewBook(self, cursor, bk_sum, book):
+
+        print(self.dict_inserts.get("temp").format(
+            bk_sum,
+            book[0],
+            book[1],
+        ))
+
+        cursor.execute(self.dict_inserts.get("temp").format(
+            bk_sum,
+            str(book[0]),
+            str(book[1]),
+            )
+        )
+        cursor.commit()
+
     dict_queries = {
         "books_all_count": """SELECT COUNT(*) 
                                   FROM Books""",
@@ -285,5 +301,15 @@ class DATA_SOURCE:
         "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')",
         "append_srch_txt_order_by": " ORDER BY [Source Text].[Book No], [Source Text].[Page No]",
         "insert_srch_txt_auth": " OR (Books.[Author] LIKE('{}') AND [Source Text].[Source Text] LIKE('{}'))",
-        "insert_srch_txt_bk": " OR (Books.[Book Title] LIKE ('{}') AND [Source Text].[Source Text] LIKE ('{}'))"
+        "insert_srch_txt_bk": " OR (Books.[Book Title] LIKE ('{}') AND [Source Text].[Source Text] LIKE ('{}'))",
+    }
+
+    dict_inserts = {
+        "books_new_add": """INSERT INTO Books ([Book No], [Book Title], Author, Publisher, Date, [Year Read], [Publication Locale],
+                                               Edition, [First Edition], [First Edition Locale], [First Edition Name],
+                                               [First Edition Publisher]) 
+                            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')""",
+
+        "temp": """INSERT INTO Books ([Book No], [Book Title], Author) 
+                   VALUES ('{}', '{}', '{}')"""
     }

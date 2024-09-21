@@ -115,9 +115,6 @@ class EDIT_FORM:
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
-        for i in range(0, len(book)):
-            if book[i] == "":
-                print("is blank")
-            else:
-                print(book[i])
-        print("array is " + str(len(book)))
+        sourceData.resBooksAll(conn.cursor())
+        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1)
+        sourceData.addNewBook(conn.cursor(), bk_sum, book)
