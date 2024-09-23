@@ -16,8 +16,10 @@ class EDIT_FORM:
     }
 
     dict_db_fld_validations = {
-        "books_bk_ttl_len": "250",
-        "books_auth_len": "50"
+        "books_bk_no_len": 5,
+        "books_bk_ttl_len": 250,
+        "books_auth_len": 50,
+        "books_pub_len": 50
     }
 
     def select_edit_form(self):
@@ -73,34 +75,39 @@ class EDIT_FORM:
         first_edition_publisher = st.text_input("First edition publisher")
         add = st.form_submit_button("Add")
         if add:
+            sbmt_bk = True
             if book_title == "":
                 st.markdown(":red[No book title given]")
-            else:
-                if  len(book_title) > int(self.dict_db_fld_validations.get("books_bk_ttl_len")):
-                    st.markdown(":red[Book title cannot be longer than {} characters]"
-                                .format(self.dict_db_fld_validations.get("books_bk_ttl_len")))
-                else:
-                    if author == "":
-                        st.markdown(":red[No author given]")
-                    else:
-                        if len(author) > int(self.dict_db_fld_validations.get("books_auth_len")):
-                            st.markdown(":red[Author cannot be longer than {} characters]"
-                                        .format(self.dict_db_fld_validations.get("books_auth_len")))
-                        else:
-                            # TODO add field len valid for all other fields here
-                            book = []
-                            book.append(book_title)
-                            book.append(author)
-                            book.append(publisher)
-                            book.append(date)
-                            book.append(year_read)
-                            book.append(pub_location)
-                            book.append(edition)
-                            book.append(first_edition)
-                            book.append(first_edition_locale)
-                            book.append(first_edition_name)
-                            book.append(first_edition_publisher)
-                            self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book)
+                sbmt_bk = False
+            elif len(book_title) > self.dict_db_fld_validations.get("books_bk_ttl_len"):
+                st.markdown(":red[Book title cannot be longer than {} characters]"
+                            .format(str(self.dict_db_fld_validations.get("books_bk_ttl_len"))))
+                sbmt_bk = False
+            elif author == "":
+                st.markdown(":red[No author given]")
+                sbmt_bk = False
+            elif len(author) > self.dict_db_fld_validations.get("books_auth_len"):
+                st.markdown(":red[Author cannot be longer than {} characters]"
+                            .format(str(self.dict_db_fld_validations.get("books_auth_len"))))
+                sbmt_bk = False
+            elif len(publisher) > self.dict_db_fld_validations.get("books_pub_len"):
+                st.markdown(":red[Publisher cannot be longer than {} characters]"
+                            .format(str(self.dict_db_fld_validations.get("books_pub_len"))))
+                sbmt_bk = False
+            if sbmt_bk:
+                book = []
+                book.append(book_title)
+                book.append(author)
+                book.append(publisher)
+                book.append(date)
+                book.append(year_read)
+                book.append(pub_location)
+                book.append(edition)
+                book.append(first_edition)
+                book.append(first_edition_locale)
+                book.append(first_edition_name)
+                book.append(first_edition_publisher)
+                self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book)
 
     def db_records(self, searchSelection, record):
         dbPath = sys.argv[1] + sys.argv[2]
@@ -115,6 +122,5 @@ class EDIT_FORM:
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
-        sourceData.resBooksAll(conn.cursor())
-        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1)
+        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addNewBook(conn.cursor(), bk_sum, book)

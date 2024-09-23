@@ -187,20 +187,35 @@ class DATA_SOURCE:
         return annots
 
     def addNewBook(self, cursor, bk_sum, book):
-
-        print(self.dict_inserts.get("temp").format(
-            bk_sum,
-            book[0],
-            book[1],
+        cursor.execute(self.dict_inserts.get("books_new_add").format(
+            bk_sum, # book no.
+            str(book[self.dict_books_indx.get("title")]),
+            str(book[self.dict_books_indx.get("author")]),
+            str(book[self.dict_books_indx.get("publisher")]),
+            str(book[self.dict_books_indx.get("dat")]),
+            str(book[self.dict_books_indx.get("year_read")]),
+            str(book[self.dict_books_indx.get("publication_locale")]),
+            str(book[self.dict_books_indx.get("edition")]), # edition
+            str(book[self.dict_books_indx.get("first_edition")]),
+            str(book[self.dict_books_indx.get("first_edition_locale")]),
+            str(book[self.dict_books_indx.get("first_edition_name")]),
+            str(book[self.dict_books_indx.get("first_edition_publisher")])
         ))
-
-        cursor.execute(self.dict_inserts.get("temp").format(
-            bk_sum,
-            str(book[0]),
-            str(book[1]),
-            )
-        )
         cursor.commit()
+
+    dict_books_indx = {
+        "title":                    0,
+        "author":                   1,
+        "publisher":                2,
+        "dat":                      3,
+        "year_read":                4,
+        "publication_locale":       5,
+        "edition":                  6,
+        "first_edition":            7,
+        "first_edition_locale":     8,
+        "first_edition_name":       9,
+        "first_edition_publisher":  10
+    }
 
     dict_queries = {
         "books_all_count": """SELECT COUNT(*) 
@@ -305,11 +320,8 @@ class DATA_SOURCE:
     }
 
     dict_inserts = {
-        "books_new_add": """INSERT INTO Books ([Book No], [Book Title], Author, Publisher, Date, [Year Read], [Publication Locale],
+        "books_new_add": """INSERT INTO Books ([Book No], [Book Title], Author, Publisher, Dat, [Year Read], [Publication Locale],
                                                Edition, [First Edition], [First Edition Locale], [First Edition Name],
                                                [First Edition Publisher]) 
-                            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')""",
-
-        "temp": """INSERT INTO Books ([Book No], [Book Title], Author) 
-                   VALUES ('{}', '{}', '{}')"""
+                            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')"""
     }
