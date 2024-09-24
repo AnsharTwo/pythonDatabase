@@ -1,5 +1,6 @@
 import pyodbc
 
+import streamlit as st
 
 class DATA_SOURCE:
 
@@ -201,7 +202,11 @@ class DATA_SOURCE:
             str(book[self.dict_books_indx.get("first_edition_name")]),
             str(book[self.dict_books_indx.get("first_edition_publisher")])
         ))
-        cursor.commit()
+        try:
+            cursor.commit()
+        except pyodbc.Error as ex:
+            pyodbc_state = ex.args[1]
+            st.write(pyodbc_state)
 
     dict_books_indx = {
         "title":                    0,
