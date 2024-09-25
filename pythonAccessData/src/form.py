@@ -249,7 +249,6 @@ class DATA_FORM:
         resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
         annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.__format_sql_wrap(bk))
         st.write("Found {} results.".format(resCountBooks))
-        st.write(bk)
         for ant in annots:
             self.__markdown_srch_res(ant, "")
 
