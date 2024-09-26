@@ -29,159 +29,167 @@ class DATA_FORM:
     }
 
     def select_search(self):
-        with st.form("Search"):
-            st.header("Select annotations search")
-            searchSelection = st.selectbox("Select search type",[
-                "---",
-                self.dict_searches.get("ants_srch_txt"),
-                self.dict_searches.get("ants_srch_txt_auth"),
-                self.dict_searches.get("ants_srch_txt_bk"),
-                self.dict_searches.get("ants_bk"),
-                self.dict_searches.get("ants_auth"),
-                self.dict_searches.get("bks_auth"),
-                self.dict_searches.get("bks_all"),
-                self.dict_searches.get("bks_yr_read"),
-                self.dict_searches.get("ants_all"),
-                self.dict_searches.get("ants_yr_read")
-            ])
-            st.form_submit_button("Go")
-            if searchSelection == self.dict_searches.get("ants_srch_txt"):
-                self.srch_searchtext()
-            elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-                self.srch_searchtext_auth()
-            elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
-                self.srch_searchtext_bk()
-            elif searchSelection == self.dict_searches.get("ants_bk"):
-                self.srch_bk()
-            elif searchSelection == self.dict_searches.get("ants_auth"):
-                self.srch_auth()
-            elif searchSelection == self.dict_searches.get("bks_auth"):
-                self.bks_auth()
-            elif searchSelection == self.dict_searches.get("bks_all"):
-                self.bks_all()
-            elif searchSelection == self.dict_searches.get("bks_yr_read"):
-                self.bks_yr_read()
-            elif searchSelection == self.dict_searches.get("ants_all"):
-                self.ants_all()
-            elif searchSelection == self.dict_searches.get("ants_yr_read"):
-                self.ants_yr_read()
+        st.header("Select annotations search")
+        searchSelection = st.selectbox("Select search type",[
+            "---",
+            self.dict_searches.get("ants_srch_txt"),
+            self.dict_searches.get("ants_srch_txt_auth"),
+            self.dict_searches.get("ants_srch_txt_bk"),
+            self.dict_searches.get("ants_bk"),
+            self.dict_searches.get("ants_auth"),
+            self.dict_searches.get("bks_auth"),
+            self.dict_searches.get("bks_all"),
+            self.dict_searches.get("bks_yr_read"),
+            self.dict_searches.get("ants_all"),
+            self.dict_searches.get("ants_yr_read")
+        ])
+        if searchSelection == self.dict_searches.get("ants_srch_txt"):
+            self.srch_searchtext()
+        elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
+            self.srch_searchtext_auth()
+        elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
+            self.srch_searchtext_bk()
+        elif searchSelection == self.dict_searches.get("ants_bk"):
+            self.srch_bk()
+        elif searchSelection == self.dict_searches.get("ants_auth"):
+            self.srch_auth()
+        elif searchSelection == self.dict_searches.get("bks_auth"):
+            self.bks_auth()
+        elif searchSelection == self.dict_searches.get("bks_all"):
+            self.bks_all()
+        elif searchSelection == self.dict_searches.get("bks_yr_read"):
+            self.bks_yr_read()
+        elif searchSelection == self.dict_searches.get("ants_all"):
+            self.ants_all()
+        elif searchSelection == self.dict_searches.get("ants_yr_read"):
+            self.ants_yr_read()
 
     def srch_searchtext(self):
-        txt = st.text_area("Annotated text to search for (separate multiple with comma)")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if txt == "":
-                st.markdown(":red[no search text given.]")
-            else:
-                self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "", "", "", "")
+        with st.form("Search by annotation only"):
+            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if txt == "":
+                    st.markdown(":red[no search text given.]")
+                else:
+                    self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "", "", "", "")
 
     def srch_searchtext_auth(self):
-        txt = st.text_area("Annotated text to search for (separate multiple with comma)")
-        author = st.text_input("Author")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if txt == "":
-                st.markdown(":red[no search text given.]")
-            else:
-                if author == "":
-                    st.markdown(":red[no author given.]")
+        with st.form("Search by annotation and author"):
+            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
+            author = st.text_input("Author")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if txt == "":
+                    st.markdown(":red[no search text given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt_auth"), txt, author, "", "", "")
+                    if author == "":
+                        st.markdown(":red[no author given.]")
+                    else:
+                        self.db_records(self.dict_searches.get("ants_srch_txt_auth"), txt, author, "", "", "")
 
     def srch_searchtext_bk(self):
-        txt = st.text_area("Annotated text to search for (separate multiple with comma)")
-        book = st.text_input("Book")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if txt == "":
-                st.markdown(":red[no search text given.]")
-            else:
+        with st.form("Search by annotation and book title"):
+            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
+            book = st.text_input("Book")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if txt == "":
+                    st.markdown(":red[no search text given.]")
+                else:
+                    if book == "":
+                        st.markdown(":red[no book given.]")
+                    else:
+                        self.db_records(self.dict_searches.get("ants_srch_txt_bk"), txt, "", book, "", "")
+
+    def srch_bk(self):
+        with st.form("Search for annotations by book title"):
+            book = st.text_input("Book")
+            searched = st.form_submit_button("Search")
+            if searched:
                 if book == "":
                     st.markdown(":red[no book given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt_bk"), txt, "", book, "", "")
-
-    def srch_bk(self):
-        book = st.text_input("Book")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if book == "":
-                st.markdown(":red[no book given.]")
-            else:
-                self.db_records(self.dict_searches.get("ants_bk"), "", "", book, "", "")
+                    self.db_records(self.dict_searches.get("ants_bk"), "", "", book, "", "")
 
     def srch_auth(self):
-        author = st.text_input("Author")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if author == "":
-                st.markdown(":red[no author given.]")
-            else:
-                self.db_records(self.dict_searches.get("ants_auth"), "", author, "", "", "")
+        with st.form("Search for annotations by author"):
+            author = st.text_input("Author")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if author == "":
+                    st.markdown(":red[no author given.]")
+                else:
+                    self.db_records(self.dict_searches.get("ants_auth"), "", author, "", "", "")
 
     def bks_auth(self):
-        author = st.text_input("Author")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if author == "":
-                st.markdown(":red[no author given.]")
-            else:
-                self.db_records(self.dict_searches.get("bks_auth"), "", author, "", "", "")
+        with st.form("Search for book titles by author"):
+            author = st.text_input("Author")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if author == "":
+                    st.markdown(":red[no author given.]")
+                else:
+                    self.db_records(self.dict_searches.get("bks_auth"), "", author, "", "", "")
 
     def bks_all(self):
-        searched = st.form_submit_button("Search")
-        if searched:
-            self.db_records(self.dict_searches.get("bks_all"), "", "", "", "", "")
+        with st.form("Search for all book titles"):
+            searched = st.form_submit_button("Search")
+            if searched:
+                self.db_records(self.dict_searches.get("bks_all"), "", "", "", "", "")
 
     def bks_yr_read(self):
-        yearFrom = st.text_input("From year (yyyy)")
-        yearTo = st.text_input("To year (yyyy)")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if yearFrom == "":
-                st.markdown(":red[no start year given.]")
-            else:
-                if yearTo == "":
-                    st.markdown(":red[no end year given.]")
+        with st.form("Search for book titles by year read"):
+            yearFrom = st.text_input("From year (yyyy)")
+            yearTo = st.text_input("To year (yyyy)")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if yearFrom == "":
+                    st.markdown(":red[no start year given.]")
                 else:
-                    if not self.__isValidYearFormat(yearFrom, "%Y"):
-                        st.markdown(":red[From year is not in format yyyy.]")
+                    if yearTo == "":
+                        st.markdown(":red[no end year given.]")
                     else:
-                        if not self.__isValidYearFormat(yearTo, "%Y"):
-                            st.markdown(":red[To year is not in format yyyy.]")
+                        if not self.__isValidYearFormat(yearFrom, "%Y"):
+                            st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
-                                st.markdown(":red[From year cannot be greater than To year.]")
+                            if not self.__isValidYearFormat(yearTo, "%Y"):
+                                st.markdown(":red[To year is not in format yyyy.]")
                             else:
-                                self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
+                                if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                    st.markdown(":red[From year cannot be greater than To year.]")
+                                else:
+                                    self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
 
     def ants_all(self):
-        st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
-        searched = st.form_submit_button("Search")
-        if searched:
-            self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
+        with st.form("Search for all annotations"):
+            st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
+            searched = st.form_submit_button("Search")
+            if searched:
+                self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
 
     def ants_yr_read(self):
-        yearFrom = st.text_input("From year (yyyy)")
-        yearTo = st.text_input("To year (yyyy)")
-        searched = st.form_submit_button("Search")
-        if searched:
-            if yearFrom == "":
-                st.markdown(":red[no start year given.]")
-            else:
-                if yearTo == "":
-                    st.markdown(":red[no end year given.]")
+        with st.form("Search for annotations by year book titles read"):
+            yearFrom = st.text_input("From year (yyyy)")
+            yearTo = st.text_input("To year (yyyy)")
+            searched = st.form_submit_button("Search")
+            if searched:
+                if yearFrom == "":
+                    st.markdown(":red[no start year given.]")
                 else:
-                    if not self.__isValidYearFormat(yearFrom, "%Y"):
-                        st.markdown(":red[From year is not in format yyyy.]")
+                    if yearTo == "":
+                        st.markdown(":red[no end year given.]")
                     else:
-                        if not self.__isValidYearFormat(yearTo, "%Y"):
-                            st.markdown(":red[To year is not in format yyyy.]")
+                        if not self.__isValidYearFormat(yearFrom, "%Y"):
+                            st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
-                                st.markdown(":red[From year cannot be greater than To year.]")
+                            if not self.__isValidYearFormat(yearTo, "%Y"):
+                                st.markdown(":red[To year is not in format yyyy.]")
                             else:
-                                self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
+                                if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                    st.markdown(":red[From year cannot be greater than To year.]")
+                                else:
+                                    self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
         dbPath = sys.argv[1] + sys.argv[2]
@@ -275,7 +283,7 @@ class DATA_FORM:
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
-                                bk.Date,
+                                bk.Dat,
                                 bk.__getattribute__('Year Read'),
                                 bk.__getattribute__('Publication Locale'),
                                 bk.Edition,
@@ -416,7 +424,7 @@ class DATA_FORM:
                 title=ant.__getattribute__('Book Title'),
                 author=ant.Author,
                 publisher=ant.Publisher,
-                date=ant.Date
+                date=ant.Dat
             )
         )
 

@@ -262,7 +262,7 @@ class DATA_SOURCE:
                                     FROM [Books] 
                                     WHERE Books.Author LIKE ('{}')""",
         "books_by_auth": """SELECT [Books].[Book No], Books.[Book Title], [Books].[Author], Books.Publisher,
-                                    Books.Date 
+                                    Books.Dat 
                                 FROM [Books] 
                                 WHERE Books.Author LIKE ('{}') 
                                 ORDER BY [Books].[Book No]""",
@@ -318,10 +318,16 @@ class DATA_SOURCE:
         "books_by_yr_read": """SELECT * FROM Books 
                 WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}') 
                 ORDER BY Books.[Book No]""",
+        "bk_fr_annot_add": """SELECT [Book No], [Book Title], Author, Publisher, Dat
+                              FROM Books 
+                              WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
         "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')",
         "append_srch_txt_order_by": " ORDER BY [Source Text].[Book No], [Source Text].[Page No]",
         "insert_srch_txt_auth": " OR (Books.[Author] LIKE('{}') AND [Source Text].[Source Text] LIKE('{}'))",
         "insert_srch_txt_bk": " OR (Books.[Book Title] LIKE ('{}') AND [Source Text].[Source Text] LIKE ('{}'))",
+        "insert_bk_fr_annot_add_pub": " AND Publisher LIKE ('{}')",
+        "insert_bk_fr_annot_add_date": " AND Dat LIKE ('{}')",
+        "append_bk_fr_annot_add": " ORDER BY [Book No]"
     }
 
     dict_inserts = {

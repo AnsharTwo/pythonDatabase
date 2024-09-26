@@ -11,6 +11,7 @@ class EDIT_FORM:
 
     dict_edit_annot_sel = {
         "ants_edt_add": "Create new annotation",
+        "ants_edt_add_bk_srch": "Search for book for new annotation",
         "ants_edt_edt": "Edit existing annotation",
         "ants_edt_dlt": "Delete an annotation",
         "ants_add_bk": "Add a new book"
@@ -29,35 +30,66 @@ class EDIT_FORM:
     }
 
     def select_edit_form(self):
-        # with st.form("Edit"):
-            st.header("Edit annotations data")
-            editSelection = st.selectbox("Select data activity", [
-                "---",
-                self.dict_edit_annot_sel.get("ants_edt_add"),
-                self.dict_edit_annot_sel.get("ants_edt_edt"),
-                self.dict_edit_annot_sel.get("ants_edt_dlt"),
-                self.dict_edit_annot_sel.get("ants_add_bk")
-            ])
-            if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
-                self.edt_new_annot()
-            if editSelection == self.dict_edit_annot_sel.get("ants_edt_edt"):
-                self.edt_edt_annot()
-            if editSelection == self.dict_edit_annot_sel.get("ants_edt_dlt"):
-                self.edt_dlt_annot()
-            elif editSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
-                self.add_new_bk()
+        st.header("Edit annotations data")
+        editSelection = st.selectbox("Select data activity", [
+            "---",
+            self.dict_edit_annot_sel.get("ants_edt_add"),
+            self.dict_edit_annot_sel.get("ants_edt_edt"),
+            self.dict_edit_annot_sel.get("ants_edt_dlt"),
+            self.dict_edit_annot_sel.get("ants_add_bk")
+        ])
+        if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
+            self.edt_new_annot()
+        if editSelection == self.dict_edit_annot_sel.get("ants_edt_edt"):
+            self.edt_edt_annot()
+        if editSelection == self.dict_edit_annot_sel.get("ants_edt_dlt"):
+            self.edt_dlt_annot()
+        elif editSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
+            self.add_new_bk()
 
     def edt_new_annot(self):
-        st.write(":green[Add new annotation]")
-        # book_title = st.text_input("Book title:red[*]")
-        # author = st.text_input("Author:red[*]")
-        # publisher = st.text_input("Publisher")
-        # date = st.text_input("Date")
-        # txt = st.text_area("Enter new annotation")
-        # create = st.form_submit_button("Create")
-        # if create:
-        #     if txt == "":
-        #         st.markdown(":red[no text entered.]")
+        placeholder = st.empty()
+        can_search = False
+        placeholder.title("Create new annotation")
+        with placeholder.form("Add new annotation"):
+            st.write(":green[Add new annotation]")
+            book_title = st.text_input("Book title:red[*]")
+            author = st.text_input("Author:red[*]")
+            publisher = st.text_input("Publisher")
+            date_pub = st.text_input("Date")
+            search_books = st.form_submit_button("Search for book title")
+            if search_books:
+                if not can_search:
+                    can_search = True
+                if book_title == "":
+                    st.markdown(":red[Book title must be given.]")
+                    can_search = False
+                elif len(book_title) > self.dict_db_fld_validations.get("books_bk_ttl_len"):
+                    st.markdown(":red[Book title cannot be longer than {} characters]"
+                                .format(str(self.dict_db_fld_validations.get("books_bk_ttl_len"))))
+                    can_search = False
+                elif author == "":
+                    st.markdown(":red[No author given]")
+                    can_search = False
+                elif len(author) > self.dict_db_fld_validations.get("books_auth_len"):
+                    st.markdown(":red[Author cannot be longer than {} characters]"
+                                .format(str(self.dict_db_fld_validations.get("books_auth_len"))))
+                    can_search = False
+                elif len(publisher) > self.dict_db_fld_validations.get("books_pub_len"):
+                    st.markdown(":red[Publisher cannot be longer than {} characters]"
+                                .format(str(self.dict_db_fld_validations.get("books_pub_len"))))
+                    can_search = False
+                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
+                    st.markdown(":red[Date of publication must be in YYYY format]")
+                    can_search = False
+                if can_search:
+                    book_search = []
+                    book_search.append(book_title)
+                    book_search.append(author)
+                    book_search.append(publisher)
+                    book_search.append(date_pub)
+                    placeholder.empty()
+                    self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -151,17 +183,17 @@ class EDIT_FORM:
                     self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book)
         if sbmt_bk:
             st.success("New book added.")
-            st.write("Title: {}".format(book_title))
-            st.write("Author: {}".format(author))
-            st.write("Publisher: {}".format(publisher))
-            st.write("Publication date: {}".format(date_pub))
-            st.write("Year read: {}".format(year_read))
-            st.write("Publication location: {}".format(pub_location))
-            st.write("Edition: {}".format(edition))
-            st.write("First edition: {}".format(first_edition))
-            st.write("First edition location: {}".format(first_edition_locale))
-            st.write("First edition name: {}".format(first_edition_name))
-            st.write("First edition publisher: {}".format(first_edition_publisher))
+            st.markdown(":blue[Title:] {}".format(book_title))
+            st.markdown(":blue[Author:] {}".format(author))
+            st.markdown(":blue[Publisher:] {}".format(publisher))
+            st.markdown(":blue[Publication date:] {}".format(date_pub))
+            st.markdown(":blue[Year read:] {}".format(year_read))
+            st.markdown(":blue[Publication location:] {}".format(pub_location))
+            st.markdown(":blue[Edition:] {}".format(edition))
+            st.markdown(":blue[First edition:] {}".format(first_edition))
+            st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
+            st.markdown(":blue[First edition name:] {}".format(first_edition_name))
+            st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
 
     def db_records(self, searchSelection, record):
         dbPath = sys.argv[1] + sys.argv[2]
@@ -169,16 +201,18 @@ class EDIT_FORM:
         sourceData.is_ms_access_driver()
         conn = sourceData.db_connect()
         sourceData.report_tables(conn.cursor())
-
         if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
             self.__add_book(sourceData, conn, record)
-
+        if searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
+            self.__srch_bks_for_new_annot(conn, record)
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
         bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addNewBook(conn.cursor(), bk_sum, book)
 
+    def __srch_bks_for_new_annot(self, conn, book):
+        print("HERE #################################################################")
 
     def __isValidYearFormat(self,year, format):
         try:
