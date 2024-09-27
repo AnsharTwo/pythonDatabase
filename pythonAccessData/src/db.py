@@ -208,6 +208,43 @@ class DATA_SOURCE:
             pyodbc_state = ex.args[1]
             st.write(pyodbc_state)
 
+    def resAddNewAnnot_srch_bk(self, cursor, book):
+        srchOnPub = True
+        srchOnDate = True
+        sqlStr = ""
+        if str(book[int(self.dict_books_indx.get("publisher"))]) == "":
+            srchOnPub = False
+        if str(book[int(self.dict_books_indx.get("dat"))]) == "":
+            srchOnDate = False
+        if not srchOnPub and not srchOnDate:
+            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count")).format(str(book[int(self.dict_books_indx.get("title"))]),
+                                                                              str(book[int(self.dict_books_indx.get("author"))]))
+            print("SQL IS (title, author): " + sqlStr)
+        elif srchOnPub and srchOnDate:
+            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count") +
+                      self.dict_queries.get("insert_bk_fr_annot_add_pub") +
+                      self.dict_queries.get("insert_bk_fr_annot_add_date")).format(str(book[int(self.dict_books_indx.get("title"))]),
+                                                                              str(book[int(self.dict_books_indx.get("author"))]),
+                                                                              str(book[int(self.dict_books_indx.get("publisher"))]),
+                                                                              str(book[int(self.dict_books_indx.get("dat"))]))
+            print("SQL IS (inc pub and date): " + sqlStr)
+        elif srchOnPub and not srchOnDate:
+            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count") +
+                      self.dict_queries.get("insert_bk_fr_annot_add_pub")).format(str(book[int(self.dict_books_indx.get("title"))]),
+                                                                              str(book[int(self.dict_books_indx.get("author"))]),
+                                                                              str(book[int(self.dict_books_indx.get("publisher"))]))
+            print("SQL IS (inc pub): " + sqlStr)
+        elif not srchOnPub and srchOnDate:
+            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count") +
+                      self.dict_queries.get("insert_bk_fr_annot_add_date")).format(str(book[int(self.dict_books_indx.get("title"))]),
+                                                                              str(book[int(self.dict_books_indx.get("title"))]),
+                                                                              str(book[int(self.dict_books_indx.get("dat"))]))
+            print("SQL IS (inc date): " + sqlStr)
+
+        results = cursor.execute(sqlStr)
+        res = results.fetchone()
+        return res[0]
+
     dict_books_indx = {
         "title":                    0,
         "author":                   1,
@@ -321,6 +358,9 @@ class DATA_SOURCE:
         "bk_fr_annot_add": """SELECT [Book No], [Book Title], Author, Publisher, Dat
                               FROM Books 
                               WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
+        "bk_fr_annot_add_count": """SELECT COUNT(*) 
+                          FROM Books 
+                          WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
         "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')",
         "append_srch_txt_order_by": " ORDER BY [Source Text].[Book No], [Source Text].[Page No]",
         "insert_srch_txt_auth": " OR (Books.[Author] LIKE('{}') AND [Source Text].[Source Text] LIKE('{}'))",

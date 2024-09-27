@@ -204,15 +204,17 @@ class EDIT_FORM:
         if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
             self.__add_book(sourceData, conn, record)
         if searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
-            self.__srch_bks_for_new_annot(conn, record)
+            self.__srch_bks_for_new_annot(sourceData, conn, record)
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
         bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addNewBook(conn.cursor(), bk_sum, book)
 
-    def __srch_bks_for_new_annot(self, conn, book):
-        print("HERE #################################################################")
+    def __srch_bks_for_new_annot(self, sourceData, conn, book):
+        bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
+        print("Found {} results.".format(str(bkSum)))
+
 
     def __isValidYearFormat(self,year, format):
         try:
