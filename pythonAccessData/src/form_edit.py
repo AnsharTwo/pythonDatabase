@@ -50,7 +50,6 @@ class EDIT_FORM:
     def edt_new_annot(self):
         placeholder = st.empty()
         can_search = False
-        placeholder.title("Create new annotation")
         with placeholder.form("Add new annotation"):
             st.write(":green[Add new annotation]")
             book_title = st.text_input("Book title:red[*]")
@@ -84,12 +83,33 @@ class EDIT_FORM:
                     can_search = False
                 if can_search:
                     book_search = []
-                    book_search.append(book_title)
-                    book_search.append(author)
-                    book_search.append(publisher)
-                    book_search.append(date_pub)
+                    book_search.append(self.__format_sql_wrap(book_title))
+                    book_search.append(self.__format_sql_wrap(author))
+                    if publisher != "":
+                        book_search.append(self.__format_sql_wrap(publisher))
+                    else:
+                        book_search.append("")
+                    if date_pub != "":
+                        book_search.append(self.__format_sql_wrap(date_pub))
+                    else:
+                        book_search.append("")
                     placeholder.empty()
-                    self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
+                    bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
+                    with placeholder.form("Find new book for annotation"):
+                        st.write("Found {} results.".format(str(bkSum)))
+                        if bkSum == 0:
+                            st.write("The book you searched for was not found.")
+                            sbmt_nw_bk = st.form_submit_button("Add as a new book")
+                            st.form_submit_button("Search for the book again")
+                            if sbmt_nw_bk:
+                                self.add_new_bk()
+                        elif bkSum == 1:
+                            sbmt_add_pg = st.form_submit_button("Go")
+                            if sbmt_add_pg:
+                                st.write("Add page number")
+                        elif bkSum > 1:
+                            st.write("The search criteria you entered found more than one book.")
+                            st.form_submit_button("Refine the book search")
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -203,8 +223,8 @@ class EDIT_FORM:
         sourceData.report_tables(conn.cursor())
         if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
             self.__add_book(sourceData, conn, record)
-        if searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
-            self.__srch_bks_for_new_annot(sourceData, conn, record)
+        elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
+            return self.__srch_bks_for_new_annot(sourceData, conn, record)
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
@@ -213,8 +233,7 @@ class EDIT_FORM:
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book):
         bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
-        print("Found {} results.".format(str(bkSum)))
-
+        return bkSum
 
     def __isValidYearFormat(self,year, format):
         try:
@@ -222,3 +241,17 @@ class EDIT_FORM:
         except ValueError:
             res = False
         return res
+
+    def __format_sql_wrap(self, searchDatum):
+        datum = searchDatum
+        if not searchDatum.startswith("%"):
+            datum = "%" + datum
+        if not searchDatum.endswith("%"):
+            datum = datum + "%"
+        datum = self.__formatSQLSpecialChars(datum)
+        return datum
+
+    def __formatSQLSpecialChars(self, searchDatum):
+        formattedDatum = searchDatum.replace("'", "\''")
+        formattedDatum = formattedDatum.replace("[", "[[]")
+        return formattedDatum

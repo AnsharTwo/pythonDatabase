@@ -209,41 +209,53 @@ class DATA_SOURCE:
             st.write(pyodbc_state)
 
     def resAddNewAnnot_srch_bk(self, cursor, book):
+        sqlStr = self.__sql_nw_annt_bk_srch("count", book)
+        results = cursor.execute(sqlStr)
+        res = results.fetchone()
+        return res[0]
+
+    def __sql_nw_annt_bk_srch(self, queryType, book):
+        sqlStr = ""
+        prefix_sqlStr = ""
         srchOnPub = True
         srchOnDate = True
-        sqlStr = ""
+        if queryType == "count":
+            prefix_sqlStr = self.dict_queries.get("bk_fr_annot_add_count")
+        elif queryType == "records":
+            prefix_sqlStr = self.dict_queries.get("bk_fr_annot_add")
         if str(book[int(self.dict_books_indx.get("publisher"))]) == "":
             srchOnPub = False
         if str(book[int(self.dict_books_indx.get("dat"))]) == "":
             srchOnDate = False
         if not srchOnPub and not srchOnDate:
-            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count")).format(str(book[int(self.dict_books_indx.get("title"))]),
-                                                                              str(book[int(self.dict_books_indx.get("author"))]))
-            print("SQL IS (title, author): " + sqlStr)
+            sqlStr = prefix_sqlStr.format(str(book[int(self.dict_books_indx.get("title"))]),
+                                          str(book[int(self.dict_books_indx.get("author"))]))
+            if queryType == "records":
+                sqlStr = sqlStr + self.dict_queries.get("append_bk_fr_annot_add")
         elif srchOnPub and srchOnDate:
-            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count") +
-                      self.dict_queries.get("insert_bk_fr_annot_add_pub") +
-                      self.dict_queries.get("insert_bk_fr_annot_add_date")).format(str(book[int(self.dict_books_indx.get("title"))]),
-                                                                              str(book[int(self.dict_books_indx.get("author"))]),
-                                                                              str(book[int(self.dict_books_indx.get("publisher"))]),
-                                                                              str(book[int(self.dict_books_indx.get("dat"))]))
-            print("SQL IS (inc pub and date): " + sqlStr)
+            sqlStr = (prefix_sqlStr +
+                     self.dict_queries.get("insert_bk_fr_annot_add_pub") +
+                     self.dict_queries.get("insert_bk_fr_annot_add_date")).format(str(book[int(self.dict_books_indx.get("title"))]),
+                                                                                  str(book[int(self.dict_books_indx.get("author"))]),
+                                                                                  str(book[int(self.dict_books_indx.get("publisher"))]),
+                                                                                  str(book[int(self.dict_books_indx.get("dat"))]))
+            if queryType == "records":
+                sqlStr = sqlStr + self.dict_queries.get("append_bk_fr_annot_add")
         elif srchOnPub and not srchOnDate:
-            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count") +
+            sqlStr = (prefix_sqlStr +
                       self.dict_queries.get("insert_bk_fr_annot_add_pub")).format(str(book[int(self.dict_books_indx.get("title"))]),
-                                                                              str(book[int(self.dict_books_indx.get("author"))]),
-                                                                              str(book[int(self.dict_books_indx.get("publisher"))]))
-            print("SQL IS (inc pub): " + sqlStr)
+                                                                                  str(book[int(self.dict_books_indx.get("author"))]),
+                                                                                  str(book[int(self.dict_books_indx.get("publisher"))]))
+            if queryType == "records":
+                sqlStr = sqlStr + self.dict_queries.get("append_bk_fr_annot_add")
         elif not srchOnPub and srchOnDate:
-            sqlStr = (self.dict_queries.get("bk_fr_annot_add_count") +
+            sqlStr = (prefix_sqlStr +
                       self.dict_queries.get("insert_bk_fr_annot_add_date")).format(str(book[int(self.dict_books_indx.get("title"))]),
-                                                                              str(book[int(self.dict_books_indx.get("title"))]),
-                                                                              str(book[int(self.dict_books_indx.get("dat"))]))
-            print("SQL IS (inc date): " + sqlStr)
-
-        results = cursor.execute(sqlStr)
-        res = results.fetchone()
-        return res[0]
+                                                                                   str(book[int(self.dict_books_indx.get("author"))]),
+                                                                                   str(book[int(self.dict_books_indx.get("dat"))]))
+            if queryType == "records":
+                sqlStr = sqlStr + self.dict_queries.get("append_bk_fr_annot_add")
+        return sqlStr
 
     dict_books_indx = {
         "title":                    0,
