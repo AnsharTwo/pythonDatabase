@@ -50,7 +50,7 @@ class EDIT_FORM:
     def edt_new_annot(self):
         placeholder = st.empty()
         can_search = False
-        with placeholder.form("Add new annotation"):
+        with (placeholder.form("Add new annotation")):
             st.write(":green[Add new annotation]")
             book_title = st.text_input("Book title:red[*]")
             author = st.text_input("Author:red[*]")
@@ -93,23 +93,15 @@ class EDIT_FORM:
                         book_search.append(self.__format_sql_wrap(date_pub))
                     else:
                         book_search.append("")
-                    placeholder.empty()
                     bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
-                    with placeholder.form("Find new book for annotation"):
-                        st.write("Found {} results.".format(str(bkSum)))
+                    placeholder.empty()
+                    with placeholder.empty():
                         if bkSum == 0:
-                            st.write("The book you searched for was not found.")
-                            sbmt_nw_bk = st.form_submit_button("Add as a new book")
-                            st.form_submit_button("Search for the book again")
-                            if sbmt_nw_bk:
-                                self.add_new_bk()
+                                st.form_submit_button("Book not found. Search again")
                         elif bkSum == 1:
-                            sbmt_add_pg = st.form_submit_button("Go")
-                            if sbmt_add_pg:
-                                st.write("Add page number")
+                            st.text_input("Page number")
                         elif bkSum > 1:
-                            st.write("The search criteria you entered found more than one book.")
-                            st.form_submit_button("Refine the book search")
+                            st.form_submit_button("More than 1 book found. Refine the book search")
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
