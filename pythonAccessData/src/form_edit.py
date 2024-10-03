@@ -49,8 +49,10 @@ class EDIT_FORM:
 
     def edt_new_annot(self):
         placeholder = st.empty()
+        placeholder.title("Add new annotation")
         can_search = False
-        with (placeholder.form("Add new annotation")):
+        bkSum = 0
+        with (placeholder.form("Create a new annotation")):
             st.write(":green[Add new annotation]")
             book_title = st.text_input("Book title:red[*]")
             author = st.text_input("Author:red[*]")
@@ -93,15 +95,24 @@ class EDIT_FORM:
                         book_search.append(self.__format_sql_wrap(date_pub))
                     else:
                         book_search.append("")
+                    # placeholder.empty()
                     bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
-                    placeholder.empty()
-                    with placeholder.empty():
-                        if bkSum == 0:
-                                st.form_submit_button("Book not found. Search again")
-                        elif bkSum == 1:
-                            st.text_input("Page number")
-                        elif bkSum > 1:
-                            st.form_submit_button("More than 1 book found. Refine the book search")
+                    st.write("Found {} results.".format(str(bkSum)))
+                    if bkSum == 0:
+                        st.markdown(":red[Book was not found.]")
+                    elif bkSum == 1:
+                        annot_page_no = st.text_input("Page number", max_chars=4)
+                        annot_txt_area = st.text_area("Enter the annotation")
+                        btn_annot_cancel = st.form_submit_button("Discard")
+                        btn_annot_go = st.form_submit_button("Create")
+                        if btn_annot_cancel:
+                            self.edt_new_annot()
+                        if btn_annot_go:
+                            st.write("Adding")
+                    elif bkSum > 1:
+                        btn_book_again = st.form_submit_button("More than 1 book found. Refine the book search")
+                        if btn_book_again:
+                            self.edt_new_annot()
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -111,8 +122,8 @@ class EDIT_FORM:
 
     def add_new_bk(self):
         placeholder = st.empty()
-        sbmt_bk = False
         placeholder.title("Add new book")
+        sbmt_bk = False
         with placeholder.form("Add new book"):
             st.write(":green[Add new book]")
             book_title = st.text_input("Book title:red[*]")
