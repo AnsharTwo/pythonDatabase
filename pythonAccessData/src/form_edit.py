@@ -36,7 +36,8 @@ class EDIT_FORM:
             self.dict_edit_annot_sel.get("ants_edt_add"),
             self.dict_edit_annot_sel.get("ants_edt_edt"),
             self.dict_edit_annot_sel.get("ants_edt_dlt"),
-            self.dict_edit_annot_sel.get("ants_add_bk")
+            self.dict_edit_annot_sel.get("ants_add_bk"),
+            "qq"
         ])
         if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
             self.edt_new_annot()
@@ -46,12 +47,48 @@ class EDIT_FORM:
             self.edt_dlt_annot()
         elif editSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
             self.add_new_bk()
+        elif editSelection == "qq":
+
+            st.title("Test")
+            with st.form("form-1"):
+
+                # mine
+                placeholder = st.empty()
+                placeholder.empty()
+                # mine
+
+                submitted_1 = st.form_submit_button(label="Submit")
+                if not submitted_1 and not st.session_state.get("submission-1"):
+                    st.stop()
+                st.session_state["submission-1"] = True
+                st.write("1")
+
+                # mine
+                a = "w"
+
+            with st.form("form-2"):
+
+                # mine
+                placeholder = st.empty()
+                placeholder.empty()
+                # mine
+
+                submitted_2 = st.form_submit_button(label="Submit")
+                if not submitted_2:
+                    st.stop()
+                st.session_state["submission-1"] = False
+                st.write("2")
+
+                # mine
+                st.write("a is " + a)
+                placeholder.empty()
+            self.add_new_bk()
 
     def edt_new_annot(self):
         placeholder = st.empty()
-        placeholder.title("Add new annotation")
         can_search = False
         bkSum = 0
+        placeholder.title("Add new annotation")
         with (placeholder.form("Create a new annotation")):
             st.write(":green[Add new annotation]")
             book_title = st.text_input("Book title:red[*]")
@@ -100,6 +137,7 @@ class EDIT_FORM:
                     st.write("Found {} results.".format(str(bkSum)))
                     if bkSum == 0:
                         st.markdown(":red[Book was not found.]")
+                        st.form_submit_button("Search for book again")
                     elif bkSum == 1:
                         annot_page_no = st.text_input("Page number", max_chars=4)
                         annot_txt_area = st.text_area("Enter the annotation")
