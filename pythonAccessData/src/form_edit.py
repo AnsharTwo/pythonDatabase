@@ -36,8 +36,7 @@ class EDIT_FORM:
             self.dict_edit_annot_sel.get("ants_edt_add"),
             self.dict_edit_annot_sel.get("ants_edt_edt"),
             self.dict_edit_annot_sel.get("ants_edt_dlt"),
-            self.dict_edit_annot_sel.get("ants_add_bk"),
-            "qq"
+            self.dict_edit_annot_sel.get("ants_add_bk")
         ])
         if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
             self.edt_new_annot()
@@ -47,47 +46,11 @@ class EDIT_FORM:
             self.edt_dlt_annot()
         elif editSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
             self.add_new_bk()
-        elif editSelection == "qq":
-
-            st.title("Test")
-            with st.form("form-1"):
-
-                # mine
-                placeholder = st.empty()
-                placeholder.empty()
-                # mine
-
-                submitted_1 = st.form_submit_button(label="Submit")
-                if not submitted_1 and not st.session_state.get("submission-1"):
-                    st.stop()
-                st.session_state["submission-1"] = True
-                st.write("1")
-
-                # mine
-                a = "w"
-
-            with st.form("form-2"):
-
-                # mine
-                placeholder = st.empty()
-                placeholder.empty()
-                # mine
-
-                submitted_2 = st.form_submit_button(label="Submit")
-                if not submitted_2:
-                    st.stop()
-                st.session_state["submission-1"] = False
-                st.write("2")
-
-                # mine
-                st.write("a is " + a)
-                placeholder.empty()
-            self.add_new_bk()
 
     def edt_new_annot(self):
         placeholder = st.empty()
         can_search = False
-        bkSum = 0
+        bkSum = -1
         placeholder.title("Add new annotation")
         with (placeholder.form("Create a new annotation")):
             st.write(":green[Add new annotation]")
@@ -95,62 +58,83 @@ class EDIT_FORM:
             author = st.text_input("Author:red[*]")
             publisher = st.text_input("Publisher")
             date_pub = st.text_input("Date")
-            search_books = st.form_submit_button("Search for book title")
-            if search_books:
-                if not can_search:
-                    can_search = True
-                if book_title == "":
-                    st.markdown(":red[Book title must be given.]")
-                    can_search = False
-                elif len(book_title) > self.dict_db_fld_validations.get("books_bk_ttl_len"):
-                    st.markdown(":red[Book title cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_bk_ttl_len"))))
-                    can_search = False
-                elif author == "":
-                    st.markdown(":red[No author given]")
-                    can_search = False
-                elif len(author) > self.dict_db_fld_validations.get("books_auth_len"):
-                    st.markdown(":red[Author cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_auth_len"))))
-                    can_search = False
-                elif len(publisher) > self.dict_db_fld_validations.get("books_pub_len"):
-                    st.markdown(":red[Publisher cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_pub_len"))))
-                    can_search = False
-                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
-                    st.markdown(":red[Date of publication must be in YYYY format]")
-                    can_search = False
-                if can_search:
-                    book_search = []
-                    book_search.append(self.__format_sql_wrap(book_title))
-                    book_search.append(self.__format_sql_wrap(author))
-                    if publisher != "":
-                        book_search.append(self.__format_sql_wrap(publisher))
-                    else:
-                        book_search.append("")
-                    if date_pub != "":
-                        book_search.append(self.__format_sql_wrap(date_pub))
-                    else:
-                        book_search.append("")
-                    # placeholder.empty()
-                    bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
-                    st.write("Found {} results.".format(str(bkSum)))
-                    if bkSum == 0:
-                        st.markdown(":red[Book was not found.]")
-                        st.form_submit_button("Search for book again")
-                    elif bkSum == 1:
-                        annot_page_no = st.text_input("Page number", max_chars=4)
-                        annot_txt_area = st.text_area("Enter the annotation")
-                        btn_annot_cancel = st.form_submit_button("Discard")
-                        btn_annot_go = st.form_submit_button("Create")
-                        if btn_annot_cancel:
-                            self.edt_new_annot()
-                        if btn_annot_go:
-                            st.write("Adding")
-                    elif bkSum > 1:
-                        btn_book_again = st.form_submit_button("More than 1 book found. Refine the book search")
-                        if btn_book_again:
-                            self.edt_new_annot()
+            search_books = st.form_submit_button(label="Search for book")
+            if not search_books and not st.session_state.get("submit_srch_bks"):
+                st.stop()
+            st.session_state["submit_srch_bks"] = True
+            if not can_search:
+                can_search = True
+            if book_title == "":
+                st.markdown(":red[Book title must be given.]")
+                can_search = False
+            elif len(book_title) > self.dict_db_fld_validations.get("books_bk_ttl_len"):
+                st.markdown(":red[Book title cannot be longer than {} characters]"
+                            .format(str(self.dict_db_fld_validations.get("books_bk_ttl_len"))))
+                can_search = False
+            elif author == "":
+                st.markdown(":red[No author given]")
+                can_search = False
+            elif len(author) > self.dict_db_fld_validations.get("books_auth_len"):
+                st.markdown(":red[Author cannot be longer than {} characters]"
+                            .format(str(self.dict_db_fld_validations.get("books_auth_len"))))
+                can_search = False
+            elif len(publisher) > self.dict_db_fld_validations.get("books_pub_len"):
+                st.markdown(":red[Publisher cannot be longer than {} characters]"
+                            .format(str(self.dict_db_fld_validations.get("books_pub_len"))))
+                can_search = False
+            elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
+                st.markdown(":red[Date of publication must be in YYYY format]")
+                can_search = False
+            if can_search:
+                book_search = []
+                book_search.append(self.__format_sql_wrap(book_title))
+                book_search.append(self.__format_sql_wrap(author))
+                if publisher != "":
+                    book_search.append(self.__format_sql_wrap(publisher))
+                else:
+                    book_search.append("")
+                if date_pub != "":
+                    book_search.append(self.__format_sql_wrap(date_pub))
+                else:
+                    book_search.append("")
+                bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search)
+        placeholder = st.empty()
+        placeholder.title("Book search")
+        with placeholder.form("Search book results"):
+            add_nw_bk = False
+            if bkSum > 0:
+                st.write("Found {} results.".format(str(bkSum)))
+            if bkSum == 0:
+                st.markdown(":red[Book was not found.]")
+                search_books_again = st.form_submit_button(label="Search for book again")
+                add_new_book = st.form_submit_button(label="Add as new book")
+                if not  search_books_again and not add_new_book:
+                    st.stop()
+                st.session_state["submit_srch_bks"] = False
+                if add_new_book:
+                    add_nw_bk = True
+                if search_books_again:
+                    placeholder.empty()
+            elif bkSum == 1:
+                btn_annot_go = st.form_submit_button(label="Create")
+                btn_annot_cancel = st.form_submit_button(label="Discard")
+                if not btn_annot_go and not btn_annot_cancel:
+                    st.stop()
+                st.session_state["submit_srch_bks"] = False
+                if btn_annot_go:
+                    annot_page_no = st.text_input("Page number", max_chars=4)
+                    annot_txt_area = st.text_area("Enter the annotation")
+                if btn_annot_cancel:
+                    placeholder.empty()
+            elif bkSum > 1:
+                btn_book_again = st.form_submit_button(label="More than 1 book found. Refine the book search")
+                if not btn_book_again:
+                    st.stop()
+                st.session_state["submit_srch_bks"] = False
+                if btn_book_again:
+                    placeholder.empty()
+        if add_nw_bk:
+            self.add_new_bk()
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
