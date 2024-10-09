@@ -214,6 +214,11 @@ class DATA_SOURCE:
         res = results.fetchone()
         return res[0]
 
+    def addNewAnnot_srch_bk(self, cursor, book):
+        sqlStr = self.__sql_nw_annt_bk_srch("records", book)
+        annots = cursor.execute(sqlStr)
+        return annots
+
     def __sql_nw_annt_bk_srch(self, queryType, book):
         sqlStr = ""
         prefix_sqlStr = ""
