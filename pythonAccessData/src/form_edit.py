@@ -107,7 +107,7 @@ class EDIT_FORM:
                 else:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
-                annots = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, False)
+                bks = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, False)
                 if bkSum > 0:
                     st.write("Found {} results.".format(str(bkSum)))
                 add_nw_bk = False
@@ -122,7 +122,7 @@ class EDIT_FORM:
                         add_nw_bk = True
                 elif bkSum == 1:
                     st.markdown(":green[Book was found.]")
-                    self.__show_bk_srch_res(annots)
+                    self.__show_bk_srch_res(bks)
                     btn_annot_go = st.form_submit_button(label="Create")
                     btn_annot_cancel = st.form_submit_button(label="Discard")
                     if btn_annot_go:
@@ -133,13 +133,30 @@ class EDIT_FORM:
                         st.rerun()
                 elif bkSum > 1:
                     editSelection = st.selectbox("Select book to annotate", [
-                        "---",
+                        "{title}>>{author}>>{publisher}>>{date}".format(
+                            title = bk.__getattribute__('Book Title'),
+                            author = bk.Author,
+                            publisher = bk.Publisher,
+                            date = bk.Dat
+                            )
+                        for bk in bks
                     ])
-                    # assign session state search fields as per selection, submit and rerun?...
-                    st.markdown(":red[OR...]")
-                    btn_book_again = st.form_submit_button(
-                    label="Refine the book search")
-                    if btn_book_again:
+                    btn_book_select = st.form_submit_button(label="Select and annotate")
+                    st.markdown(":orange[OR...]")
+                    btn_book_again = st.form_submit_button(label="Refine the book search")
+                    if btn_book_select:
+                        book_selected = editSelection.split(">>")
+                        for ctr in range(2, len(book_selected)): # i.e. non-mandatory fields pub, date pubed
+                            if str(book_selected[ctr]) == "None":
+                                book_selected.pop(ctr)
+                                book_selected.insert(ctr, "")
+                        st.session_state["book_title"] = str(book_selected[0])
+                        st.session_state["author"] = str(book_selected[1])
+                        st.session_state["publisher"] = str(book_selected[2])
+                        st.session_state["date_published"] = str(book_selected[3])
+                        self.annot_srch_bk_res()
+                        st.rerun()
+                    elif btn_book_again:
                         self.annot_srch_bk()
                         st.rerun()
             if add_nw_bk:
@@ -279,16 +296,16 @@ class EDIT_FORM:
             annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
             return annots
 
-    def __show_bk_srch_res(self, annots):
-        for ant in annots:
+    def __show_bk_srch_res(self, bks):
+        for bk in bks:
             st.markdown(":blue[Title:] :orange[{}]\r\r".format(
-                ant.__getattribute__('Book Title')))
+                bk.__getattribute__('Book Title')))
             st.markdown(":gray[Author:] :orange[{}]\r\r".format(
-                ant.Author))
+                bk.Author))
             st.markdown(":gray[Publisher:] :orange[{}]\r\r".format(
-                ant.Publisher))
+                bk.Publisher))
             st.markdown(":gray[Date:] :orange[{}]\r\r".format(
-                ant.Dat))
+                bk.Dat))
 
     def __isValidYearFormat(self,year, format):
         try:
