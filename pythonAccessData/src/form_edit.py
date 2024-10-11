@@ -61,6 +61,16 @@ class EDIT_FORM:
         annot_page_no = ""
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
+        if "res_multi_books_for_new_annot" not in st.session_state:
+            st.session_state["res_multi_books_for_new_annot"] = False # for clicking Back having selected book from multi-search dd
+        if "orig_book_title" not in st.session_state:
+            st.session_state["orig_book_title"] = "" # for clicking Back having selected book from multi-search dd
+        if "orig_author" not in st.session_state:
+            st.session_state["orig_author"] = "" # for clicking Back having selected book from multi-search dd
+        if "orig_publisher" not in st.session_state:
+            st.session_state["orig_publisher"] = "" # for clicking Back having selected book from multi-search dd
+        if "orig_date_published" not in st.session_state:
+            st.session_state["orig_date_published"] = "" # for clicking Back having selected book from multi-search dd
         if "book_title" not in st.session_state:
             st.session_state["book_title"] = ""
         if "author" not in st.session_state:
@@ -108,7 +118,7 @@ class EDIT_FORM:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
                 bks = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, False)
-                if bkSum > 0:
+                if bkSum > 1:
                     st.write("Found {} results.".format(str(bkSum)))
                 add_nw_bk = False
                 if bkSum == 0:
@@ -124,13 +134,23 @@ class EDIT_FORM:
                     st.markdown(":green[Book was found.]")
                     self.__show_bk_srch_res(bks)
                     btn_annot_go = st.form_submit_button(label="Create")
-                    btn_annot_cancel = st.form_submit_button(label="Discard")
+                    btn_annot_back = st.form_submit_button(label="Back")
                     if btn_annot_go:
+                        if st.session_state["res_multi_books_for_new_annot"]:
+                            st.session_state["res_multi_books_for_new_annot"] = False
                         self.annot_new_annot()
                         st.rerun()
-                    elif btn_annot_cancel:
-                        self.annot_srch_bk()
-                        st.rerun()
+                    elif btn_annot_back:
+                       if st.session_state["res_multi_books_for_new_annot"]: # go back to multi-search result page with that data
+                           st.session_state["book_title"] = st.session_state["orig_book_title"]
+                           st.session_state["author"] = st.session_state["orig_author"]
+                           st.session_state["publisher"] = st.session_state["orig_publisher"]
+                           st.session_state["date_published"] = st.session_state["orig_date_published"]
+                           st.session_state["res_multi_books_for_new_annot"] = False
+                           self.annot_srch_bk_res()
+                       else:
+                            self.annot_srch_bk()
+                       st.rerun()
                 elif bkSum > 1:
                     editSelection = st.selectbox("Select book to annotate", [
                         "{title}>>{author}>>{publisher}>>{date}".format(
@@ -150,6 +170,11 @@ class EDIT_FORM:
                             if str(book_selected[ctr]) == "None":
                                 book_selected.pop(ctr)
                                 book_selected.insert(ctr, "")
+                        st.session_state["orig_book_title"] = st.session_state["book_title"] # save srch to go back to multi-search result page
+                        st.session_state["orig_author"] = st.session_state["author"]
+                        st.session_state["orig_publisher"] = st.session_state["publisher"]
+                        st.session_state["orig_date_published"] = st.session_state["date_published"]
+                        st.session_state["res_multi_books_for_new_annot"] = True
                         st.session_state["book_title"] = str(book_selected[0])
                         st.session_state["author"] = str(book_selected[1])
                         st.session_state["publisher"] = str(book_selected[2])
@@ -162,6 +187,8 @@ class EDIT_FORM:
             if add_nw_bk:
                 self.add_new_bk()
         elif st.session_state["form_flow"] == "create_the_new_annotation":
+            # TODO must set to FALSE when done (if was selected from multi-search result) -
+            #  st.session_state["res_multi_books_for_new_annot"]
             with st.form("New annotation"):
                 annot_page_no = st.text_input("Page number", max_chars=4)
                 btn_show_annot_textarea = st.form_submit_button(label="Go")
