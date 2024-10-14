@@ -17,6 +17,9 @@ class EDIT_FORM:
         "ants_add_bk": "Add a new book"
     }
 
+    dict_edit_annot_nonmenu_flags = {
+        "ants_edt_add_srch_ppg_no": "search for page number"
+    }
     dict_db_fld_validations = {
         "books_bk_no_len": 5,
         "books_bk_ttl_len": 250,
@@ -27,6 +30,7 @@ class EDIT_FORM:
         "first_edition_locale": 50,
         "first_edition_name": 50,
         "first_edition_publisher": 50,
+        "annots_pg_no_len": 4
     }
 
     def annot_srch_bk(self):
@@ -58,6 +62,7 @@ class EDIT_FORM:
 
     def edt_new_annot(self):
         bkSum = -1
+        bk_no = ""
         annot_page_no = ""
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
@@ -118,6 +123,10 @@ class EDIT_FORM:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
                 bks = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, False)
+
+                # HERE ################################
+                #bk_no = bks.__getattribute__('Book No')
+
                 if bkSum > 1:
                     st.write("Found {} results.".format(str(bkSum)))
                 add_nw_bk = False
@@ -190,10 +199,26 @@ class EDIT_FORM:
             # TODO must set to FALSE when done (if was selected from multi-search result) -
             #  st.session_state["res_multi_books_for_new_annot"]
             with st.form("New annotation"):
-                annot_page_no = st.text_input("Page number", max_chars=4)
+                annot_page_no = st.text_input("Page number:red[*]", max_chars=4)
                 btn_show_annot_textarea = st.form_submit_button(label="Go")
                 if btn_show_annot_textarea:
-                    annot_txt_area = st.text_area("Enter the annotation")
+                    if annot_page_no == "" or not annot_page_no.isdigit():
+                        st.markdown(":red[Page number must entered as a number up to 4 digits.]")
+                    else:
+                        page_no_record = [bk_no.zfill(self.dict_db_fld_validations.get("books_bk_no_len")),
+                                          annot_page_no.zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
+
+                        print("book no for sql is: " + str(page_no_record[0]))
+                        print("page no for sql is: " + str(page_no_record[1]))
+
+                        annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
+                                                                         False)
+                        i = 0
+                        for ants in annot:
+                            i = i + 1
+                            print(str(i) + " " + ants.__getattribute__('Page No'))
+
+                        annot_txt_area = st.text_area("Enter the annotation")
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -309,6 +334,10 @@ class EDIT_FORM:
             self.__add_book(sourceData, conn, record)
         elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
+            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
+
+
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
@@ -322,6 +351,9 @@ class EDIT_FORM:
         else:
             annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
             return annots
+
+    def __srch_ants_for_exists_annot(self, sourceData, conn, record):
+        return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
 
     def __show_bk_srch_res(self, bks):
         for bk in bks:

@@ -219,6 +219,12 @@ class DATA_SOURCE:
         annots = cursor.execute(sqlStr)
         return annots
 
+    def addNewAnnot_srch_page_no(self, cursor, record):
+        annot = cursor.execute(self.dict_queries.get("new_annot_page_no_exists").format(
+                                                     str(record[0]), str(record[1]) # book no, page no
+                                                    ))
+        return(annot)
+
     def __sql_nw_annt_bk_srch(self, queryType, book):
         sqlStr = ""
         prefix_sqlStr = ""
@@ -378,6 +384,12 @@ class DATA_SOURCE:
         "bk_fr_annot_add_count": """SELECT COUNT(*) 
                           FROM Books 
                           WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
+
+        "new_annot_page_no_exists": """SELECT [Source Text].[Page No]
+                    FROM [Source Text]
+                    WHERE [Source Text].[Book No] Like ('{}') 
+                    AND [Source Text].[Page No] LIKE ('{}')""",
+
         "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')",
         "append_srch_txt_order_by": " ORDER BY [Source Text].[Book No], [Source Text].[Page No]",
         "insert_srch_txt_auth": " OR (Books.[Author] LIKE('{}') AND [Source Text].[Source Text] LIKE('{}'))",
