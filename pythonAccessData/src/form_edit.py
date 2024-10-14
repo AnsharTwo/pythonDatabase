@@ -123,10 +123,6 @@ class EDIT_FORM:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
                 bks = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, False)
-
-                # HERE ################################
-                #bk_no = bks.__getattribute__('Book No')
-
                 if bkSum > 1:
                     st.write("Found {} results.".format(str(bkSum)))
                 add_nw_bk = False
@@ -142,6 +138,13 @@ class EDIT_FORM:
                 elif bkSum == 1:
                     st.markdown(":green[Book was found.]")
                     self.__show_bk_srch_res(bks)
+
+                    # HERE ################################
+                    #for b in bks:
+                        #    bk_no = bks.__getattribute__('Book No')
+                        #    st.write(b.__getattribute__('Book No'))
+                    #print("bk no is " + str(bk_no))
+
                     btn_annot_go = st.form_submit_button(label="Create")
                     btn_annot_back = st.form_submit_button(label="Back")
                     if btn_annot_go:
@@ -365,6 +368,7 @@ class EDIT_FORM:
                 bk.Publisher))
             st.markdown(":gray[Date:] :orange[{}]\r\r".format(
                 bk.Dat))
+
 
     def __isValidYearFormat(self,year, format):
         try:
