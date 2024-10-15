@@ -378,14 +378,14 @@ class DATA_SOURCE:
         "books_by_yr_read": """SELECT * FROM Books 
                 WHERE Books.[Year Read] BETWEEN ('{}') AND ('{}') 
                 ORDER BY Books.[Book No]""",
-        "bk_fr_annot_add": """SELECT [Book No], [Book Title], Author, Publisher, Dat
+        "bk_fr_annot_add": """SELECT Books.[Book No], [Book Title], Author, Publisher, Dat
                               FROM Books 
                               WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
         "bk_fr_annot_add_count": """SELECT COUNT(*) 
-                          FROM Books 
+                          FROM Books
                           WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
 
-        "new_annot_page_no_exists": """SELECT [Source Text].[Page No]
+        "new_annot_page_no_exists": """SELECT [Source Text].[Page No], [Source Text].[Source Text] 
                     FROM [Source Text]
                     WHERE [Source Text].[Book No] Like ('{}') 
                     AND [Source Text].[Page No] LIKE ('{}')""",

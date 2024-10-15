@@ -76,6 +76,8 @@ class EDIT_FORM:
             st.session_state["orig_publisher"] = "" # for clicking Back having selected book from multi-search dd
         if "orig_date_published" not in st.session_state:
             st.session_state["orig_date_published"] = "" # for clicking Back having selected book from multi-search dd
+        if "book_no" not in st.session_state:
+            st.session_state["book_no"] = ""
         if "book_title" not in st.session_state:
             st.session_state["book_title"] = ""
         if "author" not in st.session_state:
@@ -137,14 +139,7 @@ class EDIT_FORM:
                         add_nw_bk = True
                 elif bkSum == 1:
                     st.markdown(":green[Book was found.]")
-                    self.__show_bk_srch_res(bks)
-
-                    # HERE ################################
-                    #for b in bks:
-                        #    bk_no = bks.__getattribute__('Book No')
-                        #    st.write(b.__getattribute__('Book No'))
-                    #print("bk no is " + str(bk_no))
-
+                    self.__show_bk_srch_res(bks, True)
                     btn_annot_go = st.form_submit_button(label="Create")
                     btn_annot_back = st.form_submit_button(label="Back")
                     if btn_annot_go:
@@ -199,29 +194,39 @@ class EDIT_FORM:
             if add_nw_bk:
                 self.add_new_bk()
         elif st.session_state["form_flow"] == "create_the_new_annotation":
-            # TODO must set to FALSE when done (if was selected from multi-search result) -
+            # TODO maybe instead of at line 147ish if from multi-select, goes back to single res but then
+            #  back does not go back to multi select apge - must set to FALSE when done (if was selected from multi-search result) -
             #  st.session_state["res_multi_books_for_new_annot"]
+            st.write("SS " + str(st.session_state["res_multi_books_for_new_annot"]))
             with st.form("New annotation"):
                 annot_page_no = st.text_input("Page number:red[*]", max_chars=4)
                 btn_show_annot_textarea = st.form_submit_button(label="Go")
+                btn_annots_back = st.form_submit_button(label="Back to search results")
+                st.write(st.session_state["book_title"])
+                st.write(st.session_state["author"])
+                st.write(st.session_state["book_no"])
+                if btn_annots_back:
+                    self.annot_srch_bk_res()
+                    st.rerun()
                 if btn_show_annot_textarea:
                     if annot_page_no == "" or not annot_page_no.isdigit():
                         st.markdown(":red[Page number must entered as a number up to 4 digits.]")
                     else:
-                        page_no_record = [bk_no.zfill(self.dict_db_fld_validations.get("books_bk_no_len")),
+                        #self.__show_bk_srch_res(bks, True)
+
+                        page_no_record = [st.session_state["book_no"],
                                           annot_page_no.zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
-
-                        print("book no for sql is: " + str(page_no_record[0]))
-                        print("page no for sql is: " + str(page_no_record[1]))
-
                         annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                          False)
-                        i = 0
+                        exists_annot = ""
                         for ants in annot:
-                            i = i + 1
-                            print(str(i) + " " + ants.__getattribute__('Page No'))
-
-                        annot_txt_area = st.text_area("Enter the annotation")
+                            exists_annot = ants.__getattribute__('Source Text')
+                            #st.write(ants.__getattribute__('Page No'))
+                        if exists_annot != "":
+                            st.markdown(":orange[Page already has an annotation entered.]")
+                        annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
+                        st.form_submit_button("Add annotation")
+                        st.form_submit_button("Discard annotation changes")
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -358,7 +363,7 @@ class EDIT_FORM:
     def __srch_ants_for_exists_annot(self, sourceData, conn, record):
         return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
 
-    def __show_bk_srch_res(self, bks):
+    def __show_bk_srch_res(self, bks, setBkNo):
         for bk in bks:
             st.markdown(":blue[Title:] :orange[{}]\r\r".format(
                 bk.__getattribute__('Book Title')))
@@ -368,7 +373,8 @@ class EDIT_FORM:
                 bk.Publisher))
             st.markdown(":gray[Date:] :orange[{}]\r\r".format(
                 bk.Dat))
-
+            if setBkNo:
+                st.session_state["book_no"] = bk.__getattribute__('Book No') # initialise here a handy place, the book primary key SS value
 
     def __isValidYearFormat(self,year, format):
         try:
@@ -390,3 +396,9 @@ class EDIT_FORM:
         formattedDatum = searchDatum.replace("'", "\''")
         formattedDatum = formattedDatum.replace("[", "[[]")
         return formattedDatum
+
+    def __format_page_no(self, pageNo):
+        return pageNo.lstrip("0")
+
+    def __format_book_no(self, bookNo):
+        return bookNo.lstrip("0")
