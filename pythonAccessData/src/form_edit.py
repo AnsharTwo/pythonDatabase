@@ -18,8 +18,10 @@ class EDIT_FORM:
     }
 
     dict_edit_annot_nonmenu_flags = {
-        "ants_edt_add_srch_ppg_no": "search for page number"
+        "ants_edt_add_srch_ppg_no": "search for page number",
+        "ants_edt_add_updte_annot": "add or update annotation"
     }
+
     dict_db_fld_validations = {
         "books_bk_no_len": 5,
         "books_bk_ttl_len": 250,
@@ -41,6 +43,9 @@ class EDIT_FORM:
 
     def annot_new_annot(self):
         st.session_state["form_flow"] = "create_the_new_annotation"
+
+    def annot_do_new_annot(self):
+        st.session_state["form_flow"] = "action_the_new_annotation"
 
     def select_edit_form(self):
         st.header("Edit annotations data")
@@ -86,6 +91,8 @@ class EDIT_FORM:
             st.session_state["publisher"] = ""
         if "author" not in st.session_state:
             st.session_state["date_published"] = ""
+        if "page_no" not in st.session_state:
+            st.session_state["page_no"] = ""
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -140,11 +147,12 @@ class EDIT_FORM:
                 elif bkSum == 1:
                     st.markdown(":green[Book was found.]")
                     self.__show_bk_srch_res(bks, True)
-                    btn_annot_go = st.form_submit_button(label="Create")
+                    btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
                     if btn_annot_go:
-                        if st.session_state["res_multi_books_for_new_annot"]:
-                            st.session_state["res_multi_books_for_new_annot"] = False
+                        # THIS UNDER DEV
+                        #if st.session_state["res_multi_books_for_new_annot"]:
+                            # st.session_state["res_multi_books_for_new_annot"] = False
                         self.annot_new_annot()
                         st.rerun()
                     elif btn_annot_back:
@@ -197,14 +205,11 @@ class EDIT_FORM:
             # TODO maybe instead of at line 147ish if from multi-select, goes back to single res but then
             #  back does not go back to multi select apge - must set to FALSE when done (if was selected from multi-search result) -
             #  st.session_state["res_multi_books_for_new_annot"]
-            st.write("SS " + str(st.session_state["res_multi_books_for_new_annot"]))
+            st.write("SS " + str(st.session_state["res_multi_books_for_new_annot"])) # DEBUG CODE
             with st.form("New annotation"):
                 annot_page_no = st.text_input("Page number:red[*]", max_chars=4)
                 btn_show_annot_textarea = st.form_submit_button(label="Go")
                 btn_annots_back = st.form_submit_button(label="Back to search results")
-                st.write(st.session_state["book_title"])
-                st.write(st.session_state["author"])
-                st.write(st.session_state["book_no"])
                 if btn_annots_back:
                     self.annot_srch_bk_res()
                     st.rerun()
@@ -212,21 +217,44 @@ class EDIT_FORM:
                     if annot_page_no == "" or not annot_page_no.isdigit():
                         st.markdown(":red[Page number must entered as a number up to 4 digits.]")
                     else:
-                        #self.__show_bk_srch_res(bks, True)
+                        st.session_state["page_no"] = annot_page_no
+                        self.annot_do_new_annot()
+                        st.rerun()
+        elif st.session_state["form_flow"] == "action_the_new_annotation":
+            with st.form("New annotation"):
+                st.markdown(":green[{}]".format(st.session_state["book_title"]))
+                st.markdown(":green[{}]\r\r".format(st.session_state["author"]))
+                st.markdown(":blue[Page {}]".format(st.session_state["page_no"]))
+                page_no_record = [st.session_state["book_no".zfill(self.dict_db_fld_validations.get("books_bk_no_len"))],
+                                  st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
+                annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
+                                                                 False)
+                exists_annot = ""
+                for ants in annot:
+                    exists_annot = ants.__getattribute__('Source Text')
+                if exists_annot != "":
+                    st.markdown(":orange[(Page already has an annotation entered.)]")
+                annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
+                add_update_annot = st.form_submit_button("Add or update annotation") # THIS when LAST!! done, LIKELY NEEDS TO SET THE ABOVE SESSION STATE TODO
+                discard_doing_new_annot = st.form_submit_button("Discard annotation changes")
+                if discard_doing_new_annot:
+                    st.session_state["page_no"] = ""
+                    self.annot_new_annot()
+                    st.rerun()
+                if add_update_annot:
+                    if annot_txt_area == "":
+                        st.markdown(":red[Annotation cannot be left empty]")
+                    else:
+                        annot_record = [st.session_state["book_no"],
+                                        annot_page_no,
+                                        annot_txt_area.strip()
+                                        ]
+                        self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
+                                        annot_record,
+                          False)
 
-                        page_no_record = [st.session_state["book_no"],
-                                          annot_page_no.zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
-                        annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
-                                                                         False)
-                        exists_annot = ""
-                        for ants in annot:
-                            exists_annot = ants.__getattribute__('Source Text')
-                            #st.write(ants.__getattribute__('Page No'))
-                        if exists_annot != "":
-                            st.markdown(":orange[Page already has an annotation entered.]")
-                        annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
-                        st.form_submit_button("Add annotation")
-                        st.form_submit_button("Discard annotation changes")
+
+
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -344,8 +372,10 @@ class EDIT_FORM:
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
             return self.__srch_ants_for_exists_annot(sourceData, conn, record)
-
-
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
+            # HERE ####################################
+            # add new function for update or add or annotation
+            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
@@ -364,11 +394,12 @@ class EDIT_FORM:
         return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
 
     def __show_bk_srch_res(self, bks, setBkNo):
-        for bk in bks:
-            st.markdown(":blue[Title:] :orange[{}]\r\r".format(
-                bk.__getattribute__('Book Title')))
-            st.markdown(":gray[Author:] :orange[{}]\r\r".format(
-                bk.Author))
+
+        st.markdown(":blue[Title:] :orange[{}]\r\r".format(
+            st.session_state["book_title"]))
+        st.markdown(":gray[Author:] :orange[{}]\r\r".format(
+            st.session_state["author"]))
+        for bk in bks: # note publisher and date are not in session state yet here
             st.markdown(":gray[Publisher:] :orange[{}]\r\r".format(
                 bk.Publisher))
             st.markdown(":gray[Date:] :orange[{}]\r\r".format(
