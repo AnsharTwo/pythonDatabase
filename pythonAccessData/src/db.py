@@ -222,8 +222,28 @@ class DATA_SOURCE:
     def addNewAnnot_srch_page_no(self, cursor, record):
         annot = cursor.execute(self.dict_queries.get("new_annot_page_no_exists").format(
                                                      str(record[0]), str(record[1]) # book no, page no
+                                                        # TODO use dict indices as below
                                                     ))
         return(annot)
+
+    def addUpdateAnnot(self, cursor, ant, annotExists):
+        if not annotExists:
+            cursor.execute(self.dict_inserts.get("annots_new_add").format(
+                                                         str(ant[self.dict_annots_indx.get("book_no")]),
+                                                               str(ant[self.dict_annots_indx.get("page_no")]),
+                                                               str(ant[self.dict_annots_indx.get("source_text")])
+                                                        ))
+        else:
+            cursor.execute(self.dict_updates.get("annots_update_add").format(
+                                                         str(ant[self.dict_annots_indx.get("book_no")]),
+                                                               str(ant[self.dict_annots_indx.get("page_no")]),
+                                                               str(ant[self.dict_annots_indx.get("source_text")])
+                                                        ))
+        try:
+            cursor.commit()
+        except pyodbc.Error as ex:
+            pyodbc_state = ex.args[1]
+            st.write(pyodbc_state)
 
     def __sql_nw_annt_bk_srch(self, queryType, book):
         sqlStr = ""
@@ -280,6 +300,12 @@ class DATA_SOURCE:
         "first_edition_locale":     8,
         "first_edition_name":       9,
         "first_edition_publisher":  10
+    }
+
+    dict_annots_indx = {
+        "book_no":                  0,
+        "page_no":                  1,
+        "source_text":              2,
     }
 
     dict_queries = {
@@ -403,5 +429,11 @@ class DATA_SOURCE:
         "books_new_add": """INSERT INTO Books ([Book No], [Book Title], Author, Publisher, Dat, [Year Read], [Publication Locale],
                                                Edition, [First Edition], [First Edition Locale], [First Edition Name],
                                                [First Edition Publisher]) 
-                            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')"""
+                            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')""",
+        "annots_new_add" : """INSERT INTO [Source Text] ([Book No], [Page No], [Source Text]) 
+                            VALUES ('{}', '{}', '{}')"""
+    }
+
+    dict_updates = {
+        "annots_update_add": ""
     }
