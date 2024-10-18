@@ -47,6 +47,9 @@ class EDIT_FORM:
     def annot_do_new_annot(self):
         st.session_state["form_flow"] = "action_the_new_annotation"
 
+    def annot_success_new_annot(self):
+        st.session_state["form_flow"] = "post_add_new_annotation"
+
     def select_edit_form(self):
         st.header("Edit annotations data")
         editSelection = st.selectbox("Select data activity", [
@@ -156,9 +159,6 @@ class EDIT_FORM:
                     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
                     if btn_annot_go:
-                        # THIS UNDER DEV
-                        #if st.session_state["res_multi_books_for_new_annot"]:
-                            # st.session_state["res_multi_books_for_new_annot"] = False
                         self.annot_new_annot()
                         st.rerun()
                     elif btn_annot_back:
@@ -208,9 +208,6 @@ class EDIT_FORM:
             if add_nw_bk:
                 self.add_new_bk()
         elif st.session_state["form_flow"] == "create_the_new_annotation":
-            # TODO maybe instead of at line 147ish if from multi-select, goes back to single res but then
-            #  back does not go back to multi select apge - must set to FALSE when done (if was selected from multi-search result) -
-            #  st.session_state["res_multi_books_for_new_annot"]
             with st.form("New annotation"):
                 self.__show_bk_srch_res()
                 annot_page_no = st.text_input("Page number:red[*]", max_chars=4)
@@ -231,7 +228,7 @@ class EDIT_FORM:
                 st.markdown(":orange-background[{}]".format(st.session_state["book_title"]))
                 st.markdown(":orange-background[{}]\r\r".format(st.session_state["author"]))
                 st.markdown(":blue[Page {}]".format(st.session_state["page_no"]))
-                page_no_record = [st.session_state["book_no"].zfill(self.dict_db_fld_validations.get("books_bk_no_len")),
+                page_no_record = [st.session_state["book_no"], # is already len formatted
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
                 annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                  False)
@@ -243,8 +240,8 @@ class EDIT_FORM:
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
                 annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
-                add_update_annot = st.form_submit_button("Add or update annotation") # THIS when LAST!! done, LIKELY NEEDS TO SET THE ABOVE SESSION STATE TODO
-                discard_doing_new_annot = st.form_submit_button("Discard annotation changes")
+                add_update_annot = st.form_submit_button("Add or update annotation")
+                discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
                     st.session_state["page_no"] = ""
                     self.annot_new_annot()
@@ -253,17 +250,31 @@ class EDIT_FORM:
                     if annot_txt_area == "":
                         st.markdown(":red[Annotation cannot be left empty]")
                     else:
-                        annot_record = [st.session_state["book_no"], # TODO zfill above for book no is not needed - remove
+                        annot_record = [st.session_state["book_no"],
                                         st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
-                                        annot_txt_area.strip() # TODO - format this for sqp param
+                                        self.__formatSQLSpecialChars(annot_txt_area).strip()
                                         ]
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
-                                        annot_record, has_annot)
-                        st.success("Annotation added.") # TODO - use placeholder to clear above, if not work, go to new SS.
-                        btn_add_anoth_annot = st.form_submit_button("Add or edit a new annotation")
-                        if btn_add_anoth_annot:
-                            self.annot_new_annot()
-                            st.rerun()
+                                        annot_record, has_annot) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
+                        self.annot_success_new_annot()
+                        st.rerun()
+        elif st.session_state["form_flow"] == "post_add_new_annotation":
+            with st.form("Annotation done."):
+                st.success("Annotation added.")
+                btn_add_anoth_annot = st.form_submit_button("Add or edit a new annotation")
+                btn_not_add_annot = st.form_submit_button("Done")
+                if btn_add_anoth_annot:
+                    self.annot_new_annot()
+                    st.rerun()
+                if btn_not_add_annot:
+                    st.session_state["res_multi_books_for_new_annot"] = False # was-multi-srch-result originally (for Back processing)
+                    st.session_state["book_no"] = ""
+                    st.session_state["book_title"] = ""
+                    st.session_state["author"] = ""
+                    st.session_state["publisher"] = ""
+                    st.session_state["date_published"] =  ""
+                    self.annot_srch_bk()
+                    st.rerun()
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -431,7 +442,6 @@ class EDIT_FORM:
 
     def __formatSQLSpecialChars(self, searchDatum):
         formattedDatum = searchDatum.replace("'", "\''")
-        formattedDatum = formattedDatum.replace("[", "[[]")
         return formattedDatum
 
     def __format_page_no(self, pageNo):

@@ -221,8 +221,8 @@ class DATA_SOURCE:
 
     def addNewAnnot_srch_page_no(self, cursor, record):
         annot = cursor.execute(self.dict_queries.get("new_annot_page_no_exists").format(
-                                                     str(record[0]), str(record[1]) # book no, page no
-                                                        # TODO use dict indices as below
+                                                     str(record[self.dict_annots_indx.get("book_no")]),
+                                                           str(record[self.dict_annots_indx.get("page_no")]) # book no, page no
                                                     ))
         return(annot)
 
@@ -234,10 +234,16 @@ class DATA_SOURCE:
                                                                str(ant[self.dict_annots_indx.get("source_text")])
                                                         ))
         else:
+            print("UPDATE IS " + self.dict_updates.get("annots_update_add").format(
+                                                         str(ant[self.dict_annots_indx.get("source_text")]),
+                                                               str(ant[self.dict_annots_indx.get("book_no")]),
+                                                               str(ant[self.dict_annots_indx.get("page_no")])
+                                                        ))
+
             cursor.execute(self.dict_updates.get("annots_update_add").format(
-                                                         str(ant[self.dict_annots_indx.get("book_no")]),
-                                                               str(ant[self.dict_annots_indx.get("page_no")]),
-                                                               str(ant[self.dict_annots_indx.get("source_text")])
+                                                         str(ant[self.dict_annots_indx.get("source_text")]),
+                                                               str(ant[self.dict_annots_indx.get("book_no")]),
+                                                               str(ant[self.dict_annots_indx.get("page_no")])
                                                         ))
         try:
             cursor.commit()
@@ -431,9 +437,10 @@ class DATA_SOURCE:
                                                [First Edition Publisher]) 
                             VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')""",
         "annots_new_add" : """INSERT INTO [Source Text] ([Book No], [Page No], [Source Text]) 
-                            VALUES ('{}', '{}', '{}')"""
+                              VALUES ('{}', '{}', '{}')"""
     }
 
     dict_updates = {
-        "annots_update_add": ""
+        "annots_update_add": """UPDATE [Source Text] SET [Source Text].[Source Text] = ('{}')
+                                WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')"""
     }
