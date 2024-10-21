@@ -2,6 +2,7 @@ import sys
 from datetime import datetime, date
 
 import streamlit as st
+from spellchecker import SpellChecker
 
 import db
 
@@ -72,6 +73,7 @@ class EDIT_FORM:
         bkSum = -1
         bk_no = ""
         annot_page_no = ""
+        spell = SpellChecker()
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
         if "res_multi_books_for_new_annot" not in st.session_state:
@@ -240,6 +242,15 @@ class EDIT_FORM:
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
                 annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
+
+                ###########################################################
+                spell_check_list = annot_txt_area.split()
+                self.format_spell_List_words(spell_check_list)
+                mis_spelled = spell.unknown(spell_check_list)
+                for m in mis_spelled:
+                    print("mis spell " + str(m))
+                ###########################################################
+
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
@@ -275,6 +286,24 @@ class EDIT_FORM:
                     st.session_state["date_published"] =  ""
                     self.annot_srch_bk()
                     st.rerun()
+
+    ###########################################################
+    def format_spell_List_words(self, spell_check_list):
+        trim_char_list = ['"', "'", ".", ",", ";", ":"]
+        for chr in trim_char_list:
+            for sp_ctr in range(0, len(spell_check_list)):
+                if str(spell_check_list[sp_ctr]).find(str(chr), 0, 0) != -1:
+                    temp_char = spell_check_list[sp_ctr]
+                    spell_check_list.pop(sp_ctr)
+                    spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                if str(spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
+                    temp_char = spell_check_list[sp_ctr]
+                    spell_check_list.pop(sp_ctr)
+                    spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+
+        for sp_ctr in range(0, len(spell_check_list)):
+            print(str(spell_check_list[sp_ctr]))
+    ###########################################################
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")

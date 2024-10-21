@@ -234,12 +234,6 @@ class DATA_SOURCE:
                                                                str(ant[self.dict_annots_indx.get("source_text")])
                                                         ))
         else:
-            print("UPDATE IS " + self.dict_updates.get("annots_update_add").format(
-                                                         str(ant[self.dict_annots_indx.get("source_text")]),
-                                                               str(ant[self.dict_annots_indx.get("book_no")]),
-                                                               str(ant[self.dict_annots_indx.get("page_no")])
-                                                        ))
-
             cursor.execute(self.dict_updates.get("annots_update_add").format(
                                                          str(ant[self.dict_annots_indx.get("source_text")]),
                                                                str(ant[self.dict_annots_indx.get("book_no")]),
