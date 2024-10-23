@@ -73,7 +73,7 @@ class EDIT_FORM:
         bkSum = -1
         bk_no = ""
         annot_page_no = ""
-        spell = SpellChecker()
+        spell = SpellChecker("en", None, 2, None, False)
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
         if "res_multi_books_for_new_annot" not in st.session_state:
@@ -234,27 +234,48 @@ class EDIT_FORM:
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
                 annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                  False)
-                exists_annot = ""
+
+                #####################################################
+                # exists_annot = ""
+                # has_annot = False
+                # for ants in annot:
+                #     exists_annot = ants.__getattribute__('Source Text')
+                # if exists_annot != "":
+                #     has_annot = True
+                #     st.markdown(":orange[(Page already has an annotation entered.)]")
+                #
+                # annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
+
+                if "annot_text" not in st.session_state:
+                    st.session_state["annot_text"] = ""
                 has_annot = False
                 for ants in annot:
-                    exists_annot = ants.__getattribute__('Source Text')
-                if exists_annot != "":
+                    st.session_state["annot_text"] = ants.__getattribute__('Source Text')
+                if st.session_state["annot_text"] != "":
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
-                annot_txt_area = st.text_area("Enter the annotation", value=exists_annot, height=250)
+                annot_txt_area = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
 
-                ###########################################################
                 spell_check_list = annot_txt_area.split()
                 self.format_spell_List_words(spell_check_list)
                 mis_spelled = spell.unknown(spell_check_list)
-                for m in mis_spelled:
-                    print("mis spell " + str(m))
-                ###########################################################
+                btn_spell_check = st.form_submit_button("Check spelling")
+                if btn_spell_check:
+                    non_spell_checked_annot = annot_txt_area
+                    spell_checked_annot = annot_txt_area
+                    for mis in mis_spelled:
+                        spell_checked_annot = spell_checked_annot.replace(str(mis), ":orange[{}]".format(str(mis)))
+                    st.markdown(spell_checked_annot)
+                    with st.popover("Suggested spellings"):
+                        for mis in mis_spelled:
+                            st.write(str(mis))
+            ###########################################################
 
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
                     st.session_state["page_no"] = ""
+                    st.session_state["annot_text"] = ""
                     self.annot_new_annot()
                     st.rerun()
                 if add_update_annot:
@@ -267,6 +288,7 @@ class EDIT_FORM:
                                         ]
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, has_annot) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
+                        st.session_state["annot_text"] = ""
                         self.annot_success_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "post_add_new_annotation":
@@ -288,6 +310,7 @@ class EDIT_FORM:
                     st.rerun()
 
     ###########################################################
+
     def format_spell_List_words(self, spell_check_list):
         trim_char_list = ['"', "'", ".", ",", ";", ":"]
         for chr in trim_char_list:
