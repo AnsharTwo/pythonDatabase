@@ -267,9 +267,60 @@ class EDIT_FORM:
                         spell_checked_annot = spell_checked_annot.replace(str(mis), ":orange[{}]".format(str(mis)))
                     st.markdown(spell_checked_annot)
                     with st.popover("Suggested spellings"):
+                        #chckBxBools = []
+                        spellCtr = 0
                         for mis in mis_spelled:
-                            st.write(str(mis))
-            ###########################################################
+                            #chckBxBools.insert(spellCtr, False)
+                            # chckBxBools.insert(spellCtr, st.checkbox(str(mis), False))
+                            #chckBxBools[spellCtr] = st.checkbox(str(mis), False)
+                            st.checkbox(str(mis), False, key=spellCtr)
+                            spellCtr += 1
+                            #st.write(st.checkbox(str(mis)))
+                    # for mis in mis_spelled:
+                    #     if bool(st.checkbox(str(mis))):
+                    #         st.write("selected " + str(mis))
+
+            ########################################################### ALGORITHM FROM WEB PAGE
+                if 'dummy_data' not in st.session_state.keys():
+                    dummy_data = []
+                    for mis in mis_spelled:
+                        dummy_data.append(str(mis))
+                    st.session_state['dummy_data'] = dummy_data
+                else:
+                    dummy_data = st.session_state['dummy_data']
+
+                def checkbox_container(data):
+                    #new_data = st.text_input('Enter country Code to add')
+                    cols = st.columns(9)
+                    if cols[1].form_submit_button('Select All'):
+                        for i in data:
+                            st.session_state['dynamic_checkbox_' + i] = True
+                        st.experimental_rerun()
+                    if cols[2].form_submit_button('UnSelect All'):
+                        for i in data:
+                            st.session_state['dynamic_checkbox_' + i] = False
+                        st.experimental_rerun()
+
+                    # HERE ##############################
+                    if cols[3].form_submit_button('Selected'):
+                        # for i in data:
+                        #     if st.checkbox(i, key='dynamic_checkbox_' + i):
+                        #         st.session_state['dynamic_checkbox_' + i] = True
+                        st.write(get_selected_checkboxes())
+                        # st.experimental_rerun()
+                    #######################################
+
+                    for i in data:
+                        st.checkbox(i, key='dynamic_checkbox_' + i)
+
+                def get_selected_checkboxes():
+                    return [i.replace('dynamic_checkbox_', '') for i in st.session_state.keys() if
+                            i.startswith('dynamic_checkbox_') and st.session_state[i]]
+
+                checkbox_container(dummy_data)
+                st.write('You selected:')
+                st.write(get_selected_checkboxes())
+            ############################################################################################
 
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
