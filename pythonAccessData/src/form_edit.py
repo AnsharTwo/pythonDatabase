@@ -1,9 +1,7 @@
 import sys
 from datetime import datetime, date
-
 import streamlit as st
 from spellchecker import SpellChecker
-
 import db
 
 class EDIT_FORM:
@@ -255,15 +253,13 @@ class EDIT_FORM:
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
                 st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
-
-                spell_check_list = st.session_state["annot_txt_area"].split()
-                self.format_spell_List_words(spell_check_list)
-                st.session_state["mis_spelled"] = spell.unknown(spell_check_list)
                 btn_spell_check = st.form_submit_button("Check spelling")
                 if btn_spell_check:
-                    self.spell_chk()
-                    st.rerun()
-
+                    if st.session_state["annot_txt_area"] == "":
+                        st.markdown(":red[No annotation to spell check.]")
+                    else:
+                        self.spell_chk()
+                        st.rerun()
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
@@ -284,59 +280,29 @@ class EDIT_FORM:
                         st.session_state["annot_text"] = ""
                         self.annot_success_new_annot()
                         st.rerun()
-
         elif st.session_state["form_flow"] == "spell_check_Annotation":
             with st.form("Spell check annotation"):
-                non_spell_checked_annot = st.session_state["annot_txt_area"]
+                if st.session_state["spell_txt_area_revert"] == "":
+                    st.session_state["spell_txt_area_revert"] = st.session_state["annot_txt_area"]
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
-
+                    spell_check_list = st.session_state["spell_txt_area"].split()
+                    self.__format_spell_List_words(spell_check_list)
+                    st.session_state["mis_spelled"] = spell.unknown(spell_check_list)
                     for mis in st.session_state["mis_spelled"]:
                         #TODO - get all misspellings into missed by case
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(str(mis), ":orange[{}]".format(str(mis)))
-
                 st.markdown(st.session_state["spell_txt_area"])
-                if st.session_state["spell_txt_area_revert"] == "":
-                    st.session_state["spell_txt_area_revert"] = st.session_state["annot_txt_area"]
-
-                ########################################################### ALGORITHM FROM WEB PAGE
-                if 'spell_data' not in st.session_state.keys():
-                    spell_data = []
-                    for mis in st.session_state["mis_spelled"]:
-                        crrct = spell.correction(str(mis))
-                        if str(crrct) == "None":
-                            spell_data.append(str(mis) + " -> " + spell_no_suggest)
-                        else:
-                            spell_data.append(str(mis) + " -> " + str(crrct))
-                        crrct = ""
-                    st.session_state['spell_data'] = spell_data
-                else:
-                    spell_data = st.session_state['spell_data']
-
-                def checkbox_container(data):
-                    cols = st.columns(5, gap="small")
-                    if cols[1].form_submit_button('Select All'):
-                        for datum in data:
-                            st.session_state['dynamic_checkbox_' + datum] = True
-                    if cols[2].form_submit_button('UnSelect All'):
-                        for datum in data:
-                            st.session_state['dynamic_checkbox_' + datum] = False
-                    if cols[3].form_submit_button('Back/Discard'):
-                        st.session_state["spell_txt_area"] = ""
-                        self.annot_do_new_annot()
-                        st.rerun()
-
-                    with st.popover("Suggested spellings"):
-                        for datum in data:
-                            st.checkbox(datum, key='dynamic_checkbox_' + datum)
-
-                def get_selected_checkboxes():
-                    return [ky.replace('dynamic_checkbox_', '') for ky in st.session_state.keys() if
-                            ky.startswith('dynamic_checkbox_') and st.session_state[ky]]
-
-                checkbox_container(spell_data)
-                #st.write(get_selected_checkboxes())
-                spell_corrects_true = get_selected_checkboxes()
+                spell_data = []
+                for mis in st.session_state["mis_spelled"]:
+                    crrct = spell.correction(str(mis))
+                    if str(crrct) == "None":
+                        spell_data.append(str(mis) + " -> " + spell_no_suggest)
+                    else:
+                        spell_data.append(str(mis) + " -> " + str(crrct))
+                    crrct = ""
+                self.__checkbox_container(spell_data)
+                spell_corrects_true = self.__get_selected_checkboxes()
                 #TODO - also need to revert to orange those correction that have been chkbox-unselected
                 for corrects in spell_corrects_true:
                     flagged = corrects.split(" -> ")
@@ -344,26 +310,23 @@ class EDIT_FORM:
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
                                                                                                 ":green[{}]".format(
                                                                                                     str(flagged[1])))
-                vc = st.form_submit_button("View changes")
-                if vc:
+                vw_cng = st.form_submit_button("View changes")
+                if vw_cng:
+                    corrects_unseld = self.__get_unselected_checkboxes()
+                    # TODO - also need to revert to orange those correction that have been chkbox-unselected
+                    for corrects_revert in corrects_unseld:
+                        unflagged = corrects_revert.split(" -> ")
+                        if unflagged[1] != spell_no_suggest:
+                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(
+                                ":green[{}]".format(str(unflagged[1])),
+                                ":orange[{}]".format(
+                                    str(unflagged[0])))
                     self.spell_chk()
                     st.rerun()
-
-                # with st.popover("Corrected spellings"):
-                #     st.write(st.session_state["spell_txt_area"])
-
-                    # st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(str(mis),
-                    #                                                                             ":orange[{}]".format(
-                    #                                                                                 str(mis)))
-
-
-
-                # HERE - rerun after updating spell_checked_annot with replace() of corrections to green
+                # TODO - rerun after updating spell_checked_annot with replace() of corrections to green
                 # and handle spell_checked_annot = st.session_state["annot_txt_area"] when committed
                 # when committed flush all SS's related
                 # above - spell_checked_annot - keep as SS and add SS for reverted annot text
-            ############################################################################################
-
         elif st.session_state["form_flow"] == "post_add_new_annotation":
             with st.form("Annotation done."):
                 st.success("Annotation added.")
@@ -382,9 +345,40 @@ class EDIT_FORM:
                     self.annot_srch_bk()
                     st.rerun()
 
-    ###########################################################
+    def __checkbox_container(self, data):
+            cols = st.columns(5, gap="small")
+            if cols[1].form_submit_button('Select All'):
+                for datum in data:
+                    st.session_state['dynamic_checkbox_' + datum] = True
+            if cols[2].form_submit_button('UnSelect All'):
+                for datum in data:
+                    st.session_state['dynamic_checkbox_' + datum] = False
+            if cols[3].form_submit_button('Back/Discard'):
+                st.session_state["spell_txt_area"] = ""
+                st.session_state["mis_spelled"] = []
+                self.__rem_checkbox_ss_keys()
+                self.annot_do_new_annot()
+                st.rerun()
 
-    def format_spell_List_words(self, spell_check_list):
+            with st.popover("Suggested spellings"):
+                for datum in data:
+                    st.checkbox(datum, key='dynamic_checkbox_' + datum)
+
+    def __get_selected_checkboxes(self):
+        return [ky.replace('dynamic_checkbox_', '') for ky in st.session_state.keys() if
+                ky.startswith('dynamic_checkbox_') and st.session_state[ky]]
+
+    def __get_unselected_checkboxes(self):
+        return [ky.replace('dynamic_checkbox_', '') for ky in st.session_state.keys() if
+                ky.startswith('dynamic_checkbox_') and not st.session_state[ky]]
+
+    def __rem_checkbox_ss_keys(self):
+        for ky in st.session_state.keys():
+            if ky.startswith('dynamic_checkbox_'):
+                del ky
+
+    def __format_spell_List_words(self, spell_check_list):
+        # TODO - add (, ) if prefix or postfix
         trim_char_list = ['"', "'", ".", ",", ";", ":"]
         for chr in trim_char_list:
             for sp_ctr in range(0, len(spell_check_list)):
@@ -396,10 +390,6 @@ class EDIT_FORM:
                     temp_char = spell_check_list[sp_ctr]
                     spell_check_list.pop(sp_ctr)
                     spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-
-        #for sp_ctr in range(0, len(spell_check_list)):
-        #    print(str(spell_check_list[sp_ctr]))
-    ###########################################################
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
