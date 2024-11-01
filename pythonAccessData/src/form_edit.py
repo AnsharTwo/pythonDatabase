@@ -104,10 +104,12 @@ class EDIT_FORM:
             st.session_state["annot_txt_area"] = ""
         if "spell_txt_area" not in st.session_state:
             st.session_state["spell_txt_area"] = ""
-        if "spell_txt_area_revert" not in st.session_state:
-            st.session_state["spell_txt_area_revert"] = ""
+        if "commit_spell_txt_area" not in st.session_state:
+            st.session_state["commit_spell_txt_area"] = ""
         if "mis_spelled" not in st.session_state:
             st.session_state["mis_spelled"] = []
+        if "spellcheck_committed" not in st.session_state:
+            st.session_state["spellcheck_committed"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -244,11 +246,13 @@ class EDIT_FORM:
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
                 annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                  False)
+                # TODO - move this to top of func
                 if "annot_text" not in st.session_state:
                     st.session_state["annot_text"] = ""
-                has_annot = False
-                for ants in annot:
-                    st.session_state["annot_text"] = ants.__getattribute__('Source Text')
+                if not st.session_state["spellcheck_committed"]:
+                    has_annot = False
+                    for ants in annot:
+                        st.session_state["annot_text"] = ants.__getattribute__('Source Text')
                 if st.session_state["annot_text"] != "":
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
@@ -258,6 +262,8 @@ class EDIT_FORM:
                     if st.session_state["annot_txt_area"] == "":
                         st.markdown(":red[No annotation to spell check.]")
                     else:
+                        if st.session_state["spellcheck_committed"]:
+                            st.session_state["spellcheck_committed"] = False
                         self.spell_chk()
                         st.rerun()
                 add_update_annot = st.form_submit_button("Add or update annotation")
@@ -265,6 +271,8 @@ class EDIT_FORM:
                 if discard_doing_new_annot:
                     st.session_state["page_no"] = ""
                     st.session_state["annot_text"] = ""
+                    if st.session_state["spellcheck_committed"]:
+                        st.session_state["spellcheck_committed"] = False
                     self.annot_new_annot()
                     st.rerun()
                 if add_update_annot:
@@ -278,12 +286,14 @@ class EDIT_FORM:
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, has_annot) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
                         st.session_state["annot_text"] = ""
+
+                        if st.session_state["spellcheck_committed"]:
+                            st.session_state["spellcheck_committed"] = False
+
                         self.annot_success_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "spell_check_Annotation":
             with st.form("Spell check annotation"):
-                if st.session_state["spell_txt_area_revert"] == "":
-                    st.session_state["spell_txt_area_revert"] = st.session_state["annot_txt_area"]
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split()
@@ -293,6 +303,7 @@ class EDIT_FORM:
                         #TODO - get all misspellings into missed by case
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(str(mis), ":orange[{}]".format(str(mis)))
                 st.markdown(st.session_state["spell_txt_area"])
+                st.session_state["commit_spell_txt_area"] = st.session_state["annot_txt_area"]
                 spell_data = []
                 for mis in st.session_state["mis_spelled"]:
                     crrct = spell.correction(str(mis))
@@ -303,7 +314,6 @@ class EDIT_FORM:
                     crrct = ""
                 self.__checkbox_container(spell_data)
                 spell_corrects_true = self.__get_selected_checkboxes()
-                #TODO - also need to revert to orange those correction that have been chkbox-unselected
                 for corrects in spell_corrects_true:
                     flagged = corrects.split(" -> ")
                     if flagged[1] != spell_no_suggest:
@@ -313,7 +323,6 @@ class EDIT_FORM:
                 vw_cng = st.form_submit_button("View changes")
                 if vw_cng:
                     corrects_unseld = self.__get_unselected_checkboxes()
-                    # TODO - also need to revert to orange those correction that have been chkbox-unselected
                     for corrects_revert in corrects_unseld:
                         unflagged = corrects_revert.split(" -> ")
                         if unflagged[1] != spell_no_suggest:
@@ -323,10 +332,23 @@ class EDIT_FORM:
                                     str(unflagged[0])))
                     self.spell_chk()
                     st.rerun()
-                # TODO - rerun after updating spell_checked_annot with replace() of corrections to green
-                # and handle spell_checked_annot = st.session_state["annot_txt_area"] when committed
-                # when committed flush all SS's related
-                # above - spell_checked_annot - keep as SS and add SS for reverted annot text
+                cmt_cng = st.form_submit_button("Commit spelling")
+                if cmt_cng:
+                    spell_corrects_true = self.__get_selected_checkboxes()
+                    for corrects in spell_corrects_true:
+                        flagged = corrects.split(" -> ")
+                        if flagged[1] != spell_no_suggest:
+                            st.session_state["commit_spell_txt_area"] = st.session_state["commit_spell_txt_area"].replace(
+                                flagged[0], flagged[1])
+                    st.session_state["spellcheck_committed"] = True
+                    st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
+                    st.session_state["commit_spell_txt_area"] = ""
+                    if st.session_state["spell_txt_area"] != "":
+                        st.session_state["spell_txt_area"] = ""
+                    st.session_state["mis_spelled"] = []
+                    self.__rem_checkbox_ss_keys()
+                    self.annot_do_new_annot()
+                    st.rerun()
         elif st.session_state["form_flow"] == "post_add_new_annotation":
             with st.form("Annotation done."):
                 st.success("Annotation added.")
@@ -359,7 +381,6 @@ class EDIT_FORM:
                 self.__rem_checkbox_ss_keys()
                 self.annot_do_new_annot()
                 st.rerun()
-
             with st.popover("Suggested spellings"):
                 for datum in data:
                     st.checkbox(datum, key='dynamic_checkbox_' + datum)
