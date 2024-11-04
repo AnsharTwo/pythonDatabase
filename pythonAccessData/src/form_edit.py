@@ -74,7 +74,7 @@ class EDIT_FORM:
         bkSum = -1
         bk_no = ""
         annot_page_no = ""
-        spell = SpellChecker("en", None, 2, None, False)
+        spell = SpellChecker("en", None, 4, None, False)
         spell_no_suggest = "no suggestions"
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
@@ -298,7 +298,15 @@ class EDIT_FORM:
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split()
                     self.__format_spell_List_words(spell_check_list)
-                    st.session_state["mis_spelled"] = spell.unknown(spell_check_list)
+                    temp_wrds_unknwn = spell.unknown(spell_check_list)
+                    temp_spell_list = []
+                    ctr = 0
+                    for wrd in spell_check_list:
+                        for misp in temp_wrds_unknwn:
+                            if str(wrd).lower() == str(misp).lower(): # misp will be lower case but in case...
+                                temp_spell_list.insert(ctr, wrd)
+                                ctr += 1
+                    st.session_state["mis_spelled"] = temp_spell_list
                     for mis in st.session_state["mis_spelled"]:
                         #TODO - get all misspellings into missed by case
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(str(mis), ":orange[{}]".format(str(mis)))
@@ -308,9 +316,11 @@ class EDIT_FORM:
                 for mis in st.session_state["mis_spelled"]:
                     crrct = spell.correction(str(mis))
                     if str(crrct) == "None":
-                        spell_data.append(str(mis) + " -> " + spell_no_suggest)
+                        if spell_data.count(str(mis) + " -> " + spell_no_suggest) == 0:
+                            spell_data.append(str(mis) + " -> " + spell_no_suggest)
                     else:
-                        spell_data.append(str(mis) + " -> " + str(crrct))
+                        if spell_data.count(str(mis) + " -> " + str(crrct)) == 0:
+                            spell_data.append(str(mis) + " -> " + str(crrct))
                     crrct = ""
                 self.__checkbox_container(spell_data)
                 spell_corrects_true = self.__get_selected_checkboxes()
@@ -400,10 +410,10 @@ class EDIT_FORM:
 
     def __format_spell_List_words(self, spell_check_list):
         # TODO - add (, ) if prefix or postfix
-        trim_char_list = ['"', "'", ".", ",", ";", ":"]
+        trim_char_list = ['"', "'", ".", "..",",", ";", ":", "(", ")", "[", "]"]
         for chr in trim_char_list:
             for sp_ctr in range(0, len(spell_check_list)):
-                if str(spell_check_list[sp_ctr]).find(str(chr), 0, 0) != -1:
+                if str(spell_check_list[sp_ctr]).find(str(chr), 0, 1) != -1:
                     temp_char = spell_check_list[sp_ctr]
                     spell_check_list.pop(sp_ctr)
                     spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
@@ -411,7 +421,9 @@ class EDIT_FORM:
                     temp_char = spell_check_list[sp_ctr]
                     spell_check_list.pop(sp_ctr)
                     spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-
+                if str(chr) == "..":
+                    print("TODO")
+                    # TODO here.
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
 
