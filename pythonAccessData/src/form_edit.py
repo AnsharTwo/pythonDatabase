@@ -102,14 +102,14 @@ class EDIT_FORM:
             st.session_state["page_no"] = ""
         if "annot_txt_area" not in st.session_state:
             st.session_state["annot_txt_area"] = ""
+        if "annot_sql_done" not in st.session_state:
+            st.session_state["annot_sql_done"] = False
         if "spell_txt_area" not in st.session_state:
             st.session_state["spell_txt_area"] = ""
         if "commit_spell_txt_area" not in st.session_state:
             st.session_state["commit_spell_txt_area"] = ""
         if "mis_spelled" not in st.session_state:
             st.session_state["mis_spelled"] = []
-        if "spellcheck_committed" not in st.session_state:
-            st.session_state["spellcheck_committed"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -249,10 +249,12 @@ class EDIT_FORM:
                 # TODO - move this to top of func
                 if "annot_text" not in st.session_state:
                     st.session_state["annot_text"] = ""
-                if not st.session_state["spellcheck_committed"]:
+
+                if not st.session_state["annot_sql_done"]:
                     has_annot = False
                     for ants in annot:
                         st.session_state["annot_text"] = ants.__getattribute__('Source Text')
+                    st.session_state["annot_sql_done"] = True
                 if st.session_state["annot_text"] != "":
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
@@ -262,17 +264,16 @@ class EDIT_FORM:
                     if st.session_state["annot_txt_area"] == "":
                         st.markdown(":red[No annotation to spell check.]")
                     else:
-                        if st.session_state["spellcheck_committed"]:
-                            st.session_state["spellcheck_committed"] = False
+                        #if not st.session_state["spellcheck_in_progress"]:
+                        st.session_state["spellcheck_in_progress"] = True
                         self.spell_chk()
                         st.rerun()
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
+                    st.session_state["annot_sql_done"] = False
                     st.session_state["page_no"] = ""
                     st.session_state["annot_text"] = ""
-                    if st.session_state["spellcheck_committed"]:
-                        st.session_state["spellcheck_committed"] = False
                     self.annot_new_annot()
                     st.rerun()
                 if add_update_annot:
@@ -285,11 +286,8 @@ class EDIT_FORM:
                                         ]
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, has_annot) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
+                        st.session_state["annot_sql_done"] = False
                         st.session_state["annot_text"] = ""
-
-                        if st.session_state["spellcheck_committed"]:
-                            st.session_state["spellcheck_committed"] = False
-
                         self.annot_success_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "spell_check_Annotation":
@@ -308,7 +306,6 @@ class EDIT_FORM:
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
                     for mis in st.session_state["mis_spelled"]:
-                        #TODO - get all misspellings into missed by case
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(str(mis), ":orange[{}]".format(str(mis)))
                 st.markdown(st.session_state["spell_txt_area"])
                 st.session_state["commit_spell_txt_area"] = st.session_state["annot_txt_area"]
@@ -350,7 +347,6 @@ class EDIT_FORM:
                         if flagged[1] != spell_no_suggest:
                             st.session_state["commit_spell_txt_area"] = st.session_state["commit_spell_txt_area"].replace(
                                 flagged[0], flagged[1])
-                    st.session_state["spellcheck_committed"] = True
                     st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
                     st.session_state["commit_spell_txt_area"] = ""
                     if st.session_state["spell_txt_area"] != "":
@@ -386,7 +382,9 @@ class EDIT_FORM:
                 for datum in data:
                     st.session_state['dynamic_checkbox_' + datum] = False
             if cols[3].form_submit_button('Back/Discard'):
+                st.session_state["annot_text"] = st.session_state["annot_txt_area"] # revoke to text in text area
                 st.session_state["spell_txt_area"] = ""
+                st.session_state["commit_spell_txt_area"] = ""
                 st.session_state["mis_spelled"] = []
                 self.__rem_checkbox_ss_keys()
                 self.annot_do_new_annot()
@@ -409,8 +407,7 @@ class EDIT_FORM:
                 del ky
 
     def __format_spell_List_words(self, spell_check_list):
-        # TODO - add (, ) if prefix or postfix
-        trim_char_list = ['"', "'", ".", "..",",", ";", ":", "(", ")", "[", "]"]
+        trim_char_list = ['"', "'", ".", "..",",", ";", ":", "(", ")", "[", "]", "{", "}", "<", ">", "?", "!", "£", "$"]
         for chr in trim_char_list:
             for sp_ctr in range(0, len(spell_check_list)):
                 if str(spell_check_list[sp_ctr]).find(str(chr), 0, 1) != -1:
@@ -422,8 +419,11 @@ class EDIT_FORM:
                     spell_check_list.pop(sp_ctr)
                     spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
                 if str(chr) == "..":
-                    print("TODO")
+                    print("TODO NOW THE TIME")
                     # TODO here.
+                    # 1 - bracket types that enclose word with space befroe word either end or both - formats wrong, so remove.
+                    # 2- .. at start or end (also between two words - ignore (rem from sp list?)
+                    # disallow three full stops in text area.
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
 
