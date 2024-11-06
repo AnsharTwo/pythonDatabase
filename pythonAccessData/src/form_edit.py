@@ -407,23 +407,34 @@ class EDIT_FORM:
                 del ky
 
     def __format_spell_List_words(self, spell_check_list):
-        trim_char_list = ['"', "'", ".", "..",",", ";", ":", "(", ")", "[", "]", "{", "}", "<", ">", "?", "!", "£", "$"]
+
+        # TODO here.
+        # 1 space + brackets, start and end is not foramtting. COnsider move to validation for text are on save annot and spell chk.
+        # 2 break up words like word1..wrd2 split ..
+        # 3 disallow three full stops in text area.
+        # 4 - test string in xls - repeats highlight of spell word inside another word - fix
+
+        trim_chars_list = ["\"'", "'\"", "'.", ".'", "..", "( ", " )", "[ ", " ]", "{ ", " }", "< ", " >"] # works - add more multi-char if not caught by single char list below
+        for chr in trim_chars_list:
+            for sp_ctr in range(0, len(spell_check_list)):
+                print("char: " + str(chr))
+                if str(spell_check_list[sp_ctr]).find(str(chr)) != -1:
+                    temp_char = str(spell_check_list[sp_ctr])
+                    spell_check_list.pop(sp_ctr)
+                    spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), ""))
+        trim_char_list = ['"', """'""", "", ".", ",", ";", ":", "(", ")", "[", "]", "{", "}", "<", ">", "?", "!", "£", "$"]
         for chr in trim_char_list:
             for sp_ctr in range(0, len(spell_check_list)):
-                if str(spell_check_list[sp_ctr]).find(str(chr), 0, 1) != -1:
-                    temp_char = spell_check_list[sp_ctr]
+                #if str(spell_check_list[sp_ctr]).find(str(chr), 0, 0) != -1:
+                if str(spell_check_list[sp_ctr]).find(str(chr)) == 0:
+                    temp_char = str(spell_check_list[sp_ctr])
                     spell_check_list.pop(sp_ctr)
                     spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
                 if str(spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
-                    temp_char = spell_check_list[sp_ctr]
+                    temp_char = str(spell_check_list[sp_ctr])
                     spell_check_list.pop(sp_ctr)
                     spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-                if str(chr) == "..":
-                    print("TODO NOW THE TIME")
-                    # TODO here.
-                    # 1 - bracket types that enclose word with space befroe word either end or both - formats wrong, so remove.
-                    # 2- .. at start or end (also between two words - ignore (rem from sp list?)
-                    # disallow three full stops in text area.
+
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
 
