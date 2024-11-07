@@ -261,11 +261,16 @@ class EDIT_FORM:
                 st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
                 btn_spell_check = st.form_submit_button("Check spelling")
                 if btn_spell_check:
+                    illegal_txt = ["( ", " )", "[ ", " ]", "{ ", " }", "< ",
+                                   " >"]  # these not compatible with :<markdown colour>[]
+                    stops_txt = ["..."]
                     if st.session_state["annot_txt_area"] == "":
                         st.markdown(":red[No annotation to spell check.]")
+                    elif self.__has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
+                        st.markdown(":red[text cannot contain a bracket immediately enclosing a space chracter e.g. '( ', ' }'.]")
+                    elif self.__has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
+                        st.markdown(":red[text cannot contain 3 consecutive full-stops (2 are allowed).]")
                     else:
-                        #if not st.session_state["spellcheck_in_progress"]:
-                        st.session_state["spellcheck_in_progress"] = True
                         self.spell_chk()
                         st.rerun()
                 add_update_annot = st.form_submit_button("Add or update annotation")
@@ -409,12 +414,10 @@ class EDIT_FORM:
     def __format_spell_List_words(self, spell_check_list):
 
         # TODO here.
-        # 1 space + brackets, start and end is not foramtting. COnsider move to validation for text are on save annot and spell chk.
-        # 2 break up words like word1..wrd2 split ..
-        # 3 disallow three full stops in text area.
-        # 4 - test string in xls - repeats highlight of spell word inside another word - fix
+        # 1 break up words like word1..wrd2 split ..
+        # 2 - test string in xls - repeats highlight of spell word inside another word - fix
 
-        trim_chars_list = ["\"'", "'\"", "'.", ".'", "..", "( ", " )", "[ ", " ]", "{ ", " }", "< ", " >"] # works - add more multi-char if not caught by single char list below
+        trim_chars_list = ["\"'", "'\"", "'.", ".'", ".."] # works - add more multi-char if not caught by single char list below
         for chr in trim_chars_list:
             for sp_ctr in range(0, len(spell_check_list)):
                 print("char: " + str(chr))
@@ -608,3 +611,10 @@ class EDIT_FORM:
 
     def __format_book_no(self, bookNo):
         return bookNo.lstrip("0")
+
+    def __has_illegal_text(self, txt_area, illegal_txt):
+        is_illegal_txt = False
+        for il_txt in illegal_txt:
+            if txt_area.find(il_txt) != -1:
+                is_illegal_txt = True
+        return is_illegal_txt
