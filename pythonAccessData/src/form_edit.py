@@ -300,13 +300,37 @@ class EDIT_FORM:
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split()
+
+                    #########################################################
+                    # TODO - wright p56 "..open..party." disregard quotes - this si not setting to split words true as the first .. are found.
+                    split_wrds = False
+                    for ctr in range(0, len(spell_check_list)):
+                        if split_wrds:
+                            spell_check_list.pop(ctr - 1)
+                            split_wrds = False
+                        if str(spell_check_list[ctr]).find("..") != -1:
+                            if str(spell_check_list[ctr]).find("..") != 0 and str(spell_check_list[ctr]).find("..") != len(str(spell_check_list[ctr])) - 3:
+                                tmp_wrds = str(spell_check_list[ctr]). split("..")
+                                split_wrds = True
+                                spell_check_list.append(tmp_wrds[0])
+                                spell_check_list.append(tmp_wrds[1])
+
+                                # debug code ###############################
+                                st.write("HAVE A PASS: " + str(spell_check_list[ctr]))
+                                st.write("HAVE A LEN: " + str(len(str(spell_check_list[ctr]))))
+                    for ctr in range(0, len(spell_check_list)):
+                        st.write("word in spell list: " + str(ctr) + " " + str(spell_check_list[ctr]))
+                        # debug code ###############################
+
+                    #########################################################
+
                     self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     temp_spell_list = []
                     ctr = 0
                     for wrd in spell_check_list:
                         for misp in temp_wrds_unknwn:
-                            if str(wrd).lower() == str(misp).lower(): # misp will be lower case but in case...
+                            if str(wrd).lower() == str(misp).lower(): # misp will be lower case but in case :)...
                                 temp_spell_list.insert(ctr, wrd)
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
@@ -420,7 +444,6 @@ class EDIT_FORM:
         trim_chars_list = ["\"'", "'\"", "'.", ".'", ".."] # works - add more multi-char if not caught by single char list below
         for chr in trim_chars_list:
             for sp_ctr in range(0, len(spell_check_list)):
-                print("char: " + str(chr))
                 if str(spell_check_list[sp_ctr]).find(str(chr)) != -1:
                     temp_char = str(spell_check_list[sp_ctr])
                     spell_check_list.pop(sp_ctr)
@@ -559,7 +582,7 @@ class EDIT_FORM:
         conn.close()
 
     def __add_book(self, sourceData, conn, book):
-        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_"))
         sourceData.addNewBook(conn.cursor(), bk_sum, book)
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
