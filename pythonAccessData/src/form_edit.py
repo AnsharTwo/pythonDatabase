@@ -303,24 +303,39 @@ class EDIT_FORM:
 
                     #########################################################
                     # TODO - wright p56 "..open..party." disregard quotes - this si not setting to split words true as the first .. are found.
-                    split_wrds = False
-                    for ctr in range(0, len(spell_check_list)):
-                        if split_wrds:
-                            spell_check_list.pop(ctr - 1)
-                            split_wrds = False
-                        if str(spell_check_list[ctr]).find("..") != -1:
-                            if str(spell_check_list[ctr]).find("..") != 0 and str(spell_check_list[ctr]).find("..") != len(str(spell_check_list[ctr])) - 3:
-                                tmp_wrds = str(spell_check_list[ctr]). split("..")
-                                split_wrds = True
-                                spell_check_list.append(tmp_wrds[0])
-                                spell_check_list.append(tmp_wrds[1])
+                    # split_wrds = False
+                    # for ctr in range(0, len(spell_check_list)):
+                    #     if split_wrds:
+                    #         #spell_check_list.pop(ctr - 1)
+                    #         split_wrds = False
+                    #     if str(spell_check_list[ctr]).find("..") != -1:
+                    #         tmp_wrd = str(spell_check_list[ctr])
+                    #         if tmp_wrd.startswith(".."):
+                    #             tmp_wrd = tmp_wrd.lstrip("..")
+                    #             split_wrds = True
+                    #         if tmp_wrd.endswith(".."):
+                    #             tmp_wrd = tmp_wrd.rstrip("..")
+                    #             if not split_wrds:
+                    #                 split_wrds = True
+                    #         while tmp_wrd.count("..") > 0:
+                    #             split_wrds = True
+                    #             tmp_wrds = tmp_wrd.split("..")
+                    #             spell_check_list.append(tmp_wrds[0])
+                    #             tmp_wrd = tmp_wrd.lstrip(tmp_wrd + "..")
+                    #         if split_wrds:
+                    #             for w in range(1, len(tmp_wrds)):
+                    #                 spell_check_list.append(str(tmp_wrds[w]))
+                    #             spell_check_list.pop(ctr)
+                    #         tmp_wrds.clear()
+                    #
+                    # for w in spell_check_list:
+                    #     st.write(str(w))
+                    # st.write("................................")
 
-                                # debug code ###############################
-                                st.write("HAVE A PASS: " + str(spell_check_list[ctr]))
-                                st.write("HAVE A LEN: " + str(len(str(spell_check_list[ctr]))))
-                    for ctr in range(0, len(spell_check_list)):
-                        st.write("word in spell list: " + str(ctr) + " " + str(spell_check_list[ctr]))
-                        # debug code ###############################
+
+                    #for ctr in range(0, len(spell_check_list)):
+                    #    st.write("word in spell list: " + str(ctr) + " " + str(spell_check_list[ctr]))
+                    #    # debug code ###############################
 
                     #########################################################
 
@@ -441,7 +456,63 @@ class EDIT_FORM:
         # 1 break up words like word1..wrd2 split ..
         # 2 - test string in xls - repeats highlight of spell word inside another word - fix
 
-        trim_chars_list = ["\"'", "'\"", "'.", ".'", ".."] # works - add more multi-char if not caught by single char list below
+        split_wrds = False
+        pref_postf_remd = False
+        tmp_wrds = []
+        for ctr in range(0, len(spell_check_list)):
+            if split_wrds:
+                split_wrds = False
+            if pref_postf_remd:
+                pref_postf_remd = False
+
+            # TO DO This is not finding all words for the one case use "The.. ..test..was for this and..that." - ..test..was is the problem
+            # is it ctr after pop index wrong?
+            if str(spell_check_list[ctr]).find("..") != -1: # special case to handle all pos. instances of ..
+                tmp_wrd = str(spell_check_list[ctr])
+
+                st.write("Got here with " + tmp_wrd)
+
+                if tmp_wrd.startswith(".."):
+                    tmp_wrd = tmp_wrd.lstrip("..")
+
+
+                    pref_postf_remd = True
+                if tmp_wrd.endswith(".."):
+                    tmp_wrd = tmp_wrd.rstrip("..")
+
+                    #st.write("Got here with " + tmp_wrd)
+
+                    if not pref_postf_remd:
+                        pref_postf_remd = True
+                if tmp_wrd.count("..") > 0:
+                    while tmp_wrd.count("..") > 0:
+                        split_wrds = True
+                        tmp_wrds = tmp_wrd.split("..")
+                        spell_check_list.append(tmp_wrds[0])
+                        tmp_wrd = tmp_wrd.lstrip(tmp_wrd + "..")
+                    if split_wrds:
+                        for w in range(1, len(tmp_wrds)):
+                            spell_check_list.append(str(tmp_wrds[w]))
+                        spell_check_list.pop(ctr)
+
+
+                    tmp_wrds.clear()
+                else:
+                    if pref_postf_remd:
+
+                        #st.write("Got here with " + tmp_wrd)
+                        spell_check_list.append(tmp_wrd)#
+
+
+                        spell_check_list.pop(ctr)
+                        pref_postf_remd = False
+
+
+        for w in spell_check_list:
+            st.write(str(w))
+        st.write("................................")
+
+        trim_chars_list = ["\"'", "'\"", "'.", ".'"] # works - add more multi-char if not caught by single char list below
         for chr in trim_chars_list:
             for sp_ctr in range(0, len(spell_check_list)):
                 if str(spell_check_list[sp_ctr]).find(str(chr)) != -1:
