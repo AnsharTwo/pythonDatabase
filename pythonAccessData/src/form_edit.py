@@ -310,8 +310,26 @@ class EDIT_FORM:
                                 temp_spell_list.insert(ctr, wrd)
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
+
+                    # TODO - the below needs a temp array with the non-formatted words (without removed .,], etc. And then
+                    # replace to oronge mapped to the index of the temp actual words in the array (WAS not needed now?.. replace with mis from correction
+                    # misspelled_list[] for the SPELLING ERROR WORDS as was the case before change here.).
+                    ################################
+                    hghlght_lst = st.session_state["spell_txt_area"].split(" ")
+                    self.__format_spell_List_words(hghlght_lst)
                     for mis in st.session_state["mis_spelled"]:
-                        st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(str(mis), ":orange[{}]".format(str(mis)))
+                        for h_wrd_indx in range(0, len(hghlght_lst)):
+                            if str(mis).find(str(hghlght_lst[h_wrd_indx])) != -1:
+                                if len(str(mis)) == len(str(hghlght_lst[h_wrd_indx])):
+                                    hghlght_lst.pop(h_wrd_indx)
+                                    hghlght_lst.insert(h_wrd_indx, ":orange[{}]".format(mis))
+                        st.session_state["spell_txt_area"] = ""
+                        for h_wrd_indx in range(0, len(hghlght_lst)):
+                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
+                            if h_wrd_indx < len(hghlght_lst):
+                                st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
+                    ###################################
+
                 st.markdown(st.session_state["spell_txt_area"])
                 st.session_state["commit_spell_txt_area"] = st.session_state["annot_txt_area"]
                 spell_data = []
