@@ -299,7 +299,7 @@ class EDIT_FORM:
             with st.form("Spell check annotation"):
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
-                    spell_check_list = st.session_state["spell_txt_area"].split()
+                    spell_check_list = st.session_state["spell_txt_area"].split(" ")
                     self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     temp_spell_list = []
@@ -311,18 +311,32 @@ class EDIT_FORM:
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
 
-                    # TODO - the below needs a temp array with the non-formatted words (without removed .,], etc. And then
-                    # replace to oronge mapped to the index of the temp actual words in the array (WAS not needed now?.. replace with mis from correction
-                    # misspelled_list[] for the SPELLING ERROR WORDS as was the case before change here.).
                     ################################
                     hghlght_lst = st.session_state["spell_txt_area"].split(" ")
+                    temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
+
+                    # TODO - this is not formatting words. try change to return> Not sure why here.
                     self.__format_spell_List_words(hghlght_lst)
                     for mis in st.session_state["mis_spelled"]:
                         for h_wrd_indx in range(0, len(hghlght_lst)):
-                            if str(mis).find(str(hghlght_lst[h_wrd_indx])) != -1:
-                                if len(str(mis)) == len(str(hghlght_lst[h_wrd_indx])):
+                            if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
+                                if str(mis.lower()).find(str(hghlght_lst[h_wrd_indx]).lower()) != -1:
+
+
+                                    if len(str(mis)) == len(str(hghlght_lst[h_wrd_indx])):
+                                        hghlght_lst.pop(h_wrd_indx)
+
+                                        hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis), ":orange[{}]".format(str(mis)), 1))
+                                        # hghlght_lst.insert(h_wrd_indx, ":orange[{}]".format(mis))
+                                    else:
+                                        hghlght_lst.pop(h_wrd_indx)
+                                        hghlght_lst.insert(h_wrd_indx, temp_spell_txt_wrds[h_wrd_indx])
+
+                                else:
                                     hghlght_lst.pop(h_wrd_indx)
-                                    hghlght_lst.insert(h_wrd_indx, ":orange[{}]".format(mis))
+                                    hghlght_lst.insert(h_wrd_indx, temp_spell_txt_wrds[h_wrd_indx])
+
+
                         st.session_state["spell_txt_area"] = ""
                         for h_wrd_indx in range(0, len(hghlght_lst)):
                             st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
