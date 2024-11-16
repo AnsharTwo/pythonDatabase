@@ -300,7 +300,7 @@ class EDIT_FORM:
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split(" ")
-                    self.__format_spell_List_words(spell_check_list)
+                    spell_check_list = self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     temp_spell_list = []
                     ctr = 0
@@ -310,40 +310,21 @@ class EDIT_FORM:
                                 temp_spell_list.insert(ctr, wrd)
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
-
-                    ################################
                     hghlght_lst = st.session_state["spell_txt_area"].split(" ")
                     temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
-
-                    # TODO - this is not formatting words. try change to return> Not sure why here.
-                    self.__format_spell_List_words(hghlght_lst)
                     for mis in st.session_state["mis_spelled"]:
                         for h_wrd_indx in range(0, len(hghlght_lst)):
                             if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
-                                if str(mis.lower()).find(str(hghlght_lst[h_wrd_indx]).lower()) != -1:
-
-
-                                    if len(str(mis)) == len(str(hghlght_lst[h_wrd_indx])):
-                                        hghlght_lst.pop(h_wrd_indx)
-
-                                        hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis), ":orange[{}]".format(str(mis)), 1))
-                                        # hghlght_lst.insert(h_wrd_indx, ":orange[{}]".format(mis))
-                                    else:
-                                        hghlght_lst.pop(h_wrd_indx)
-                                        hghlght_lst.insert(h_wrd_indx, temp_spell_txt_wrds[h_wrd_indx])
-
-                                else:
+                                if str(str(hghlght_lst[h_wrd_indx])).find(mis) != -1:
                                     hghlght_lst.pop(h_wrd_indx)
-                                    hghlght_lst.insert(h_wrd_indx, temp_spell_txt_wrds[h_wrd_indx])
-
-
-                        st.session_state["spell_txt_area"] = ""
-                        for h_wrd_indx in range(0, len(hghlght_lst)):
-                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
-                            if h_wrd_indx < len(hghlght_lst):
-                                st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
-                    ###################################
-
+                                    hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
+                                                                                                            ":orange[{}]".format(
+                                                                                                                str(mis))))
+                    st.session_state["spell_txt_area"] = ""
+                    for h_wrd_indx in range(0, len(hghlght_lst)):
+                        st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
+                        if h_wrd_indx < len(hghlght_lst):
+                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
                 st.markdown(st.session_state["spell_txt_area"])
                 st.session_state["commit_spell_txt_area"] = st.session_state["annot_txt_area"]
                 spell_data = []
@@ -446,19 +427,20 @@ class EDIT_FORM:
     def __format_spell_List_words(self, spell_check_list):
 
         # TODO here.
-        # 1 - test string in xls - repeats highlight of spell word inside another word - fix
         # handle " adding for start adn end of annot
+
+        temp_spell_check_list = spell_check_list
 
         split_wrds = False
         pref_postf_remd = False
         tmp_wrds = []
-        for ctr in range(0, len(spell_check_list)):
+        for ctr in range(0, len(temp_spell_check_list)):
             if split_wrds:
                 split_wrds = False
             if pref_postf_remd:
                 pref_postf_remd = False
-            if str(spell_check_list[ctr]).find("..") != -1: # special case to handle all pos. instances of ..
-                tmp_wrd = str(spell_check_list[ctr])
+            if str(temp_spell_check_list[ctr]).find("..") != -1: # special case to handle all pos. instances of ..
+                tmp_wrd = str(temp_spell_check_list[ctr])
                 if tmp_wrd.startswith(".."):
                     tmp_wrd = tmp_wrd.lstrip("..")
                     pref_postf_remd = True
@@ -477,35 +459,36 @@ class EDIT_FORM:
                         splt_wrds_indx += 1
                     wrds_to_add_spll_lst.insert(splt_wrds_indx, tmp_wrds[1])
                     if split_wrds:
-                        spell_check_list.pop(ctr)
-                        spell_check_list.insert(ctr, str(wrds_to_add_spll_lst[0]))
+                        temp_spell_check_list.pop(ctr)
+                        temp_spell_check_list.insert(ctr, str(wrds_to_add_spll_lst[0]))
                         w = 1
                         for w in range(1, len(wrds_to_add_spll_lst)):
-                            spell_check_list.append(str(wrds_to_add_spll_lst[w]))
+                            temp_spell_check_list.append(str(wrds_to_add_spll_lst[w]))
                         wrds_to_add_spll_lst.clear()
                     tmp_wrds.clear()
                 else:
                     if pref_postf_remd:
-                        spell_check_list.pop(ctr)
-                        spell_check_list.insert(ctr, tmp_wrd)
+                        temp_spell_check_list.pop(ctr)
+                        temp_spell_check_list.insert(ctr, tmp_wrd)
         trim_chars_list = ["\"'", "'\"", "'.", ".'"] # works - add more multi-char if not caught by single char list below
         for chr in trim_chars_list:
-            for sp_ctr in range(0, len(spell_check_list)):
-                if str(spell_check_list[sp_ctr]).find(str(chr)) != -1:
-                    temp_char = str(spell_check_list[sp_ctr])
-                    spell_check_list.pop(sp_ctr)
-                    spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), ""))
+            for sp_ctr in range(0, len(temp_spell_check_list)):
+                if str(temp_spell_check_list[sp_ctr]).find(str(chr)) != -1:
+                    temp_char = str(temp_spell_check_list[sp_ctr])
+                    temp_spell_check_list.pop(sp_ctr)
+                    temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), ""))
         trim_char_list = ['"', """'""", "", ".", ",", ";", ":", "(", ")", "[", "]", "{", "}", "<", ">", "?", "!", "£", "$"]
         for chr in trim_char_list:
-            for sp_ctr in range(0, len(spell_check_list)):
-                if str(spell_check_list[sp_ctr]).find(str(chr)) == 0:
-                    temp_char = str(spell_check_list[sp_ctr])
-                    spell_check_list.pop(sp_ctr)
-                    spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-                if str(spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
-                    temp_char = str(spell_check_list[sp_ctr])
-                    spell_check_list.pop(sp_ctr)
-                    spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+            for sp_ctr in range(0, len(temp_spell_check_list)):
+                if str(temp_spell_check_list[sp_ctr]).find(str(chr)) == 0:
+                    temp_char = str(temp_spell_check_list[sp_ctr])
+                    temp_spell_check_list.pop(sp_ctr)
+                    temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                if str(temp_spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
+                    temp_char = str(temp_spell_check_list[sp_ctr])
+                    temp_spell_check_list.pop(sp_ctr)
+                    temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+        return temp_spell_check_list
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
