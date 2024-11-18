@@ -94,9 +94,9 @@ class EDIT_FORM:
             st.session_state["book_title"] = ""
         if "author" not in st.session_state:
             st.session_state["author"] = ""
-        if "author" not in st.session_state:
+        if "publisher" not in st.session_state:
             st.session_state["publisher"] = ""
-        if "author" not in st.session_state:
+        if "date_published" not in st.session_state:
             st.session_state["date_published"] = ""
         if "page_no" not in st.session_state:
             st.session_state["page_no"] = ""
@@ -127,15 +127,18 @@ class EDIT_FORM:
                     elif st.session_state["author"] == "":
                         st.markdown(":red[No author given]")
                     elif st.session_state["date_published"] != "" and not self.__isValidYearFormat(
-                                                                                                   st.session_state["date_published"],
-                                                                                            "%Y"
-                                                                                                  ):
-                        st.markdown(":red[Date of publication must be in YYYY format]")
+                                                                                                  st.session_state["date_published"],
+                                                                                           "%Y"
+                                                                                                 ):
+                       st.markdown(":red[Date of publication must be in YYYY format]")
                     else:
                         self.annot_srch_bk_res()
                         st.rerun()
         elif st.session_state["form_flow"] == "search_results_for_book_to_annotate":
             with st.form("Search book results"):
+
+
+
                 book_search = []
                 book_search.append(self.__format_sql_wrap(st.session_state["book_title"]))
                 book_search.append(self.__format_sql_wrap(st.session_state["author"]))
@@ -144,7 +147,7 @@ class EDIT_FORM:
                 else:
                     book_search.append("")
                 if st.session_state["date_published"] != "":
-                    book_search.append(self.__format_sql_wrap(st.session_state["date_published"]))
+                    book_search.append(self.__format_sql_wrap(str(st.session_state["date_published"])))
                 else:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
@@ -167,8 +170,14 @@ class EDIT_FORM:
                         st.session_state["book_no"] = bk.__getattribute__('Book No')
                         st.session_state["book_title"] = bk.__getattribute__('Book Title')
                         st.session_state["author"] = bk.Author
-                        st.session_state["publisher"] = bk.Publisher
-                        st.session_state["date_published"] = bk.Dat
+                        if bk.Publisher == None:
+                            st.session_state["publisher"] = ""
+                        else:
+                            st.session_state["publisher"] = bk.Publisher
+                        if bk.Dat == None:
+                            st.session_state["date_published"] = ""
+                        else:
+                            st.session_state["date_published"] = bk.Dat
                     self.__show_bk_srch_res()
                     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
@@ -239,8 +248,8 @@ class EDIT_FORM:
                         st.rerun()
         elif st.session_state["form_flow"] == "action_the_new_annotation":
             with st.form("New annotation"):
-                st.markdown(":orange-background[{}]".format(st.session_state["book_title"]))
-                st.markdown(":orange-background[{}]\r\r".format(st.session_state["author"]))
+                st.markdown(":green[{}]".format(st.session_state["book_title"]))
+                st.markdown(":rainbow[{}]\r\r".format(st.session_state["author"]))
                 st.markdown(":blue[Page {}]".format(st.session_state["page_no"]))
                 page_no_record = [st.session_state["book_no"], # is already len formatted
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
@@ -315,11 +324,14 @@ class EDIT_FORM:
                     for mis in st.session_state["mis_spelled"]:
                         for h_wrd_indx in range(0, len(hghlght_lst)):
                             if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
-                                if str(str(hghlght_lst[h_wrd_indx])).find(mis) != -1:
-                                    hghlght_lst.pop(h_wrd_indx)
-                                    hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
+                                if str(hghlght_lst[h_wrd_indx]).find(mis) != -1:
+                                    tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
+                                    tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
+                                    if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
+                                        hghlght_lst.pop(h_wrd_indx)
+                                        hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
                                                                                                             ":orange[{}]".format(
-                                                                                                                str(mis))))
+                                                                                                                str(mis)), 1))
                     st.session_state["spell_txt_area"] = ""
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
@@ -387,7 +399,7 @@ class EDIT_FORM:
                     st.session_state["book_title"] = ""
                     st.session_state["author"] = ""
                     st.session_state["publisher"] = ""
-                    st.session_state["date_published"] =  ""
+                    st.session_state["date_published"] = ""
                     self.annot_srch_bk()
                     st.rerun()
 
