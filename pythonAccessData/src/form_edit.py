@@ -136,9 +136,6 @@ class EDIT_FORM:
                         st.rerun()
         elif st.session_state["form_flow"] == "search_results_for_book_to_annotate":
             with st.form("Search book results"):
-
-
-
                 book_search = []
                 book_search.append(self.__format_sql_wrap(st.session_state["book_title"]))
                 book_search.append(self.__format_sql_wrap(st.session_state["author"]))
@@ -351,12 +348,25 @@ class EDIT_FORM:
                     crrct = ""
                 self.__checkbox_container(spell_data)
                 spell_corrects_true = self.__get_selected_checkboxes()
+                not_set_grn = []
+                not_set_err = []
                 for corrects in spell_corrects_true:
+                    set_wrd_no_sggst = False
                     flagged = corrects.split(" -> ")
                     if flagged[1] != spell_no_suggest:
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
                                                                                                 ":green[{}]".format(
                                                                                                     str(flagged[1])))
+                    else:
+                        not_set_grn.insert(len(not_set_grn), str(flagged[0]))
+                        set_wrd_no_sggst = True
+                    if not set_wrd_no_sggst and st.session_state["spell_txt_area"].find(":green[{}]".format(str(flagged[1]))) == -1:
+                        not_set_err.insert(len(not_set_err), str(flagged[0]))
+                if len(not_set_grn) > 0:
+                    st.warning("the following words have no suggestions and have not been changed: :orange[" + str(not_set_grn) + "]")
+                if len(not_set_err) > 0:
+                    st.warning("""Word format error: the following words can be corrected, 
+                    but an error has occured in highlighting this word.: :orange[""" + str(not_set_err) + """]""")
                 vw_cng = st.form_submit_button("View changes")
                 if vw_cng:
                     corrects_unseld = self.__get_unselected_checkboxes()
@@ -440,7 +450,6 @@ class EDIT_FORM:
 
         # TODO here.
         # handle " adding for start adn end of annot
-
         temp_spell_check_list = spell_check_list
 
         split_wrds = False
