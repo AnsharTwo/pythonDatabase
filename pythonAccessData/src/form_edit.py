@@ -324,11 +324,12 @@ class EDIT_FORM:
                                 if str(hghlght_lst[h_wrd_indx]).find(mis) != -1:
                                     tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
                                     tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
-                                    if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
-                                        hghlght_lst.pop(h_wrd_indx)
-                                        hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
-                                                                                                            ":orange[{}]".format(
-                                                                                                                str(mis)), 1))
+                                    if len(tmp_wrd_frmt) > 0: # if r/n/ or /m containing, wrd might have been removed in spellListFormat
+                                        if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
+                                            hghlght_lst.pop(h_wrd_indx)
+                                            hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
+                                                                                                                ":orange[{}]".format(
+                                                                                                                    str(mis)), 1))
                     st.session_state["spell_txt_area"] = ""
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
@@ -447,14 +448,23 @@ class EDIT_FORM:
                 del ky
 
     def __format_spell_List_words(self, spell_check_list):
-
-        # TODO here.
-        # handle " adding for start adn end of annot
         temp_spell_check_list = spell_check_list
-
         split_wrds = False
         pref_postf_remd = False
         tmp_wrds = []
+        #TODO - below 2 fors for removal of chars occuring (\rn\) in already added annots with numbered paras. Rems some, NOT all. Investigate
+
+        splt_ln_list = []
+        for ctr in range(0, len(temp_spell_check_list)):
+            splt_ln_list = str(temp_spell_check_list[ctr]).splitlines()
+            if len(splt_ln_list) > 1:
+                temp_spell_check_list.pop(ctr)
+                temp_spell_check_list.insert(ctr, splt_ln_list[0])
+                splt_ln_list.pop(0)
+                while len(splt_ln_list) > 1:
+                    temp_spell_check_list.append(splt_ln_list[0])
+                    splt_ln_list.pop(0)
+
         for ctr in range(0, len(temp_spell_check_list)):
             if split_wrds:
                 split_wrds = False
