@@ -306,6 +306,16 @@ class EDIT_FORM:
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split(" ")
+                    for ctr in range(0, len(spell_check_list)):
+                        splt_ln_list = str(spell_check_list[ctr]).splitlines()
+                        if len(splt_ln_list) > 1:
+                            spell_check_list.pop(ctr)
+                            spell_check_list.insert(ctr, splt_ln_list[0])
+                            splt_ln_list.pop(0)
+                            while len(splt_ln_list) > 0:
+                                spell_check_list.append(splt_ln_list[0])
+                                splt_ln_list.pop(0)
+                        splt_ln_list.clear()
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     temp_spell_list = []
@@ -322,9 +332,12 @@ class EDIT_FORM:
                         for h_wrd_indx in range(0, len(hghlght_lst)):
                             if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
                                 if str(hghlght_lst[h_wrd_indx]).find(mis) != -1:
+                                    wd = str(hghlght_lst[h_wrd_indx]).splitlines() # handle \n in split text area (not here in spell list)
+                                    hghlght_lst.pop(h_wrd_indx)
+                                    hghlght_lst.insert(h_wrd_indx, wd[0])
                                     tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
                                     tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
-                                    if len(tmp_wrd_frmt) > 0: # if r/n/ or /m containing, wrd might have been removed in spellListFormat
+                                    if len(tmp_wrd_frmt) > 0:
                                         if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
                                             hghlght_lst.pop(h_wrd_indx)
                                             hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
@@ -452,19 +465,6 @@ class EDIT_FORM:
         split_wrds = False
         pref_postf_remd = False
         tmp_wrds = []
-        #TODO - below 2 fors for removal of chars occuring (\rn\) in already added annots with numbered paras. Rems some, NOT all. Investigate
-
-        splt_ln_list = []
-        for ctr in range(0, len(temp_spell_check_list)):
-            splt_ln_list = str(temp_spell_check_list[ctr]).splitlines()
-            if len(splt_ln_list) > 1:
-                temp_spell_check_list.pop(ctr)
-                temp_spell_check_list.insert(ctr, splt_ln_list[0])
-                splt_ln_list.pop(0)
-                while len(splt_ln_list) > 1:
-                    temp_spell_check_list.append(splt_ln_list[0])
-                    splt_ln_list.pop(0)
-
         for ctr in range(0, len(temp_spell_check_list)):
             if split_wrds:
                 split_wrds = False
