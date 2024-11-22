@@ -377,7 +377,7 @@ class EDIT_FORM:
                     if not set_wrd_no_sggst and st.session_state["spell_txt_area"].find(":green[{}]".format(str(flagged[1]))) == -1:
                         not_set_err.insert(len(not_set_err), str(flagged[0]))
                 if len(not_set_grn) > 0:
-                    st.warning("the following words have no suggestions and have not been changed: :orange[" + str(not_set_grn) + "]")
+                    st.warning("the following words have no suggestions and will not be changed: :orange[" + str(not_set_grn) + "]")
                 if len(not_set_err) > 0:
                     st.warning("""Word format error: the following words can be corrected, 
                     but an error has occured in highlighting this word.: :orange[""" + str(not_set_err) + """]""")
