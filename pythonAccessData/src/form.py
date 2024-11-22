@@ -1,9 +1,7 @@
 import sys
 from datetime import datetime, date
-
 import pandas as pd
 import streamlit as st
-
 import db
 
 class DATA_FORM:
