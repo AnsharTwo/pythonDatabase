@@ -26,8 +26,11 @@ class EDIT_FORM:
         "books_bk_ttl_len": 250,
         "books_auth_len": 50,
         "books_pub_len": 50,
+        "books_dat_pub_len": 4,
+        "books_yr_rd": 4,
         "books_pub_locale": 50,
         "books_edition": 3,
+        "books_frst_edition": 4,
         "first_edition_locale": 50,
         "first_edition_name": 50,
         "first_edition_publisher": 50,
@@ -51,6 +54,9 @@ class EDIT_FORM:
 
     def annot_success_new_annot(self):
         st.session_state["form_flow"] = "post_add_new_annotation"
+
+    def updte_bk(self):
+        st.session_state["form_flow_bk"] = "add_update_book"
 
     def select_edit_form(self):
         st.header("Edit annotations data")
@@ -167,14 +173,8 @@ class EDIT_FORM:
                         st.session_state["book_no"] = bk.__getattribute__('Book No')
                         st.session_state["book_title"] = bk.__getattribute__('Book Title')
                         st.session_state["author"] = bk.Author
-                        if bk.Publisher == None:
-                            st.session_state["publisher"] = ""
-                        else:
-                            st.session_state["publisher"] = bk.Publisher
-                        if bk.Dat == None:
-                            st.session_state["date_published"] = ""
-                        else:
-                            st.session_state["date_published"] = bk.Dat
+                        st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
+                        st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
                     self.__show_bk_srch_res()
                     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
@@ -427,6 +427,126 @@ class EDIT_FORM:
                     self.annot_srch_bk()
                     st.rerun()
 
+    def add_new_bk(self):
+
+        # TODO = separate flow for add book
+        if "form_flow_bk" not in st.session_state:
+            st.session_state["form_flow_bk"] = "add_update_book"
+        placeholder = st.empty()
+        placeholder.title("Add new book")
+        sbmt_bk = False
+        with placeholder.form("Add new book"):
+            st.write(":green[Add new book]")
+            book_title = st.text_input("Book title:red[*]", max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"))
+            author = st.text_input("Author:red[*]", max_chars=self.dict_db_fld_validations.get("books_auth_len"))
+            publisher = st.text_input("Publisher", max_chars=self.dict_db_fld_validations.get("books_pub_len"))
+            date_pub = st.text_input("Date", max_chars=self.dict_db_fld_validations.get("books_dat_pub_len"))
+            year_read = st.text_input("Year read", max_chars=self.dict_db_fld_validations.get("books_yr_rd"))
+            pub_location = st.text_input("Publication location", max_chars=self.dict_db_fld_validations.get("books_pub_locale"))
+            edition = st.text_input("Edition", max_chars=self.dict_db_fld_validations.get("books_edition"))
+            first_edition = st.text_input("First edition", max_chars=self.dict_db_fld_validations.get("books_frst_edition"))
+            first_edition_locale = st.text_input("First edition location", max_chars=self.dict_db_fld_validations.get("first_edition_locale"))
+            first_edition_name = st.text_input("First edition name", max_chars=self.dict_db_fld_validations.get("first_edition_name"))
+            first_edition_publisher = st.text_input("First edition publisher", max_chars=self.dict_db_fld_validations.get("first_edition_publisher"))
+            add = st.form_submit_button("Add")
+            if add:
+                if not sbmt_bk:
+                    sbmt_bk = True
+                if book_title == "":
+                    st.markdown(":red[No book title given]")
+                    sbmt_bk = False
+                elif author == "":
+                    st.markdown(":red[No author given]")
+                    sbmt_bk = False
+                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
+                    st.write("DATE: " + date_pub)
+                    st.markdown(":red[Date of publication must be in YYYY format]")
+                    sbmt_bk = False
+                elif year_read != "" and not self.__isValidYearFormat(year_read, "%Y"):
+                    st.markdown(":red[Year read must be in YYYY format]")
+                    sbmt_bk = False
+                elif first_edition != "" and not self.__isValidYearFormat(first_edition, "%Y"):
+                    st.markdown(":red[First edition must be in YYYY format]")
+                    sbmt_bk = False
+                if sbmt_bk:
+                    book = []
+                    book.append(book_title)
+                    book.append(author)
+                    book.append(self.conv_none_for_db(publisher))
+                    book.append(self.conv_none_for_db(date_pub))
+                    book.append(self.conv_none_for_db(year_read))
+                    book.append(self.conv_none_for_db(pub_location))
+                    book.append(self.conv_none_for_db(edition))
+                    book.append(self.conv_none_for_db(first_edition))
+                    book.append(self.conv_none_for_db(first_edition_locale))
+                    book.append(self.conv_none_for_db(first_edition_name))
+                    book.append(self.conv_none_for_db(first_edition_publisher))
+                    placeholder.empty()
+                    self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
+        if sbmt_bk:
+            st.success("New book added.")
+            st.markdown(":blue[Title:] {}".format(book_title))
+            st.markdown(":blue[Author:] {}".format(author))
+            st.markdown(":blue[Publisher:] {}".format(publisher))
+            st.markdown(":blue[Publication date:] {}".format(date_pub))
+            st.markdown(":blue[Year read:] {}".format(year_read))
+            st.markdown(":blue[Publication location:] {}".format(pub_location))
+            st.markdown(":blue[Edition:] {}".format(edition))
+            st.markdown(":blue[First edition:] {}".format(first_edition))
+            st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
+            st.markdown(":blue[First edition name:] {}".format(first_edition_name))
+            st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
+
+    def edt_edt_annot(self):
+        st.write("Page is under construction - edit annotation. Check back real soon.")
+
+    def edt_dlt_annot(self):
+        st.write("Page is under construction - delete annotation. Check back real soon.")
+
+    def db_records(self, searchSelection, record, getResultsCount):
+        dbPath = sys.argv[1] + sys.argv[2]
+        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
+        sourceData.is_ms_access_driver()
+        conn = sourceData.db_connect()
+        sourceData.report_tables(conn.cursor())
+        if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
+            self.__add_book(sourceData, conn, record)
+        elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
+            return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
+            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
+            self.__add_update_annot(sourceData, conn, record, getResultsCount)
+        conn.close()
+
+    def __add_book(self, sourceData, conn, book):
+        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        sourceData.addNewBook(conn.cursor(), bk_sum, book)
+
+    def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
+        if getResultsCount:
+            bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
+            return bkSum
+        else:
+            annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
+            return annots
+
+    def __srch_ants_for_exists_annot(self, sourceData, conn, record):
+        return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
+
+    def __add_update_annot(self, sourceData, conn, ant, annotExists):
+        sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
+
+    def __show_bk_srch_res(self):
+        st.markdown(":blue[Title:] :orange[{}]\r\r".format(
+            st.session_state["book_title"]))
+        st.markdown(":gray[Author:] :orange[{}]\r\r".format(
+            st.session_state["author"]))
+        st.markdown(":gray[Publisher:] :orange[{}]\r\r".format(
+            st.session_state["publisher"]))
+        st.markdown(":gray[Date:] :orange[{}]\r\r".format(
+            st.session_state["date_published"]))
+
     def __checkbox_container(self, data):
             cols = st.columns(5, gap="small")
             if cols[1].form_submit_button('Select All'):
@@ -521,154 +641,6 @@ class EDIT_FORM:
                     temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
         return temp_spell_check_list
 
-    def edt_edt_annot(self):
-        st.write("Page is under construction - edit annotation. Check back real soon.")
-
-    def edt_dlt_annot(self):
-        st.write("Page is under construction - delete annotation. Check back real soon.")
-
-    def add_new_bk(self):
-        placeholder = st.empty()
-        placeholder.title("Add new book")
-        sbmt_bk = False
-        with placeholder.form("Add new book"):
-            st.write(":green[Add new book]")
-            book_title = st.text_input("Book title:red[*]")
-            author = st.text_input("Author:red[*]")
-            publisher = st.text_input("Publisher")
-            date_pub = st.text_input("Date")
-            year_read = st.text_input("Year read")
-            pub_location = st.text_input("Publication location")
-            edition = st.text_input("Edition")
-            first_edition = st.text_input("First edition")
-            first_edition_locale = st.text_input("First edition location")
-            first_edition_name = st.text_input("First edition name")
-            first_edition_publisher = st.text_input("First edition publisher")
-            add = st.form_submit_button("Add")
-            if add:
-                if not sbmt_bk:
-                    sbmt_bk = True
-                if book_title == "":
-                    st.markdown(":red[No book title given]")
-                    sbmt_bk = False
-                elif len(book_title) > self.dict_db_fld_validations.get("books_bk_ttl_len"):
-                    st.markdown(":red[Book title cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_bk_ttl_len"))))
-                    sbmt_bk = False
-                elif author == "":
-                    st.markdown(":red[No author given]")
-                    sbmt_bk = False
-                elif len(author) > self.dict_db_fld_validations.get("books_auth_len"):
-                    st.markdown(":red[Author cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_auth_len"))))
-                    sbmt_bk = False
-                elif len(publisher) > self.dict_db_fld_validations.get("books_pub_len"):
-                    st.markdown(":red[Publisher cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_pub_len"))))
-                    sbmt_bk = False
-                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
-                    st.markdown(":red[Date of publication must be in YYYY format]")
-                    sbmt_bk = False
-                elif year_read != "" and not self.__isValidYearFormat(year_read, "%Y"):
-                    st.markdown(":red[Year read must be in YYYY format]")
-                    sbmt_bk = False
-                elif len(pub_location) > self.dict_db_fld_validations.get("books_pub_locale"):
-                    st.markdown(":red[Publication location cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_pub_locale"))))
-                    sbmt_bk = False
-                elif ((edition != "" and not edition.isdigit()) or
-                      len(edition) > self.dict_db_fld_validations.get("books_edition")):
-                    st.markdown(":red[Edition must be a number of not more than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_edition"))))
-                    sbmt_bk = False
-                elif first_edition != "" and not self.__isValidYearFormat(first_edition, "%Y"):
-                    st.markdown(":red[First edition must be in YYYY format]")
-                    sbmt_bk = False
-                elif len(first_edition_locale) > self.dict_db_fld_validations.get("first_edition_locale"):
-                    st.markdown(":red[First edition location cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("first_edition_locale"))))
-                    sbmt_bk = False
-                elif len(first_edition_name) > self.dict_db_fld_validations.get("first_edition_name"):
-                    st.markdown(":red[First edition name cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("first_edition_name"))))
-                    sbmt_bk = False
-                elif len(first_edition_publisher) > self.dict_db_fld_validations.get("first_edition_publisher"):
-                    st.markdown(":red[First edition publisher cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("first_edition_publisher"))))
-                    sbmt_bk = False
-                if sbmt_bk:
-                    book = []
-                    book.append(book_title)
-                    book.append(author)
-                    book.append(publisher)
-                    book.append(date_pub)
-                    book.append(year_read)
-                    book.append(pub_location)
-                    book.append(edition)
-                    book.append(first_edition)
-                    book.append(first_edition_locale)
-                    book.append(first_edition_name)
-                    book.append(first_edition_publisher)
-                    placeholder.empty()
-                    self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
-        if sbmt_bk:
-            st.success("New book added.")
-            st.markdown(":blue[Title:] {}".format(book_title))
-            st.markdown(":blue[Author:] {}".format(author))
-            st.markdown(":blue[Publisher:] {}".format(publisher))
-            st.markdown(":blue[Publication date:] {}".format(date_pub))
-            st.markdown(":blue[Year read:] {}".format(year_read))
-            st.markdown(":blue[Publication location:] {}".format(pub_location))
-            st.markdown(":blue[Edition:] {}".format(edition))
-            st.markdown(":blue[First edition:] {}".format(first_edition))
-            st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
-            st.markdown(":blue[First edition name:] {}".format(first_edition_name))
-            st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
-
-    def db_records(self, searchSelection, record, getResultsCount):
-        dbPath = sys.argv[1] + sys.argv[2]
-        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
-        sourceData.is_ms_access_driver()
-        conn = sourceData.db_connect()
-        sourceData.report_tables(conn.cursor())
-        if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
-            self.__add_book(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
-            return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
-            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
-            self.__add_update_annot(sourceData, conn, record, getResultsCount)
-        conn.close()
-
-    def __add_book(self, sourceData, conn, book):
-        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_"))
-        sourceData.addNewBook(conn.cursor(), bk_sum, book)
-
-    def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
-        if getResultsCount:
-            bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
-            return bkSum
-        else:
-            annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
-            return annots
-
-    def __srch_ants_for_exists_annot(self, sourceData, conn, record):
-        return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
-
-    def __add_update_annot(self, sourceData, conn, ant, annotExists):
-        sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
-
-    def __show_bk_srch_res(self):
-        st.markdown(":blue[Title:] :orange[{}]\r\r".format(
-            st.session_state["book_title"]))
-        st.markdown(":gray[Author:] :orange[{}]\r\r".format(
-            st.session_state["author"]))
-        st.markdown(":gray[Publisher:] :orange[{}]\r\r".format(
-            st.session_state["publisher"]))
-        st.markdown(":gray[Date:] :orange[{}]\r\r".format(
-            st.session_state["date_published"]))
-
     def __isValidYearFormat(self,year, format):
         try:
             res = bool(datetime.strptime(year, format))
@@ -701,3 +673,9 @@ class EDIT_FORM:
             if txt_area.find(il_txt) != -1:
                 is_illegal_txt = True
         return is_illegal_txt
+
+    def conv_none_for_db(self, fld_val):
+        if fld_val == None:
+            return ""
+        else:
+            return fld_val
