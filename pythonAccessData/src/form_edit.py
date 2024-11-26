@@ -261,7 +261,7 @@ class EDIT_FORM:
                     for ants in annot:
                         st.session_state["annot_text"] = ants.__getattribute__('Source Text')
                     st.session_state["annot_sql_done"] = True
-                if st.session_state["annot_text"] != "":
+                if st.session_state["annot_text"] != None:
                     has_annot = True
                     st.markdown(":orange[(Page already has an annotation entered.)]")
                 st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
