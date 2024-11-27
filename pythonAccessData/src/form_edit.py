@@ -112,6 +112,8 @@ class EDIT_FORM:
             st.session_state["annot_text"] = ""
         if "annot_sql_done" not in st.session_state:
             st.session_state["annot_sql_done"] = False
+        if "visited_spell_check" not in st.session_state:
+            st.session_state["visited_spell_check"] = False
         if "spell_txt_area" not in st.session_state:
             st.session_state["spell_txt_area"] = ""
         if "commit_spell_txt_area" not in st.session_state:
@@ -119,7 +121,7 @@ class EDIT_FORM:
         if "mis_spelled" not in st.session_state:
             st.session_state["mis_spelled"] = []
         if "has_annot" not in st.session_state:
-            st.session_state["has_annot"] = None
+            st.session_state["has_annot"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -262,8 +264,9 @@ class EDIT_FORM:
                         st.session_state["annot_text"] = ants.__getattribute__('Source Text')
                     st.session_state["annot_sql_done"] = True
                 if st.session_state["annot_text"] != "":
-                    st.session_state["has_annot"] = True
-                    st.markdown(":orange[(Page already has an annotation entered.)]")
+                    if not st.session_state["visited_spell_check"]:
+                        st.session_state["has_annot"] = True
+                        st.markdown(":orange[(Page already has an annotation entered.)]")
                 st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
                 btn_spell_check = st.form_submit_button("Check spelling")
                 if btn_spell_check:
@@ -283,6 +286,8 @@ class EDIT_FORM:
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
                     st.session_state["annot_sql_done"] = False
+                    st.session_state["has_annot"] = False
+                    st.session_state["visited_spell_check"] = False
                     st.session_state["page_no"] = ""
                     st.session_state["annot_text"] = ""
                     self.annot_new_annot()
@@ -295,13 +300,20 @@ class EDIT_FORM:
                                         st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
                                         self.__formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
                                         ]
+                        print("THE RECORD: " + str(annot_record))
+
+
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
                         st.session_state["annot_sql_done"] = False
+                        st.session_state["has_annot"] = False
+                        st.session_state["visited_spell_check"] = False
                         st.session_state["annot_text"] = ""
                         self.annot_success_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "spell_check_Annotation":
+            if not st.session_state["visited_spell_check"]:
+                st.session_state["visited_spell_check"] = True
             with st.form("Spell check annotation"):
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
