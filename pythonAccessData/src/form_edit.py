@@ -300,9 +300,6 @@ class EDIT_FORM:
                                         st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
                                         self.__formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
                                         ]
-                        print("THE RECORD: " + str(annot_record))
-
-
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
                         st.session_state["annot_sql_done"] = False
@@ -344,9 +341,12 @@ class EDIT_FORM:
                         for h_wrd_indx in range(0, len(hghlght_lst)):
                             if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
                                 if str(hghlght_lst[h_wrd_indx]).find(mis) != -1:
-                                    wd = str(hghlght_lst[h_wrd_indx]).splitlines() # handle \n in split text area (not here in spell list)
-                                    hghlght_lst.pop(h_wrd_indx)
-                                    hghlght_lst.insert(h_wrd_indx, wd[0])
+
+                                    # TODO - rem these lines when sure not needed. Stops index out of range error. splitlines above seems to rem all nl
+                                    # wd = str(hghlght_lst[h_wrd_indx]).splitlines() # handle \n in split text area (not here in spell list)
+                                    # hghlght_lst.pop(h_wrd_indx)
+                                    # hghlght_lst.insert(h_wrd_indx, wd[0])
+
                                     tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
                                     tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
                                     if len(tmp_wrd_frmt) > 0:
@@ -376,6 +376,9 @@ class EDIT_FORM:
                 spell_corrects_true = self.__get_selected_checkboxes()
                 not_set_grn = []
                 not_set_err = []
+
+                # TODO - if the same suggestion exists for more than one word in spelling list, this works if all affected words are selected.
+                # if only one is selected, then in the case of 2 words affected, one of the words is replaceed in orange if the other is selected.
                 for corrects in spell_corrects_true:
                     set_wrd_no_sggst = False
                     flagged = corrects.split(" -> ")
@@ -395,6 +398,9 @@ class EDIT_FORM:
                     but an error has occured in highlighting this word.: :orange[""" + str(not_set_err) + """]""")
                 vw_cng = st.form_submit_button("View changes")
                 if vw_cng:
+
+                    # TODO - if the same suggestion exists for more than one word in spelling list, this works if all affected words are selected.
+                    # if only one is selected, then in the case of 2 words affected, one of the words is replaceed in orange if the other is selected.
                     corrects_unseld = self.__get_unselected_checkboxes()
                     for corrects_revert in corrects_unseld:
                         unflagged = corrects_revert.split(" -> ")
