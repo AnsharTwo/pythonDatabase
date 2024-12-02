@@ -322,30 +322,66 @@ class EDIT_FORM:
                             spell_check_list.insert(ctr, splt_ln_list[0])
                             splt_ln_list.pop(0)
                             while len(splt_ln_list) > 0:
-                                spell_check_list.append(splt_ln_list[0])
+
+                                spell_check_list.insert(ctr, splt_ln_list[0])
+                                #spell_check_list.append(splt_ln_list[0])
+
                                 splt_ln_list.pop(0)
                         splt_ln_list.clear()
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
+
+                    ###########
+                    for i in range(0, len(spell_check_list)):
+                        st.write("word list from text area: " + str(i) + ", " + spell_check_list[i])
+                    ###########
+
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
+
+                    ###########
+                    #for i in temp_wrds_unknwn:
+                    #   st.write("unknown: " + str(i))
+                    ###########
+
                     temp_spell_list = []
                     ctr = 0
-                    for wrd in spell_check_list:
+
+                    for wrd in range(0, len(spell_check_list)):
+                    # for wrd in spell_check_list:
+
                         for misp in temp_wrds_unknwn:
-                            if str(wrd).lower() == str(misp).lower(): # misp will be lower case but in case :)...
-                                temp_spell_list.insert(ctr, wrd)
+
+                            if str(spell_check_list[wrd]).lower() == str(misp).lower(): # misp will be lower case but in case :)...
+                                temp_spell_list.insert(ctr, str(spell_check_list[wrd]) + "||" + str(wrd))
+                            #if str(wrd).lower() == str(misp).lower():  # misp will be lower case but in case :)...
+                            #    temp_spell_list.insert(ctr, wrd)
+
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
+
+                    ###########
+                    for i in range(0, len(st.session_state["mis_spelled"])):
+                        st.write("Session state 'mis_spelled': " + str(i) + ", " + str(st.session_state["mis_spelled"][i]))
+                    ###########
+
                     hghlght_lst = st.session_state["spell_txt_area"].split(" ")
                     temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
-                    for mis in st.session_state["mis_spelled"]:
-                        for h_wrd_indx in range(0, len(hghlght_lst)):
-                            if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
-                                if str(hghlght_lst[h_wrd_indx]).find(mis) != -1:
 
-                                    # TODO - rem these lines when sure not needed. Stops index out of range error. splitlines above seems to rem all nl
-                                    # wd = str(hghlght_lst[h_wrd_indx]).splitlines() # handle \n in split text area (not here in spell list)
-                                    # hghlght_lst.pop(h_wrd_indx)
-                                    # hghlght_lst.insert(h_wrd_indx, wd[0])
+                    ###########
+                    for i in range(0, len(hghlght_lst)):
+                        st.write("Highlight list from text area: " + str(i) + ", " + hghlght_lst[i])
+                    ###########
+
+                    for mis in range(0, len(st.session_state["mis_spelled"])):
+                    #for mis in st.session_state["mis_spelled"]:
+
+                        # TODO - now can map mispelled word using postfixed index after || in list element. So lines 383 - 390 not needed?
+                        # HERE - create function to split the hghlght_lst element to get text area word and index
+                        # NOTE also temp_spell_txt_wrds now has index postfixed
+                        # NOTE for checkbox key - could add text area word list index mapped to misspelt word there - see below to ref key val
+                        for h_wrd_indx in range(0, len(hghlght_lst)):
+
+                            #if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
+                                #if str(hghlght_lst[h_wrd_indx]).find(st.session_state["mis_spelled"][mis]) != -1:
 
                                     tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
                                     tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
