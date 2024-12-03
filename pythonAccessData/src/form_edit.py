@@ -331,8 +331,8 @@ class EDIT_FORM:
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
 
                     ###########
-                    for i in range(0, len(spell_check_list)):
-                        st.write("word list from text area: " + str(i) + ", " + spell_check_list[i])
+                    #for i in range(0, len(spell_check_list)):
+                    #    st.write("word list from text area: " + str(i) + ", " + spell_check_list[i])
                     ###########
 
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
@@ -364,7 +364,7 @@ class EDIT_FORM:
                     ###########
 
                     hghlght_lst = st.session_state["spell_txt_area"].split(" ")
-                    temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
+                    #temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
 
                     ###########
                     for i in range(0, len(hghlght_lst)):
@@ -378,19 +378,31 @@ class EDIT_FORM:
                         # HERE - create function to split the hghlght_lst element to get text area word and index
                         # NOTE also temp_spell_txt_wrds now has index postfixed
                         # NOTE for checkbox key - could add text area word list index mapped to misspelt word there - see below to ref key val
-                        for h_wrd_indx in range(0, len(hghlght_lst)):
-
-                            #if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
+                        #for h_wrd_indx in range(0, len(hghlght_lst)):
+                           #if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
                                 #if str(hghlght_lst[h_wrd_indx]).find(st.session_state["mis_spelled"][mis]) != -1:
 
-                                    tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
-                                    tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
-                                    if len(tmp_wrd_frmt) > 0:
-                                        if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
-                                            hghlght_lst.pop(h_wrd_indx)
-                                            hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
-                                                                                                                ":orange[{}]".format(
-                                                                                                                    str(mis)), 1))
+                                    #tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
+                                    #tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
+                                    #if len(tmp_wrd_frmt) > 0:
+                                    #    if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
+
+                        spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
+                        spll_wrd = self.__get_spell_word_split(str(st.session_state["mis_spelled"][mis]))
+
+                        ####
+                        #st.write("spell index: " + str(spll_map_indx))
+                        #st.write("spell word: " + str(spll_wrd))
+
+                        temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                        hghlght_lst.pop(spll_map_indx)
+                        # TODO - use replace to highlight exact word e.g. German and not "German
+                        hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+                    #         hghlght_lst.pop(h_wrd_indx)
+                                    #         hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
+                                    #                                                                             ":orange[{}]".format(
+                                    #                                                                                 str(mis)), 1))
+
                     st.session_state["spell_txt_area"] = ""
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
@@ -399,29 +411,62 @@ class EDIT_FORM:
                 st.markdown(st.session_state["spell_txt_area"])
                 st.session_state["commit_spell_txt_area"] = st.session_state["annot_txt_area"]
                 spell_data = []
-                for mis in st.session_state["mis_spelled"]:
-                    crrct = spell.correction(str(mis))
-                    if str(crrct) == "None":
-                        if spell_data.count(str(mis) + " -> " + spell_no_suggest) == 0:
-                            spell_data.append(str(mis) + " -> " + spell_no_suggest)
+
+                for mis in range(0, len(st.session_state["mis_spelled"])):
+                    spll_wrd = self.__get_spell_word_split(str(st.session_state["mis_spelled"][mis]))
+                    spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
+
+                    ####
+                    st.write("FOR SUGGESTS spell word: " + str(spll_wrd))
+                    st.write("FOR SUGGESTS spell index: " + str(spll_map_indx))
+                    ####
+
+                    crrct = spell.correction(spll_wrd)
+                #for mis in st.session_state["mis_spelled"]:
+                    #crrct = spell.correction(str(mis))
+                    if crrct == "None":
+                        #if spell_data.count(str(mis) + " -> " + spell_no_suggest) == 0:
+                        spell_data.append(spll_wrd + " -> " + spell_no_suggest + " (pos. " + str(spll_map_indx) + ")")
                     else:
-                        if spell_data.count(str(mis) + " -> " + str(crrct)) == 0:
-                            spell_data.append(str(mis) + " -> " + str(crrct))
-                    crrct = ""
+                        #if spell_data.count(str(mis) + " -> " + str(crrct)) == 0:
+                            spell_data.append(spll_wrd + " -> " + str(crrct) +  " (pos. " + str(spll_map_indx) + ")")
+                    #crrct = ""
                 self.__checkbox_container(spell_data)
                 spell_corrects_true = self.__get_selected_checkboxes()
                 not_set_grn = []
                 not_set_err = []
 
-                # TODO - if the same suggestion exists for more than one word in spelling list, this works if all affected words are selected.
-                # if only one is selected, then in the case of 2 words affected, one of the words is replaceed in orange if the other is selected.
-                for corrects in spell_corrects_true:
+                # TODO - HERE - hghlght_lst - use as above, maybe can get generic function.
+                #Need new split function to return index from new checkbox value (here we are on rerun I think, after View Changes submit,
+                # to turn selected check boxes words to their correction in green
+                # (have already started on more lines below)
+                # thinking of the commit to change rather than viewing changes, will need to replace in split text list element exact word,
+                # as element could have grammar marks etc.
+                # AND - looks like need to do the same above (exact word colour change in e.g. "German) on the set to orange after arriving first at spell page.
+                hghlght_lst = st.session_state["spell_txt_area"].split(" ") # already formatted split lines and spelling format
+
+                #for corrects in spell_corrects_true:
+                for corrects in range(0, len(spell_corrects_true)):
                     set_wrd_no_sggst = False
-                    flagged = corrects.split(" -> ")
-                    if flagged[1] != spell_no_suggest:
-                        st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
-                                                                                                ":green[{}]".format(
-                                                                                                    str(flagged[1])))
+
+                    flagged = spell_corrects_true[corrects].split(" -> ")
+                    if flagged[1].find(spell_no_suggest) != -1:
+                        spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
+                        spll_wrd = self.__get_spell_word_split(str(st.session_state["mis_spelled"][mis]))
+
+                        ####
+                        #st.write("spell index: " + str(spll_map_indx))
+                        #st.write("spell word: " + str(spll_wrd))
+
+                        temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                        hghlght_lst.pop(spll_map_indx)
+                        hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+
+                    #flagged = corrects.split(" -> ")
+                    #if flagged[1] != spell_no_suggest:
+                     # st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
+                        #                                                                         ":green[{}]".format(
+                        #                                                                             str(flagged[1])))
                     else:
                         not_set_grn.insert(len(not_set_grn), str(flagged[0]))
                         set_wrd_no_sggst = True
@@ -733,3 +778,11 @@ class EDIT_FORM:
             return ""
         else:
             return fld_val
+
+    def __get_spell_word_split(self, w_Line):
+        temp_wl = w_Line.split("||")
+        return str(temp_wl[0])
+
+    def __get_spell_map_index_split(self, w_Line):
+        temp_wl = w_Line.split("||")
+        return int(temp_wl[1])
