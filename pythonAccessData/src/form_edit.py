@@ -37,6 +37,10 @@ class EDIT_FORM:
         "annots_pg_no_len": 4
     }
 
+    dict_separators = {
+        "spell_chkbx_indx_prfix": "{^pos."
+    }
+
     def annot_srch_bk(self):
         st.session_state["form_flow"] = "search_for_book_to_annotate"
 
@@ -81,7 +85,10 @@ class EDIT_FORM:
         bk_no = ""
         annot_page_no = ""
         spell = SpellChecker("en", None, 4, None, False)
+
+        # TODO - move this into separator dict above
         spell_no_suggest = "no suggestions"
+        spell_chkbx_indx_prfix = "{^pos."
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
         if "res_multi_books_for_new_annot" not in st.session_state:
@@ -359,16 +366,16 @@ class EDIT_FORM:
                     st.session_state["mis_spelled"] = temp_spell_list
 
                     ###########
-                    for i in range(0, len(st.session_state["mis_spelled"])):
-                        st.write("Session state 'mis_spelled': " + str(i) + ", " + str(st.session_state["mis_spelled"][i]))
+                    #for i in range(0, len(st.session_state["mis_spelled"])):
+                    #    st.write("Session state 'mis_spelled': " + str(i) + ", " + str(st.session_state["mis_spelled"][i]))
                     ###########
 
                     hghlght_lst = st.session_state["spell_txt_area"].split(" ")
                     #temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
 
                     ###########
-                    for i in range(0, len(hghlght_lst)):
-                        st.write("Highlight list from text area: " + str(i) + ", " + hghlght_lst[i])
+                    #for i in range(0, len(hghlght_lst)):
+                    #    st.write("Highlight list from text area: " + str(i) + ", " + hghlght_lst[i])
                     ###########
 
                     for mis in range(0, len(st.session_state["mis_spelled"])):
@@ -424,19 +431,19 @@ class EDIT_FORM:
                     crrct = spell.correction(spll_wrd)
                 #for mis in st.session_state["mis_spelled"]:
                     #crrct = spell.correction(str(mis))
-                    if crrct == "None":
+                    if str(crrct) == "None":
                         #if spell_data.count(str(mis) + " -> " + spell_no_suggest) == 0:
-                        spell_data.append(spll_wrd + " -> " + spell_no_suggest + " (pos. " + str(spll_map_indx) + ")")
+                        spell_data.append(spll_wrd + " -> " + spell_no_suggest + " {^pos. " + str(spll_map_indx) + "}")
                     else:
                         #if spell_data.count(str(mis) + " -> " + str(crrct)) == 0:
-                            spell_data.append(spll_wrd + " -> " + str(crrct) +  " (pos. " + str(spll_map_indx) + ")")
+                            spell_data.append(spll_wrd + " -> " + str(crrct) +  " {^pos. " + str(spll_map_indx) + "}")
                     #crrct = ""
                 self.__checkbox_container(spell_data)
                 spell_corrects_true = self.__get_selected_checkboxes()
                 not_set_grn = []
                 not_set_err = []
 
-                # TODO - HERE - hghlght_lst - use as above, maybe can get generic function.
+                # TODO - A - hghlght_lst - use as above, maybe can get generic function.
                 #Need new split function to return index from new checkbox value (here we are on rerun I think, after View Changes submit,
                 # to turn selected check boxes words to their correction in green
                 # (have already started on more lines below)
@@ -450,38 +457,56 @@ class EDIT_FORM:
                     set_wrd_no_sggst = False
 
                     flagged = spell_corrects_true[corrects].split(" -> ")
-                    if flagged[1].find(spell_no_suggest) != -1:
-                        spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
-                        spll_wrd = self.__get_spell_word_split(str(st.session_state["mis_spelled"][mis]))
+                    spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
+                    spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
 
-                        ####
-                        #st.write("spell index: " + str(spll_map_indx))
-                        #st.write("spell word: " + str(spll_wrd))
+                    ######
+                    st.write("spell index: " + str(spll_map_indx))
+                    st.write("spell word: " + str(spll_wrd))
+                    ######
+
+                    if flagged[1].find(spell_no_suggest) != -1:
+
+                        # temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                        # hghlght_lst.pop(spll_map_indx)
+                        # hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
 
                         temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
                         hghlght_lst.pop(spll_map_indx)
+                        # TODO - use replace to highlight exact word e.g. German and not "German
                         hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
-
                     #flagged = corrects.split(" -> ")
-                    #if flagged[1] != spell_no_suggest:
-                     # st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
-                        #                                                                         ":green[{}]".format(
-                        #                                                                             str(flagged[1])))
-                    else:
-                        not_set_grn.insert(len(not_set_grn), str(flagged[0]))
-                        set_wrd_no_sggst = True
-                    if not set_wrd_no_sggst and st.session_state["spell_txt_area"].find(":green[{}]".format(str(flagged[1]))) == -1:
-                        not_set_err.insert(len(not_set_err), str(flagged[0]))
-                if len(not_set_grn) > 0:
-                    st.warning("the following words have no suggestions and will not be changed: :orange[" + str(not_set_grn) + "]")
-                if len(not_set_err) > 0:
-                    st.warning("""Word format error: the following words can be corrected, 
-                    but an error has occured in highlighting this word.: :orange[""" + str(not_set_err) + """]""")
+                    if flagged[1] != spell_no_suggest:
+                        print("marker")
+                        # TODO - this will set to green the word change using index point to hghlt lst
+                        # st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
+                        #                                                                      ":green[{}]".format(
+                        #                                                                              str(flagged[1])))
+
+                        # TODO - return to block below when replace of word colouring is actual substr of exact word
+                #     else:
+                #
+                #         # TODO - check if change is OK
+                #         not_set_grn.insert(len(not_set_grn), str(hghlght_lst[spll_map_indx]))
+                #         #not_set_grn.insert(len(not_set_grn), str(flagged[0]))
+                #         set_wrd_no_sggst = True
+                #
+                #     # TODO - check this is working nto at moment 4 Dec
+                #     if not set_wrd_no_sggst and str(hghlght_lst[spll_map_indx]).find(":green[") == -1:
+                #     #if not set_wrd_no_sggst and st.session_state["spell_txt_area"].find(":green[{}]".format(str(flagged[1]))) == -1:
+                #
+                #         not_set_err.insert(len(not_set_err), str(hghlght_lst[spll_map_indx]))
+                #         #not_set_err.insert(len(not_set_err), str(flagged[0]))
+                # if len(not_set_grn) > 0:
+                #     st.warning("the following words have no suggestions and will not be changed: :orange[" + str(not_set_grn) + "]")
+                # if len(not_set_err) > 0:
+                #     st.warning("""Word format error: the following words can be corrected,
+                #     but an error has occured in highlighting this word.: :orange[""" + str(not_set_err) + """]""")
+
+                # TODO HERE - note above block to handle workds that cannot be coloured needs to be returned to. And note TODO A above still
+                # AND note set to green code above - still do do next.
                 vw_cng = st.form_submit_button("View changes")
                 if vw_cng:
-
-                    # TODO - if the same suggestion exists for more than one word in spelling list, this works if all affected words are selected.
-                    # if only one is selected, then in the case of 2 words affected, one of the words is replaceed in orange if the other is selected.
                     corrects_unseld = self.__get_unselected_checkboxes()
                     for corrects_revert in corrects_unseld:
                         unflagged = corrects_revert.split(" -> ")
@@ -786,3 +811,13 @@ class EDIT_FORM:
     def __get_spell_map_index_split(self, w_Line):
         temp_wl = w_Line.split("||")
         return int(temp_wl[1])
+
+    def __get_spell_chkbox_indx(self, chkbx_itm):
+        tmp_sggst = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
+        indx = str(tmp_sggst[1])
+        indx = str(tmp_sggst[1].lstrip())
+        return int(indx.rstrip("}"))
+
+    def __get_spell_chkbx_split(self, chkbx_itm):
+        temp_itm = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
+        return str(temp_itm[0]).rstrip()
