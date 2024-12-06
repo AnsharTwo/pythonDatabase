@@ -403,31 +403,20 @@ class EDIT_FORM:
                 spell_corrects_true = self.__get_selected_checkboxes()
                 not_set_grn = []
                 not_set_err = []
-                # TODO - A - hghlght_lst - use as above, maybe can get generic function.
-                #Need new split function to return index from new checkbox value (here we are on rerun I think, after View Changes submit,
-                # to turn selected check boxes words to their correction in green
-                # (have already started on more lines below)
-                # thinking of the commit to change rather than viewing changes, will need to replace in split text list element exact word,
-                # as element could have grammar marks etc.
-                # AND - looks like need to do the same above (exact word colour change in e.g. "German) on the set to orange after arriving first at spell page.
                 hghlght_lst = st.session_state["spell_txt_area"].split(" ") # already formatted split lines and spelling format
-                ###########
-                for i in range(0, len(spell_corrects_true)):
-                    st.write("spell corrects: " + str(i) + ", " + spell_corrects_true[i])
-                ###########
-                for i in range(0, len(hghlght_lst)):
-                    st.write("Highlight list from text area: " + str(i) + ", " + hghlght_lst[i])
-                ###########
-
                 st.session_state["spell_txt_area"] = ""
                 for corrects in range(0, len(spell_corrects_true)):
                     set_wrd_no_sggst = False
                     flagged = spell_corrects_true[corrects].split(" -> ")
                     spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
                     spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
+                    sggstn = self.__get_spell_chkbox_sggstn(str(str(flagged[1])))
+                    #####
+                    #st.write("suggestion replacement: " + sggstn)
+                    #####
                     ######
-                    st.write("spell index: " + str(spll_map_indx))
-                    st.write("spell word: " + str(spll_wrd))
+                    #st.write("spell index: " + str(spll_map_indx))
+                    #st.write("spell word: " + str(spll_wrd))
                     ######
                     if flagged[1].find(spell_no_suggest) != -1:
                         temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
@@ -435,16 +424,24 @@ class EDIT_FORM:
                         # TODO - use replace to highlight exact word e.g. German and not "German
                         hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
                     else:
+
+                        # word replace+==============================================
+
                         temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
                         if temp_hghlght_wrd.find(":orange[") != -1: # possible unformattable to organge in first place...
                             temp_hghlght_wrd = temp_hghlght_wrd.lstrip(":orange[")
                             temp_hghlght_wrd = temp_hghlght_wrd.rstrip("]")
-                        #####
-                        st.write("TO GREEN ========= " + temp_hghlght_wrd)
-                        #####
+                        temp_hghlght_wrd = temp_hghlght_wrd.replace(spll_wrd, sggstn)
                         hghlght_lst.pop(spll_map_indx)
-                        # TODO - use replace to highlight exact word e.g. German and not "German
-                        hghlght_lst.insert(spll_map_indx, ":green[{}]".format(temp_hghlght_wrd))
+                        if temp_hghlght_wrd.find(":green[") == -1:
+                            hghlght_lst.insert(spll_map_indx, ":green[{}]".format(temp_hghlght_wrd))
+                        else:
+                            hghlght_lst.insert(spll_map_indx, temp_hghlght_wrd)
+
+                            # HERE##############################################
+
+
+
                 for h_wrd_indx in range(0, len(hghlght_lst)):
                     st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
                     if h_wrd_indx < len(hghlght_lst):
@@ -476,23 +473,57 @@ class EDIT_FORM:
                 ####
                 #st.write("BEFORE VIEW CHANGE BTN: " + st.session_state["spell_txt_area"])
                 #####
+                # TODO HERE - view changes with test string is working. hghlt list is getting blank elements, fix.
                 if vw_cng:
                     hghlght_lst = st.session_state["spell_txt_area"].split(
                         " ")
                     st.session_state["spell_txt_area"] = ""
+                    #######
+                    for i in range(0, len(hghlght_lst)):
+                        print("hgt_list item: " + str(hghlght_lst[i]))
+                    #######
                     corrects_unseld = self.__get_unselected_checkboxes()
                     for corrects_revert in range(0, len(corrects_unseld)):
                         unflagged = str(corrects_unseld[corrects_revert]).split(" -> ")
                         if unflagged[1].find(spell_no_suggest) == -1:
                             spll_map_indx = self.__get_spell_chkbox_indx(str(unflagged[1]))
                             spll_wrd = self.__get_spell_chkbx_split(str(unflagged[0]))
+                            sggstn = self.__get_spell_chkbox_sggstn(str(unflagged[1]))
+
+                            #####
+                            print("suggestion replacement: " + sggstn)
+                            print("spell index: " + str(spll_map_indx))
+                            print("spell word: " + str(spll_wrd))
+                            ######
+
                             temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                            ####
+                            print("Before strip green - temp hglt word: " + str(temp_hghlght_wrd))
+                            ####
+                            # TODO - Fr 12 Dec - strip is not right method it rem ove all indicivual CHARS from string hence "man,]"...
+                            # left from  ":green[german,]" when tring to trim off ":green[" See https://sentry.io/answers/extract-a-substring-from-a-string-in-python/
+                            # red link on XLS. CHange all affected below.
+                            # initial change to green is working otherwise.
                             if temp_hghlght_wrd.find(":green[") != -1: # word might not have been selected, was already unselected, or could not be formatted to green
                                 temp_hghlght_wrd = temp_hghlght_wrd.lstrip(":green[")
+                                ####
+                                print("DURING strip green - temp hglt word: " + str(temp_hghlght_wrd))
+                                ####
+
                                 temp_hghlght_wrd = temp_hghlght_wrd.rstrip("]")
+                            ####
+                            print("BEFORE SWITCH REPLACER WORD: " + str(temp_hghlght_wrd))
+                            ####
+                            temp_hghlght_wrd = temp_hghlght_wrd.replace(sggstn, spll_wrd)
+                            ####
+                            print("REPLACER WORD: " + str(temp_hghlght_wrd))
+                            print("---------------------------------")
+                            ####
                             hghlght_lst.pop(spll_map_indx)
-                            # TODO - use replace to highlight exact word e.g. German and not "German
-                            hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+                            if temp_hghlght_wrd.find(":orange[") == -1:
+                                hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+                            else:
+                                hghlght_lst.insert(spll_map_indx, temp_hghlght_wrd)
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(
                             hghlght_lst[h_wrd_indx])
@@ -503,13 +534,37 @@ class EDIT_FORM:
                 cmt_cng = st.form_submit_button("Commit spelling")
                 if cmt_cng:
                     spell_corrects_true = self.__get_selected_checkboxes()
+                    hghlght_lst = st.session_state["spell_txt_area"]
+                    st.session_state["spell_txt_area"] = ""
+                    for rems in range(0, len(hghlght_lst)): # remove ALL words' green and orange markdown formatting
+                        tmp_rem = str(hghlght_lst[rems])
+                        tmp_rem = tmp_rem.lstrip(":orange[")
+                        tmp_rem = tmp_rem.lstrip(":green[")
+                        tmp_rem = tmp_rem.rstrip("]")
+                        hghlght_lst.pop(rems)
+                        hghlght_lst.insert(rems, spll_map_indx, tmp_rem)
+                    # HERE ############################
                     for corrects in range(0, len(spell_corrects_true)):
                         flagged = str(spell_corrects_true[corrects]).split(" -> ")
                         if flagged[1].find(spell_no_suggest) == -1:
-                        # TODO HERE - view changes with test string is working. hghlt list is getting blank elements, fix.
-                        # NOTE code e.g. rebuild ss spell txt area can be made into function as used > 1 time, also others.
-                            st.session_state["commit_spell_txt_area"] = st.session_state["commit_spell_txt_area"].replace(
-                                flagged[0], flagged[1])
+                            spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
+                            spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
+                            temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                            if temp_hghlght_wrd.find(
+                                    ":green[") != -1:  # word might not have been selected, was already unselected, or could not be formatted to green
+                                temp_hghlght_wrd = temp_hghlght_wrd.lstrip(":green[")
+                                temp_hghlght_wrd = temp_hghlght_wrd.rstrip("]")
+                            hghlght_lst.pop(spll_map_indx)
+                            # TODO - use replace to highlight exact word e.g. German and not "German
+                            hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+                    for h_wrd_indx in range(0, len(hghlght_lst)):
+                        st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(
+                            hghlght_lst[h_wrd_indx])
+                        if h_wrd_indx < len(hghlght_lst):
+                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
+
+                        ################################
+
                     st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
                     st.session_state["commit_spell_txt_area"] = ""
                     if st.session_state["spell_txt_area"] != "":
@@ -796,6 +851,11 @@ class EDIT_FORM:
     def __get_spell_map_index_split(self, w_Line):
         temp_wl = w_Line.split("||")
         return int(temp_wl[1])
+
+    def __get_spell_chkbox_sggstn(self, chkbx_itm):
+        tmp_sggst = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
+        sggst = str(tmp_sggst[0].strip())
+        return sggst
 
     def __get_spell_chkbox_indx(self, chkbx_itm):
         tmp_sggst = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
