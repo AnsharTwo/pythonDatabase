@@ -38,7 +38,9 @@ class EDIT_FORM:
     }
 
     dict_separators = {
-        "spell_chkbx_indx_prfix": "{^pos."
+        "spell_chkbx_indx_prfix": "{^pos.",
+        "spell_chk_grn_prefix_len": 6,
+        "spell_chk_orng_prefix_len": 7
     }
 
     def annot_srch_bk(self):
@@ -429,8 +431,10 @@ class EDIT_FORM:
 
                         temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
                         if temp_hghlght_wrd.find(":orange[") != -1: # possible unformattable to organge in first place...
-                            temp_hghlght_wrd = temp_hghlght_wrd.lstrip(":orange[")
-                            temp_hghlght_wrd = temp_hghlght_wrd.rstrip("]")
+
+                            temp_hghlght_wrd = self.__rem_markdown_colour(temp_hghlght_wrd,
+                                                                          self.dict_separators.get(
+                                                                              "spell_chk_orng_prefix_len"))
                         temp_hghlght_wrd = temp_hghlght_wrd.replace(spll_wrd, sggstn)
                         hghlght_lst.pop(spll_map_indx)
                         if temp_hghlght_wrd.find(":green[") == -1:
@@ -479,8 +483,8 @@ class EDIT_FORM:
                         " ")
                     st.session_state["spell_txt_area"] = ""
                     #######
-                    for i in range(0, len(hghlght_lst)):
-                        print("hgt_list item: " + str(hghlght_lst[i]))
+                    #for i in range(0, len(hghlght_lst)):
+                    #    print("hgt_list item: " + str(hghlght_lst[i]))
                     #######
                     corrects_unseld = self.__get_unselected_checkboxes()
                     for corrects_revert in range(0, len(corrects_unseld)):
@@ -491,33 +495,33 @@ class EDIT_FORM:
                             sggstn = self.__get_spell_chkbox_sggstn(str(unflagged[1]))
 
                             #####
-                            print("suggestion replacement: " + sggstn)
-                            print("spell index: " + str(spll_map_indx))
-                            print("spell word: " + str(spll_wrd))
+                            #print("suggestion replacement: " + sggstn)
+                            #print("spell index: " + str(spll_map_indx))
+                            #print("spell word: " + str(spll_wrd))
                             ######
 
                             temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
                             ####
-                            print("Before strip green - temp hglt word: " + str(temp_hghlght_wrd))
+                            #print("Before strip green - temp hglt word: " + str(temp_hghlght_wrd))
                             ####
                             # TODO - Fr 12 Dec - strip is not right method it rem ove all indicivual CHARS from string hence "man,]"...
                             # left from  ":green[german,]" when tring to trim off ":green[" See https://sentry.io/answers/extract-a-substring-from-a-string-in-python/
                             # red link on XLS. CHange all affected below.
                             # initial change to green is working otherwise.
                             if temp_hghlght_wrd.find(":green[") != -1: # word might not have been selected, was already unselected, or could not be formatted to green
-                                temp_hghlght_wrd = temp_hghlght_wrd.lstrip(":green[")
+                                temp_hghlght_wrd = self.__rem_markdown_colour(temp_hghlght_wrd,
+                                                                              self.dict_separators.get("spell_chk_grn_prefix_len"))
                                 ####
-                                print("DURING strip green - temp hglt word: " + str(temp_hghlght_wrd))
+                                #print("NEWWWWWW strip green - temp hglt word: " + str(temp_hghlght_wrd))
                                 ####
 
-                                temp_hghlght_wrd = temp_hghlght_wrd.rstrip("]")
                             ####
-                            print("BEFORE SWITCH REPLACER WORD: " + str(temp_hghlght_wrd))
+                            #print("BEFORE SWITCH REPLACER WORD: " + str(temp_hghlght_wrd))
                             ####
                             temp_hghlght_wrd = temp_hghlght_wrd.replace(sggstn, spll_wrd)
                             ####
-                            print("REPLACER WORD: " + str(temp_hghlght_wrd))
-                            print("---------------------------------")
+                            #print("REPLACER WORD: " + str(temp_hghlght_wrd))
+                            #print("---------------------------------")
                             ####
                             hghlght_lst.pop(spll_map_indx)
                             if temp_hghlght_wrd.find(":orange[") == -1:
@@ -533,30 +537,62 @@ class EDIT_FORM:
                     st.rerun()
                 cmt_cng = st.form_submit_button("Commit spelling")
                 if cmt_cng:
-                    spell_corrects_true = self.__get_selected_checkboxes()
-                    hghlght_lst = st.session_state["spell_txt_area"]
+
+                    #######
+                    print("AT STASRT OF COMMIT - SPELL TEXT AREA: " + st.session_state["spell_txt_area"])
+                    ########
+
+
+                    #spell_corrects_true = self.__get_selected_checkboxes()
+                    hghlght_lst = st.session_state["spell_txt_area"].split(" ")
                     st.session_state["spell_txt_area"] = ""
                     for rems in range(0, len(hghlght_lst)): # remove ALL words' green and orange markdown formatting
                         tmp_rem = str(hghlght_lst[rems])
-                        tmp_rem = tmp_rem.lstrip(":orange[")
-                        tmp_rem = tmp_rem.lstrip(":green[")
-                        tmp_rem = tmp_rem.rstrip("]")
-                        hghlght_lst.pop(rems)
-                        hghlght_lst.insert(rems, spll_map_indx, tmp_rem)
-                    # HERE ############################
-                    for corrects in range(0, len(spell_corrects_true)):
-                        flagged = str(spell_corrects_true[corrects]).split(" -> ")
-                        if flagged[1].find(spell_no_suggest) == -1:
-                            spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
-                            spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
-                            temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
-                            if temp_hghlght_wrd.find(
-                                    ":green[") != -1:  # word might not have been selected, was already unselected, or could not be formatted to green
-                                temp_hghlght_wrd = temp_hghlght_wrd.lstrip(":green[")
-                                temp_hghlght_wrd = temp_hghlght_wrd.rstrip("]")
-                            hghlght_lst.pop(spll_map_indx)
-                            # TODO - use replace to highlight exact word e.g. German and not "German
-                            hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+
+                        if tmp_rem.find(":orange[") != -1:
+                            tmp_rem = self.__rem_markdown_colour(tmp_rem,
+                                                                          self.dict_separators.get(
+                                                                          "spell_chk_orng_prefix_len"))
+                            hghlght_lst.pop(rems)
+                            hghlght_lst.insert(rems, tmp_rem)
+                        elif tmp_rem.find(":green[") != -1:
+                            tmp_rem = self.__rem_markdown_colour(tmp_rem,
+                                                                          self.dict_separators.get(
+                                                                          "spell_chk_grn_prefix_len"))
+                            hghlght_lst.pop(rems)
+                            hghlght_lst.insert(rems, tmp_rem)
+
+                    #for i in range(0, len(hghlght_lst)):
+                    #    print("hgt_list item: " + str(hghlght_lst[i]))
+                    #######
+
+                    # for corrects in range(0, len(spell_corrects_true)):
+                    #     flagged = str(spell_corrects_true[corrects]).split(" -> ")
+                    #     if flagged[1].find(spell_no_suggest) == -1:
+                    #         spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
+                    #         spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
+                    #         sggstn = self.__get_spell_chkbox_sggstn(str(flagged[1]))
+                    #         temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                    #         # if temp_hghlght_wrd.find(
+                    #         #         ":green[") != -1:  # word might not have been selected, was already unselected, or could not be formatted to green
+                    #         #     temp_hghlght_wrd = self.__rem_markdown_colour(temp_hghlght_wrd,
+                    #         #                                          self.dict_separators.get(
+                    #         #                                              "spell_chk_grn_prefix_len"))
+                    #         #####
+                    #         print("BEFORE sugestion done " + temp_hghlght_wrd)
+                    #         #####
+                    #
+                    #         temp_hghlght_wrd = temp_hghlght_wrd.replace(spll_wrd, sggstn)
+                    #
+                    #         #####
+                    #         print("AFTER sugestion done " + temp_hghlght_wrd)
+                    #         #####
+                    #
+                    #         hghlght_lst.pop(spll_map_indx)
+                    #         hghlght_lst.insert(spll_map_indx, temp_hghlght_wrd)
+                    #         #hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+
+
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(
                             hghlght_lst[h_wrd_indx])
@@ -564,8 +600,19 @@ class EDIT_FORM:
                             st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
 
                         ################################
+                    #######
+                    print("SPELL TEXT AREA: " + st.session_state["spell_txt_area"])
+                    ########
 
-                    st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
+                    # TODO - Dec 9 commit is working as well as view changes but should not be. to fix:
+                    # 1) ar print "start of commit" above, loads of orange
+                    # 2) cannot see why commit is working, without view changes clicked first
+                    # 3) list highlight list index is adding blanks, now on popover menu (is it st.session_state["mis_spelled"] below needs
+                    # to be rem as dict as in func to rem chkbox keys?)
+                    # 4) looks like can remove SS "commit_spell_txt_area"
+
+                    st.session_state["annot_text"] = st.session_state["spell_txt_area"]
+                    #st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
                     st.session_state["commit_spell_txt_area"] = ""
                     if st.session_state["spell_txt_area"] != "":
                         st.session_state["spell_txt_area"] = ""
@@ -866,3 +913,8 @@ class EDIT_FORM:
     def __get_spell_chkbx_split(self, chkbx_itm):
         temp_itm = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
         return str(temp_itm[0]).rstrip()
+
+    def __rem_markdown_colour(self, wrd, colour_prefix):
+        temp__wrd = wrd[colour_prefix + 1:]
+        temp__wrd = temp__wrd[0:len(temp__wrd) - 1] # rem ] (markdown closure bracket)
+        return(temp__wrd)
