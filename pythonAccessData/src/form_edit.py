@@ -326,6 +326,7 @@ class EDIT_FORM:
                     st.write("Spell txt area is blank")
                     ####
                     st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
+
                     spell_check_list = st.session_state["spell_txt_area"].split(" ")
                     for ctr in range(0, len(spell_check_list)):
                         splt_ln_list = str(spell_check_list[ctr]).splitlines()
@@ -354,7 +355,16 @@ class EDIT_FORM:
                             if str(spell_check_list[wrd]).lower() == str(misp).lower(): # misp will be lower case but in case :)...
                                 temp_spell_list.insert(ctr, str(spell_check_list[wrd]) + "||" + str(wrd))
                                 ctr += 1
+
                     st.session_state["mis_spelled"] = temp_spell_list
+
+                    # TODO here Dec 10 - check if this is clearing and if it has unwanted elems?....
+                    # below line ADDDED:
+                    temp_wrds_unknwn.clear()
+
+                    #######################################
+                    #spell_check_list.clear()
+                    #temp_spell_list.clear()
                     ###########
                     #for i in range(0, len(st.session_state["mis_spelled"])):
                     #    st.write("Session state 'mis_spelled': " + str(i) + ", " + str(st.session_state["mis_spelled"][i]))
@@ -383,6 +393,8 @@ class EDIT_FORM:
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
                         if h_wrd_indx < len(hghlght_lst):
                             st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
+
+
                 ####
                 #st.write("Spell text are immeidately before markdown: " + st.session_state["spell_txt_area"])
                 ####
@@ -393,6 +405,7 @@ class EDIT_FORM:
                     spll_wrd = self.__get_spell_word_split(str(st.session_state["mis_spelled"][mis]))
                     spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
                     ####
+                    st.write(str(mis) + " === " + st.session_state["mis_spelled"][mis])
                     #st.write("FOR SUGGESTS spell word: " + str(spll_wrd))
                     #st.write("FOR SUGGESTS spell index: " + str(spll_map_indx))
                     ####
@@ -402,6 +415,7 @@ class EDIT_FORM:
                     else:
                             spell_data.append(spll_wrd + " -> " + str(crrct) +  " {^pos. " + str(spll_map_indx) + "}")
                 self.__checkbox_container(spell_data)
+
                 spell_corrects_true = self.__get_selected_checkboxes()
                 not_set_grn = []
                 not_set_err = []
@@ -616,7 +630,10 @@ class EDIT_FORM:
                     st.session_state["commit_spell_txt_area"] = ""
                     if st.session_state["spell_txt_area"] != "":
                         st.session_state["spell_txt_area"] = ""
-                    st.session_state["mis_spelled"] = []
+
+                    #st.session_state["mis_spelled"] = []
+                    st.session_state["mis_spelled"].clear()
+
                     self.__rem_checkbox_ss_keys()
                     self.annot_do_new_annot()
                     st.rerun()
