@@ -90,7 +90,6 @@ class EDIT_FORM:
 
         # TODO - move this into separator dict above
         spell_no_suggest = "no suggestions"
-        spell_chkbx_indx_prfix = "{^pos."
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
         if "res_multi_books_for_new_annot" not in st.session_state:
@@ -127,8 +126,10 @@ class EDIT_FORM:
             st.session_state["spell_txt_area"] = ""
         if "commit_spell_txt_area" not in st.session_state:
             st.session_state["commit_spell_txt_area"] = ""
-        if "mis_spelled" not in st.session_state:
-            st.session_state["mis_spelled"] = []
+
+        # if "mis_spelled" not in st.session_state:
+        #     st.session_state["mis_spelled"] = []
+
         if "has_annot" not in st.session_state:
             st.session_state["has_annot"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
@@ -321,11 +322,22 @@ class EDIT_FORM:
             if not st.session_state["visited_spell_check"]:
                 st.session_state["visited_spell_check"] = True
             with st.form("Spell check annotation"):
+
+                if "mis_spelled" not in st.session_state:
+                    print("WAS NOT IN SESSION STATE")
+                    st.session_state["mis_spelled"] = []
+
+                for mis in range(0, len(st.session_state["mis_spelled"])):
+                        st.write("BEFORE mis_spelled: " + str(mis) + " " + str(st.session_state["mis_spelled"][mis]))
+
+
                 if st.session_state["spell_txt_area"] == "":
+
                     #####
                     st.write("Spell txt area is blank")
                     ####
-                    st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
+                    #st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"].strip()
+                    st.session_state["spell_txt_area"] = st.session_state["annot_txt_area"]
 
                     spell_check_list = st.session_state["spell_txt_area"].split(" ")
                     for ctr in range(0, len(spell_check_list)):
@@ -338,16 +350,35 @@ class EDIT_FORM:
                                 spell_check_list.insert(ctr, splt_ln_list[0])
                                 splt_ln_list.pop(0)
                         splt_ln_list.clear()
+
+                    ###########
+                    for i in range(0, len(spell_check_list)):
+                        st.write("BEFORE spell_check_list: " + str(spell_check_list[i]))
+                    ###########
+
+
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
+
+                    ###########
+                    for i in range(0, len(spell_check_list)):
+                        st.write("AFTER spell_check_list: " + str(spell_check_list[i]))
+                    ###########
+
                     ###########
                     #for i in range(0, len(spell_check_list)):
                     #    st.write("word list from text area: " + str(i) + ", " + spell_check_list[i])
                     ###########
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     ###########
-                    #for i in temp_wrds_unknwn:
-                    #   st.write("unknown: " + str(i))
+                    for i in temp_wrds_unknwn:
+                       st.write("unknown: " + str(i))
                     ###########
+
+                    ################
+                    # for mis in range(0, len(st.session_state["mis_spelled"])):
+                    #    st.write("BEFORE mis_spelled: " + str(mis) + " " + str(st.session_state["mis_spelled"][mis]))
+                    ################
+
                     temp_spell_list = []
                     ctr = 0
                     for wrd in range(0, len(spell_check_list)):
@@ -356,7 +387,18 @@ class EDIT_FORM:
                                 temp_spell_list.insert(ctr, str(spell_check_list[wrd]) + "||" + str(wrd))
                                 ctr += 1
 
+                    ################
+                    #for mis in range(0, len(st.session_state["mis_spelled"])):
+                    #    st.write("BEFORE mis_spelled: " + str (mis) + " " + str(st.session_state["mis_spelled"][mis]))
+                    ################
                     st.session_state["mis_spelled"] = temp_spell_list
+
+
+                    ################
+                    for mis in range(0, len(st.session_state["mis_spelled"])):
+                        st.write("AFTER mis_spelled: " + str (mis) + " " + str(st.session_state["mis_spelled"][mis]))
+                    ################
+
 
                     # TODO here Dec 10 - check if this is clearing and if it has unwanted elems?....
                     # below line ADDDED:
@@ -391,7 +433,7 @@ class EDIT_FORM:
                     st.session_state["spell_txt_area"] = ""
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
-                        if h_wrd_indx < len(hghlght_lst):
+                        if h_wrd_indx < (len(hghlght_lst) - 1):
                             st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
 
 
@@ -462,7 +504,7 @@ class EDIT_FORM:
 
                 for h_wrd_indx in range(0, len(hghlght_lst)):
                     st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
-                    if h_wrd_indx < len(hghlght_lst):
+                    if h_wrd_indx < (len(hghlght_lst) - 1):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
 
                 # TODO - return to block below when replace of word colouring is actual substr of exact word
@@ -545,7 +587,7 @@ class EDIT_FORM:
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(
                             hghlght_lst[h_wrd_indx])
-                        if h_wrd_indx < len(hghlght_lst):
+                        if h_wrd_indx < (len(hghlght_lst) - 1):
                             st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
                     self.spell_chk()
                     st.rerun()
@@ -610,7 +652,7 @@ class EDIT_FORM:
                     for h_wrd_indx in range(0, len(hghlght_lst)):
                         st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(
                             hghlght_lst[h_wrd_indx])
-                        if h_wrd_indx < len(hghlght_lst):
+                        if h_wrd_indx < (len(hghlght_lst) - 1):
                             st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
 
                         ################################
@@ -628,11 +670,15 @@ class EDIT_FORM:
                     st.session_state["annot_text"] = st.session_state["spell_txt_area"]
                     #st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
                     st.session_state["commit_spell_txt_area"] = ""
-                    if st.session_state["spell_txt_area"] != "":
-                        st.session_state["spell_txt_area"] = ""
+                    #if st.session_state["spell_txt_area"] != "":
+                    st.session_state["spell_txt_area"] = ""
 
                     #st.session_state["mis_spelled"] = []
-                    st.session_state["mis_spelled"].clear()
+                    #st.session_state["mis_spelled"].clear()
+                    while (len(st.session_state["mis_spelled"]) >= 1):
+                        st.write("deletd SS item : " + st.session_state["mis_spelled"][0])
+                        st.session_state["mis_spelled"].pop(0)
+
 
                     self.__rem_checkbox_ss_keys()
                     self.annot_do_new_annot()
