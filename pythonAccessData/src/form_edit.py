@@ -320,16 +320,30 @@ class EDIT_FORM:
                 if st.session_state["spell_txt_area"] == "":
                     st.session_state["spell_txt_area"] = st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split(" ")
+                    has_newlines = False
+                    where_newlines = []
                     for ctr in range(0, len(spell_check_list)): # rem newline chars
+                        tmp_trimmed = str(spell_check_list[ctr]).strip()
+                        spell_check_list.pop(ctr)
+                        spell_check_list.insert(ctr, tmp_trimmed)
                         splt_ln_list = str(spell_check_list[ctr]).splitlines()
                         if len(splt_ln_list) > 1:
+                            has_newlines = True
+                            for i in range(0, len(splt_ln_list)):
+                                where_newlines.append(str(splt_ln_list[i]))
                             spell_check_list.pop(ctr)
-                            spell_check_list.insert(ctr, splt_ln_list[0])
+                            spell_check_list.insert(ctr, str(splt_ln_list[0]))
                             splt_ln_list.pop(0)
+                            splt_ctr = 0
                             while len(splt_ln_list) > 0:
-                                spell_check_list.insert(ctr, splt_ln_list[0])
+                                splt_ctr += 1
+                                spell_check_list.insert(ctr + splt_ctr, str(splt_ln_list[0]))
                                 splt_ln_list.pop(0)
                         splt_ln_list.clear()
+                    if has_newlines:
+                        st.warning("""(new lines have been removed: {} 
+                                       If you commit, please reformat the text with new lines as desired).""".format(str(where_newlines)))
+                    st.session_state["spell_txt_area"] = self.__rebuild_txt_area(spell_check_list) # This updates with any extra words from dealing with splitline newline porcess above
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     temp_spell_list = []
@@ -628,6 +642,7 @@ class EDIT_FORM:
         split_wrds = False
         pref_postf_remd = False
         tmp_wrds = []
+
         for ctr in range(0, len(temp_spell_check_list)):
             if split_wrds:
                 split_wrds = False
