@@ -26,12 +26,21 @@ class EDIT_FORM:
         "books_bk_ttl_len": 250,
         "books_auth_len": 50,
         "books_pub_len": 50,
+        "books_dat_pub_len": 4,
+        "books_yr_rd": 4,
         "books_pub_locale": 50,
         "books_edition": 3,
+        "books_frst_edition": 4,
         "first_edition_locale": 50,
         "first_edition_name": 50,
         "first_edition_publisher": 50,
         "annots_pg_no_len": 4
+    }
+
+    dict_separators = {
+        "spell_chkbx_indx_prfix": "{^pos.",
+        "spell_chk_grn_prefix_len": 6,
+        "spell_chk_orng_prefix_len": 7
     }
 
     def annot_srch_bk(self):
@@ -51,6 +60,9 @@ class EDIT_FORM:
 
     def annot_success_new_annot(self):
         st.session_state["form_flow"] = "post_add_new_annotation"
+
+    def updte_bk(self):
+        st.session_state["form_flow_bk"] = "add_update_book"
 
     def select_edit_form(self):
         st.header("Edit annotations data")
@@ -102,14 +114,16 @@ class EDIT_FORM:
             st.session_state["page_no"] = ""
         if "annot_txt_area" not in st.session_state:
             st.session_state["annot_txt_area"] = ""
+        if "annot_text" not in st.session_state:
+            st.session_state["annot_text"] = ""
         if "annot_sql_done" not in st.session_state:
             st.session_state["annot_sql_done"] = False
+        if "visited_spell_check" not in st.session_state:
+            st.session_state["visited_spell_check"] = False
         if "spell_txt_area" not in st.session_state:
             st.session_state["spell_txt_area"] = ""
-        if "commit_spell_txt_area" not in st.session_state:
-            st.session_state["commit_spell_txt_area"] = ""
-        if "mis_spelled" not in st.session_state:
-            st.session_state["mis_spelled"] = []
+        if "has_annot" not in st.session_state:
+            st.session_state["has_annot"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -167,14 +181,8 @@ class EDIT_FORM:
                         st.session_state["book_no"] = bk.__getattribute__('Book No')
                         st.session_state["book_title"] = bk.__getattribute__('Book Title')
                         st.session_state["author"] = bk.Author
-                        if bk.Publisher == None:
-                            st.session_state["publisher"] = ""
-                        else:
-                            st.session_state["publisher"] = bk.Publisher
-                        if bk.Dat == None:
-                            st.session_state["date_published"] = ""
-                        else:
-                            st.session_state["date_published"] = bk.Dat
+                        st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
+                        st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
                     self.__show_bk_srch_res()
                     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
@@ -252,18 +260,15 @@ class EDIT_FORM:
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
                 annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                  False)
-                # TODO - move this to top of func
-                if "annot_text" not in st.session_state:
-                    st.session_state["annot_text"] = ""
-
                 if not st.session_state["annot_sql_done"]:
-                    has_annot = False
+                    st.session_state["has_annot"] = False
                     for ants in annot:
                         st.session_state["annot_text"] = ants.__getattribute__('Source Text')
                     st.session_state["annot_sql_done"] = True
                 if st.session_state["annot_text"] != "":
-                    has_annot = True
-                    st.markdown(":orange[(Page already has an annotation entered.)]")
+                    if not st.session_state["visited_spell_check"]:
+                        st.session_state["has_annot"] = True
+                        st.markdown(":orange[(Page already has an annotation entered.)]")
                 st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
                 btn_spell_check = st.form_submit_button("Check spelling")
                 if btn_spell_check:
@@ -283,6 +288,8 @@ class EDIT_FORM:
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
                 if discard_doing_new_annot:
                     st.session_state["annot_sql_done"] = False
+                    st.session_state["has_annot"] = False
+                    st.session_state["visited_spell_check"] = False
                     st.session_state["page_no"] = ""
                     st.session_state["annot_text"] = ""
                     self.annot_new_annot()
@@ -296,116 +303,145 @@ class EDIT_FORM:
                                         self.__formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
                                         ]
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
-                                        annot_record, has_annot) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
+                                        annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
                         st.session_state["annot_sql_done"] = False
+                        st.session_state["has_annot"] = False
+                        st.session_state["visited_spell_check"] = False
                         st.session_state["annot_text"] = ""
                         self.annot_success_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "spell_check_Annotation":
+            if not st.session_state["visited_spell_check"]:
+                st.session_state["visited_spell_check"] = True
             with st.form("Spell check annotation"):
+                # TODO - can this be moved to top of func
+                if "mis_spelled" not in st.session_state:
+                    st.session_state["mis_spelled"] = []
                 if st.session_state["spell_txt_area"] == "":
-                    st.session_state["spell_txt_area"] =  st.session_state["annot_txt_area"]
+                    st.session_state["spell_txt_area"] = st.session_state["annot_txt_area"]
                     spell_check_list = st.session_state["spell_txt_area"].split(" ")
-                    for ctr in range(0, len(spell_check_list)):
+                    has_newlines = False
+                    where_newlines = []
+                    for ctr in range(0, len(spell_check_list)): # rem newline chars
+                        tmp_trimmed = str(spell_check_list[ctr]).strip()
+                        spell_check_list.pop(ctr)
+                        spell_check_list.insert(ctr, tmp_trimmed)
                         splt_ln_list = str(spell_check_list[ctr]).splitlines()
                         if len(splt_ln_list) > 1:
+                            has_newlines = True
+                            for i in range(0, len(splt_ln_list)):
+                                where_newlines.append(str(splt_ln_list[i]))
                             spell_check_list.pop(ctr)
-                            spell_check_list.insert(ctr, splt_ln_list[0])
+                            spell_check_list.insert(ctr, str(splt_ln_list[0]))
                             splt_ln_list.pop(0)
+                            splt_ctr = 0
                             while len(splt_ln_list) > 0:
-                                spell_check_list.append(splt_ln_list[0])
+                                splt_ctr += 1
+                                spell_check_list.insert(ctr + splt_ctr, str(splt_ln_list[0]))
                                 splt_ln_list.pop(0)
                         splt_ln_list.clear()
+                    if has_newlines:
+                        st.warning("""(new lines have been removed: {} 
+                                       If you commit, please reformat the text with new lines as desired).""".format(str(where_newlines)))
+                    st.session_state["spell_txt_area"] = self.__rebuild_txt_area(spell_check_list) # This updates with any extra words from dealing with splitline newline porcess above
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
                     temp_spell_list = []
                     ctr = 0
-                    for wrd in spell_check_list:
+                    for wrd in range(0, len(spell_check_list)):
                         for misp in temp_wrds_unknwn:
-                            if str(wrd).lower() == str(misp).lower(): # misp will be lower case but in case :)...
-                                temp_spell_list.insert(ctr, wrd)
+                            if str(spell_check_list[wrd]).lower() == str(misp).lower(): # misp will be lower case but in case :)...
+                                temp_spell_list.insert(ctr, str(spell_check_list[wrd]) + "||" + str(wrd))
                                 ctr += 1
                     st.session_state["mis_spelled"] = temp_spell_list
+                    temp_wrds_unknwn.clear()
                     hghlght_lst = st.session_state["spell_txt_area"].split(" ")
-                    temp_spell_txt_wrds = st.session_state["spell_txt_area"].split(" ")
-                    for mis in st.session_state["mis_spelled"]:
-                        for h_wrd_indx in range(0, len(hghlght_lst)):
-                            if str(hghlght_lst[h_wrd_indx]).find(":orange") == -1: # passover word that has been acted on already
-                                if str(hghlght_lst[h_wrd_indx]).find(mis) != -1:
-                                    wd = str(hghlght_lst[h_wrd_indx]).splitlines() # handle \n in split text area (not here in spell list)
-                                    hghlght_lst.pop(h_wrd_indx)
-                                    hghlght_lst.insert(h_wrd_indx, wd[0])
-                                    tmp_wrd_frmt_lst = [str(hghlght_lst[h_wrd_indx])]
-                                    tmp_wrd_frmt = self.__format_spell_List_words(tmp_wrd_frmt_lst)
-                                    if len(tmp_wrd_frmt) > 0:
-                                        if len(str(tmp_wrd_frmt[0])) == len(str(mis)):
-                                            hghlght_lst.pop(h_wrd_indx)
-                                            hghlght_lst.insert(h_wrd_indx, str(temp_spell_txt_wrds[h_wrd_indx]).replace(str(mis),
-                                                                                                                ":orange[{}]".format(
-                                                                                                                    str(mis)), 1))
-                    st.session_state["spell_txt_area"] = ""
-                    for h_wrd_indx in range(0, len(hghlght_lst)):
-                        st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + str(hghlght_lst[h_wrd_indx])
-                        if h_wrd_indx < len(hghlght_lst):
-                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"] + " "
+                    for mis in range(0, len(st.session_state["mis_spelled"])):
+                        spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
+                        temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                        hghlght_lst.pop(spll_map_indx)
+                        hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+                    st.session_state["spell_txt_area"] = self.__rebuild_txt_area(hghlght_lst)
                 st.markdown(st.session_state["spell_txt_area"])
-                st.session_state["commit_spell_txt_area"] = st.session_state["annot_txt_area"]
                 spell_data = []
-                for mis in st.session_state["mis_spelled"]:
-                    crrct = spell.correction(str(mis))
+                for mis in range(0, len(st.session_state["mis_spelled"])):
+                    spll_wrd = self.__get_spell_word_split(str(st.session_state["mis_spelled"][mis]))
+                    spll_map_indx = self.__get_spell_map_index_split(str(st.session_state["mis_spelled"][mis]))
+                    crrct = spell.correction(spll_wrd)
                     if str(crrct) == "None":
-                        if spell_data.count(str(mis) + " -> " + spell_no_suggest) == 0:
-                            spell_data.append(str(mis) + " -> " + spell_no_suggest)
+                        spell_data.append(spll_wrd + " -> " + spell_no_suggest + " {^pos. " + str(spll_map_indx) + "}")
                     else:
-                        if spell_data.count(str(mis) + " -> " + str(crrct)) == 0:
-                            spell_data.append(str(mis) + " -> " + str(crrct))
-                    crrct = ""
+                            spell_data.append(spll_wrd + " -> " + str(crrct) +  " {^pos. " + str(spll_map_indx) + "}")
                 self.__checkbox_container(spell_data)
                 spell_corrects_true = self.__get_selected_checkboxes()
-                not_set_grn = []
-                not_set_err = []
-                for corrects in spell_corrects_true:
-                    set_wrd_no_sggst = False
-                    flagged = corrects.split(" -> ")
-                    if flagged[1] != spell_no_suggest:
-                        st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(":orange[{}]".format(str(flagged[0])),
-                                                                                                ":green[{}]".format(
-                                                                                                    str(flagged[1])))
+                hghlght_lst = st.session_state["spell_txt_area"].split(" ") # already formatted split lines and spelling format
+                st.session_state["spell_txt_area"] = ""
+                for corrects in range(0, len(spell_corrects_true)):
+                    flagged = spell_corrects_true[corrects].split(" -> ")
+                    spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
+                    spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
+                    sggstn = self.__get_spell_chkbox_sggstn(str(str(flagged[1])))
+                    temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                    if temp_hghlght_wrd.find(":orange[") != -1:
+                        temp_hghlght_wrd = self.__rem_markdown_colour(temp_hghlght_wrd,
+                                                                      self.dict_separators.get(
+                                                                          "spell_chk_orng_prefix_len"))
+                    if flagged[1].find(spell_no_suggest) != -1:
+                        hghlght_lst.pop(spll_map_indx)
+                        hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
                     else:
-                        not_set_grn.insert(len(not_set_grn), str(flagged[0]))
-                        set_wrd_no_sggst = True
-                    if not set_wrd_no_sggst and st.session_state["spell_txt_area"].find(":green[{}]".format(str(flagged[1]))) == -1:
-                        not_set_err.insert(len(not_set_err), str(flagged[0]))
-                if len(not_set_grn) > 0:
-                    st.warning("the following words have no suggestions and will not be changed: :orange[" + str(not_set_grn) + "]")
-                if len(not_set_err) > 0:
-                    st.warning("""Word format error: the following words can be corrected, 
-                    but an error has occured in highlighting this word.: :orange[""" + str(not_set_err) + """]""")
+                        temp_hghlght_wrd = temp_hghlght_wrd.replace(spll_wrd, sggstn)
+                        hghlght_lst.pop(spll_map_indx)
+                        if temp_hghlght_wrd.find(":green[") == -1:
+                            hghlght_lst.insert(spll_map_indx, ":green[{}]".format(temp_hghlght_wrd))
+                        else:
+                            hghlght_lst.insert(spll_map_indx, temp_hghlght_wrd)
+                st.session_state["spell_txt_area"] = self.__rebuild_txt_area(hghlght_lst)
                 vw_cng = st.form_submit_button("View changes")
                 if vw_cng:
+                    hghlght_lst = st.session_state["spell_txt_area"].split(" ")
+                    st.session_state["spell_txt_area"] = ""
                     corrects_unseld = self.__get_unselected_checkboxes()
-                    for corrects_revert in corrects_unseld:
-                        unflagged = corrects_revert.split(" -> ")
-                        if unflagged[1] != spell_no_suggest:
-                            st.session_state["spell_txt_area"] = st.session_state["spell_txt_area"].replace(
-                                ":green[{}]".format(str(unflagged[1])),
-                                ":orange[{}]".format(
-                                    str(unflagged[0])))
+                    for corrects_revert in range(0, len(corrects_unseld)):
+                        unflagged = str(corrects_unseld[corrects_revert]).split(" -> ")
+                        if unflagged[1].find(spell_no_suggest) == -1:
+                            spll_map_indx = self.__get_spell_chkbox_indx(str(unflagged[1]))
+                            spll_wrd = self.__get_spell_chkbx_split(str(unflagged[0]))
+                            sggstn = self.__get_spell_chkbox_sggstn(str(unflagged[1]))
+                            temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
+                            if temp_hghlght_wrd.find(":green[") != -1:
+                                temp_hghlght_wrd = self.__rem_markdown_colour(temp_hghlght_wrd,
+                                                                              self.dict_separators.get("spell_chk_grn_prefix_len"))
+                                temp_hghlght_wrd = temp_hghlght_wrd.replace(sggstn, spll_wrd)
+                            hghlght_lst.pop(spll_map_indx)
+                            if temp_hghlght_wrd.find(":orange[") == -1:
+                                hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
+                            else:
+                                hghlght_lst.insert(spll_map_indx, temp_hghlght_wrd)
+                    st.session_state["spell_txt_area"] = self.__rebuild_txt_area(hghlght_lst)
                     self.spell_chk()
                     st.rerun()
                 cmt_cng = st.form_submit_button("Commit spelling")
                 if cmt_cng:
-                    spell_corrects_true = self.__get_selected_checkboxes()
-                    for corrects in spell_corrects_true:
-                        flagged = corrects.split(" -> ")
-                        if flagged[1] != spell_no_suggest:
-                            st.session_state["commit_spell_txt_area"] = st.session_state["commit_spell_txt_area"].replace(
-                                flagged[0], flagged[1])
-                    st.session_state["annot_text"] = st.session_state["commit_spell_txt_area"]
-                    st.session_state["commit_spell_txt_area"] = ""
-                    if st.session_state["spell_txt_area"] != "":
-                        st.session_state["spell_txt_area"] = ""
-                    st.session_state["mis_spelled"] = []
+                    hghlght_lst = st.session_state["spell_txt_area"].split(" ")
+                    st.session_state["spell_txt_area"] = ""
+                    for rems in range(0, len(hghlght_lst)): # remove ALL words' green and orange markdown formatting
+                        tmp_rem = str(hghlght_lst[rems])
+                        if tmp_rem.find(":orange[") != -1:
+                            tmp_rem = self.__rem_markdown_colour(tmp_rem,
+                                                                          self.dict_separators.get(
+                                                                          "spell_chk_orng_prefix_len"))
+                            hghlght_lst.pop(rems)
+                            hghlght_lst.insert(rems, tmp_rem)
+                        elif tmp_rem.find(":green[") != -1:
+                            tmp_rem = self.__rem_markdown_colour(tmp_rem,
+                                                                          self.dict_separators.get(
+                                                                          "spell_chk_grn_prefix_len"))
+                            hghlght_lst.pop(rems)
+                            hghlght_lst.insert(rems, tmp_rem)
+                    st.session_state["spell_txt_area"] = self.__rebuild_txt_area(hghlght_lst)
+                    st.session_state["annot_text"] = st.session_state["spell_txt_area"]
+                    st.session_state["spell_txt_area"] = ""
                     self.__rem_checkbox_ss_keys()
                     self.annot_do_new_annot()
                     st.rerun()
@@ -427,6 +463,126 @@ class EDIT_FORM:
                     self.annot_srch_bk()
                     st.rerun()
 
+    def add_new_bk(self):
+
+        # TODO = separate flow for add book
+        if "form_flow_bk" not in st.session_state:
+            st.session_state["form_flow_bk"] = "add_update_book"
+        placeholder = st.empty()
+        placeholder.title("Add new book")
+        sbmt_bk = False
+        with placeholder.form("Add new book"):
+            st.write(":green[Add new book]")
+            book_title = st.text_input("Book title:red[*]", max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"))
+            author = st.text_input("Author:red[*]", max_chars=self.dict_db_fld_validations.get("books_auth_len"))
+            publisher = st.text_input("Publisher", max_chars=self.dict_db_fld_validations.get("books_pub_len"))
+            date_pub = st.text_input("Date", max_chars=self.dict_db_fld_validations.get("books_dat_pub_len"))
+            year_read = st.text_input("Year read", max_chars=self.dict_db_fld_validations.get("books_yr_rd"))
+            pub_location = st.text_input("Publication location", max_chars=self.dict_db_fld_validations.get("books_pub_locale"))
+            edition = st.text_input("Edition", max_chars=self.dict_db_fld_validations.get("books_edition"))
+            first_edition = st.text_input("First edition", max_chars=self.dict_db_fld_validations.get("books_frst_edition"))
+            first_edition_locale = st.text_input("First edition location", max_chars=self.dict_db_fld_validations.get("first_edition_locale"))
+            first_edition_name = st.text_input("First edition name", max_chars=self.dict_db_fld_validations.get("first_edition_name"))
+            first_edition_publisher = st.text_input("First edition publisher", max_chars=self.dict_db_fld_validations.get("first_edition_publisher"))
+            add = st.form_submit_button("Add")
+            if add:
+                if not sbmt_bk:
+                    sbmt_bk = True
+                if book_title == "":
+                    st.markdown(":red[No book title given]")
+                    sbmt_bk = False
+                elif author == "":
+                    st.markdown(":red[No author given]")
+                    sbmt_bk = False
+                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
+                    st.write("DATE: " + date_pub)
+                    st.markdown(":red[Date of publication must be in YYYY format]")
+                    sbmt_bk = False
+                elif year_read != "" and not self.__isValidYearFormat(year_read, "%Y"):
+                    st.markdown(":red[Year read must be in YYYY format]")
+                    sbmt_bk = False
+                elif first_edition != "" and not self.__isValidYearFormat(first_edition, "%Y"):
+                    st.markdown(":red[First edition must be in YYYY format]")
+                    sbmt_bk = False
+                if sbmt_bk:
+                    book = []
+                    book.append(book_title)
+                    book.append(author)
+                    book.append(self.conv_none_for_db(publisher))
+                    book.append(self.conv_none_for_db(date_pub))
+                    book.append(self.conv_none_for_db(year_read))
+                    book.append(self.conv_none_for_db(pub_location))
+                    book.append(self.conv_none_for_db(edition))
+                    book.append(self.conv_none_for_db(first_edition))
+                    book.append(self.conv_none_for_db(first_edition_locale))
+                    book.append(self.conv_none_for_db(first_edition_name))
+                    book.append(self.conv_none_for_db(first_edition_publisher))
+                    placeholder.empty()
+                    self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
+        if sbmt_bk:
+            st.success("New book added.")
+            st.markdown(":blue[Title:] {}".format(book_title))
+            st.markdown(":blue[Author:] {}".format(author))
+            st.markdown(":blue[Publisher:] {}".format(publisher))
+            st.markdown(":blue[Publication date:] {}".format(date_pub))
+            st.markdown(":blue[Year read:] {}".format(year_read))
+            st.markdown(":blue[Publication location:] {}".format(pub_location))
+            st.markdown(":blue[Edition:] {}".format(edition))
+            st.markdown(":blue[First edition:] {}".format(first_edition))
+            st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
+            st.markdown(":blue[First edition name:] {}".format(first_edition_name))
+            st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
+
+    def edt_edt_annot(self):
+        st.write("Page is under construction - edit annotation. Check back real soon.")
+
+    def edt_dlt_annot(self):
+        st.write("Page is under construction - delete annotation. Check back real soon.")
+
+    def db_records(self, searchSelection, record, getResultsCount):
+        dbPath = sys.argv[1] + sys.argv[2]
+        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
+        sourceData.is_ms_access_driver()
+        conn = sourceData.db_connect()
+        sourceData.report_tables(conn.cursor())
+        if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
+            self.__add_book(sourceData, conn, record)
+        elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
+            return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
+            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
+            self.__add_update_annot(sourceData, conn, record, getResultsCount)
+        conn.close()
+
+    def __add_book(self, sourceData, conn, book):
+        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        sourceData.addNewBook(conn.cursor(), bk_sum, book)
+
+    def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
+        if getResultsCount:
+            bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
+            return bkSum
+        else:
+            annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
+            return annots
+
+    def __srch_ants_for_exists_annot(self, sourceData, conn, record):
+        return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
+
+    def __add_update_annot(self, sourceData, conn, ant, annotExists):
+        sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
+
+    def __show_bk_srch_res(self):
+        st.markdown(":blue[Title:] :orange[{}]\r\r".format(
+            st.session_state["book_title"]))
+        st.markdown(":gray[Author:] :orange[{}]\r\r".format(
+            st.session_state["author"]))
+        st.markdown(":gray[Publisher:] :orange[{}]\r\r".format(
+            st.session_state["publisher"]))
+        st.markdown(":gray[Date:] :orange[{}]\r\r".format(
+            st.session_state["date_published"]))
+
     def __checkbox_container(self, data):
             cols = st.columns(5, gap="small")
             if cols[1].form_submit_button('Select All'):
@@ -438,7 +594,6 @@ class EDIT_FORM:
             if cols[3].form_submit_button('Back/Discard'):
                 st.session_state["annot_text"] = st.session_state["annot_txt_area"] # revoke to text in text area
                 st.session_state["spell_txt_area"] = ""
-                st.session_state["commit_spell_txt_area"] = ""
                 st.session_state["mis_spelled"] = []
                 self.__rem_checkbox_ss_keys()
                 self.annot_do_new_annot()
@@ -521,153 +676,14 @@ class EDIT_FORM:
                     temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
         return temp_spell_check_list
 
-    def edt_edt_annot(self):
-        st.write("Page is under construction - edit annotation. Check back real soon.")
-
-    def edt_dlt_annot(self):
-        st.write("Page is under construction - delete annotation. Check back real soon.")
-
-    def add_new_bk(self):
-        placeholder = st.empty()
-        placeholder.title("Add new book")
-        sbmt_bk = False
-        with placeholder.form("Add new book"):
-            st.write(":green[Add new book]")
-            book_title = st.text_input("Book title:red[*]")
-            author = st.text_input("Author:red[*]")
-            publisher = st.text_input("Publisher")
-            date_pub = st.text_input("Date")
-            year_read = st.text_input("Year read")
-            pub_location = st.text_input("Publication location")
-            edition = st.text_input("Edition")
-            first_edition = st.text_input("First edition")
-            first_edition_locale = st.text_input("First edition location")
-            first_edition_name = st.text_input("First edition name")
-            first_edition_publisher = st.text_input("First edition publisher")
-            add = st.form_submit_button("Add")
-            if add:
-                if not sbmt_bk:
-                    sbmt_bk = True
-                if book_title == "":
-                    st.markdown(":red[No book title given]")
-                    sbmt_bk = False
-                elif len(book_title) > self.dict_db_fld_validations.get("books_bk_ttl_len"):
-                    st.markdown(":red[Book title cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_bk_ttl_len"))))
-                    sbmt_bk = False
-                elif author == "":
-                    st.markdown(":red[No author given]")
-                    sbmt_bk = False
-                elif len(author) > self.dict_db_fld_validations.get("books_auth_len"):
-                    st.markdown(":red[Author cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_auth_len"))))
-                    sbmt_bk = False
-                elif len(publisher) > self.dict_db_fld_validations.get("books_pub_len"):
-                    st.markdown(":red[Publisher cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_pub_len"))))
-                    sbmt_bk = False
-                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
-                    st.markdown(":red[Date of publication must be in YYYY format]")
-                    sbmt_bk = False
-                elif year_read != "" and not self.__isValidYearFormat(year_read, "%Y"):
-                    st.markdown(":red[Year read must be in YYYY format]")
-                    sbmt_bk = False
-                elif len(pub_location) > self.dict_db_fld_validations.get("books_pub_locale"):
-                    st.markdown(":red[Publication location cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_pub_locale"))))
-                    sbmt_bk = False
-                elif ((edition != "" and not edition.isdigit()) or
-                      len(edition) > self.dict_db_fld_validations.get("books_edition")):
-                    st.markdown(":red[Edition must be a number of not more than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("books_edition"))))
-                    sbmt_bk = False
-                elif first_edition != "" and not self.__isValidYearFormat(first_edition, "%Y"):
-                    st.markdown(":red[First edition must be in YYYY format]")
-                    sbmt_bk = False
-                elif len(first_edition_locale) > self.dict_db_fld_validations.get("first_edition_locale"):
-                    st.markdown(":red[First edition location cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("first_edition_locale"))))
-                    sbmt_bk = False
-                elif len(first_edition_name) > self.dict_db_fld_validations.get("first_edition_name"):
-                    st.markdown(":red[First edition name cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("first_edition_name"))))
-                    sbmt_bk = False
-                elif len(first_edition_publisher) > self.dict_db_fld_validations.get("first_edition_publisher"):
-                    st.markdown(":red[First edition publisher cannot be longer than {} characters]"
-                                .format(str(self.dict_db_fld_validations.get("first_edition_publisher"))))
-                    sbmt_bk = False
-                if sbmt_bk:
-                    book = []
-                    book.append(book_title)
-                    book.append(author)
-                    book.append(publisher)
-                    book.append(date_pub)
-                    book.append(year_read)
-                    book.append(pub_location)
-                    book.append(edition)
-                    book.append(first_edition)
-                    book.append(first_edition_locale)
-                    book.append(first_edition_name)
-                    book.append(first_edition_publisher)
-                    placeholder.empty()
-                    self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
-        if sbmt_bk:
-            st.success("New book added.")
-            st.markdown(":blue[Title:] {}".format(book_title))
-            st.markdown(":blue[Author:] {}".format(author))
-            st.markdown(":blue[Publisher:] {}".format(publisher))
-            st.markdown(":blue[Publication date:] {}".format(date_pub))
-            st.markdown(":blue[Year read:] {}".format(year_read))
-            st.markdown(":blue[Publication location:] {}".format(pub_location))
-            st.markdown(":blue[Edition:] {}".format(edition))
-            st.markdown(":blue[First edition:] {}".format(first_edition))
-            st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
-            st.markdown(":blue[First edition name:] {}".format(first_edition_name))
-            st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
-
-    def db_records(self, searchSelection, record, getResultsCount):
-        dbPath = sys.argv[1] + sys.argv[2]
-        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
-        sourceData.is_ms_access_driver()
-        conn = sourceData.db_connect()
-        sourceData.report_tables(conn.cursor())
-        if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
-            self.__add_book(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
-            return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
-            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
-            self.__add_update_annot(sourceData, conn, record, getResultsCount)
-        conn.close()
-
-    def __add_book(self, sourceData, conn, book):
-        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_"))
-        sourceData.addNewBook(conn.cursor(), bk_sum, book)
-
-    def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
-        if getResultsCount:
-            bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
-            return bkSum
-        else:
-            annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
-            return annots
-
-    def __srch_ants_for_exists_annot(self, sourceData, conn, record):
-        return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
-
-    def __add_update_annot(self, sourceData, conn, ant, annotExists):
-        sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
-
-    def __show_bk_srch_res(self):
-        st.markdown(":blue[Title:] :orange[{}]\r\r".format(
-            st.session_state["book_title"]))
-        st.markdown(":gray[Author:] :orange[{}]\r\r".format(
-            st.session_state["author"]))
-        st.markdown(":gray[Publisher:] :orange[{}]\r\r".format(
-            st.session_state["publisher"]))
-        st.markdown(":gray[Date:] :orange[{}]\r\r".format(
-            st.session_state["date_published"]))
+    def __rebuild_txt_area(self, wrd_lst):
+        tmp_txt_area = ""
+        st.session_state["spell_txt_area"] = ""
+        for h_wrd_indx in range(0, len(wrd_lst)):
+            tmp_txt_area = tmp_txt_area + str(wrd_lst[h_wrd_indx])
+            if h_wrd_indx < (len(wrd_lst) - 1):
+                tmp_txt_area = tmp_txt_area + " "
+        return tmp_txt_area
 
     def __isValidYearFormat(self,year, format):
         try:
@@ -701,3 +717,36 @@ class EDIT_FORM:
             if txt_area.find(il_txt) != -1:
                 is_illegal_txt = True
         return is_illegal_txt
+
+    def conv_none_for_db(self, fld_val):
+        if fld_val == None:
+            return ""
+        else:
+            return fld_val
+
+    def __get_spell_word_split(self, w_Line):
+        temp_wl = w_Line.split("||")
+        return str(temp_wl[0])
+
+    def __get_spell_map_index_split(self, w_Line):
+        temp_wl = w_Line.split("||")
+        return int(temp_wl[1])
+
+    def __get_spell_chkbox_sggstn(self, chkbx_itm):
+        tmp_sggst = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
+        sggst = str(tmp_sggst[0].strip())
+        return sggst
+
+    def __get_spell_chkbox_indx(self, chkbx_itm):
+        tmp_sggst = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
+        indx = str(tmp_sggst[1].lstrip())
+        return int(indx.rstrip("}"))
+
+    def __get_spell_chkbx_split(self, chkbx_itm):
+        temp_itm = chkbx_itm.split(self.dict_separators.get("spell_chkbx_indx_prfix"))
+        return str(temp_itm[0]).rstrip()
+
+    def __rem_markdown_colour(self, wrd, colour_prefix):
+        temp__wrd = wrd[colour_prefix + 1:]
+        temp__wrd = temp__wrd[0:len(temp__wrd) - 1] # rem ] (markdown closure bracket)
+        return(temp__wrd)
