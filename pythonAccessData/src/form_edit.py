@@ -377,7 +377,6 @@ class EDIT_FORM:
                 hghlght_lst = st.session_state["spell_txt_area"].split(" ") # already formatted split lines and spelling format
                 st.session_state["spell_txt_area"] = ""
                 for corrects in range(0, len(spell_corrects_true)):
-                    set_wrd_no_sggst = False
                     flagged = spell_corrects_true[corrects].split(" -> ")
                     spll_map_indx = self.__get_spell_chkbox_indx(str(flagged[1]))
                     spll_wrd = self.__get_spell_chkbx_split(str(flagged[0]))
@@ -410,10 +409,10 @@ class EDIT_FORM:
                             spll_wrd = self.__get_spell_chkbx_split(str(unflagged[0]))
                             sggstn = self.__get_spell_chkbox_sggstn(str(unflagged[1]))
                             temp_hghlght_wrd = str(hghlght_lst[spll_map_indx])
-                            if temp_hghlght_wrd.find(":green[") != -1: # word might not have been selected, was already unselected, or could not be formatted to green
+                            if temp_hghlght_wrd.find(":green[") != -1:
                                 temp_hghlght_wrd = self.__rem_markdown_colour(temp_hghlght_wrd,
                                                                               self.dict_separators.get("spell_chk_grn_prefix_len"))
-                            temp_hghlght_wrd = temp_hghlght_wrd.replace(sggstn, spll_wrd)
+                                temp_hghlght_wrd = temp_hghlght_wrd.replace(sggstn, spll_wrd)
                             hghlght_lst.pop(spll_map_indx)
                             if temp_hghlght_wrd.find(":orange[") == -1:
                                 hghlght_lst.insert(spll_map_indx, ":orange[{}]".format(temp_hghlght_wrd))
@@ -621,7 +620,7 @@ class EDIT_FORM:
         split_wrds = False
         pref_postf_remd = False
         tmp_wrds = []
-        for ctr in range(0, len(temp_spell_check_list) - 1):
+        for ctr in range(0, len(temp_spell_check_list)):
             if split_wrds:
                 split_wrds = False
             if pref_postf_remd:
@@ -649,7 +648,7 @@ class EDIT_FORM:
                         temp_spell_check_list.pop(ctr)
                         temp_spell_check_list.insert(ctr, str(wrds_to_add_spll_lst[0]))
                         w = 1
-                        for w in range(1, len(wrds_to_add_spll_lst) - 1):
+                        for w in range(1, len(wrds_to_add_spll_lst)):
                             temp_spell_check_list.append(str(wrds_to_add_spll_lst[w]))
                         wrds_to_add_spll_lst.clear()
                     tmp_wrds.clear()
@@ -659,14 +658,14 @@ class EDIT_FORM:
                         temp_spell_check_list.insert(ctr, tmp_wrd)
         trim_chars_list = ["\"'", "'\"", "'.", ".'"] # works - add more multi-char if not caught by single char list below
         for chr in trim_chars_list:
-            for sp_ctr in range(0, len(temp_spell_check_list) - 1):
+            for sp_ctr in range(0, len(temp_spell_check_list)):
                 if str(temp_spell_check_list[sp_ctr]).find(str(chr)) != -1:
                     temp_char = str(temp_spell_check_list[sp_ctr])
                     temp_spell_check_list.pop(sp_ctr)
                     temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), ""))
         trim_char_list = ['"', """'""", "", ".", ",", ";", ":", "(", ")", "[", "]", "{", "}", "<", ">", "?", "!", "£", "$"]
         for chr in trim_char_list:
-            for sp_ctr in range(0, len(temp_spell_check_list) - 1):
+            for sp_ctr in range(0, len(temp_spell_check_list)):
                 if str(temp_spell_check_list[sp_ctr]).find(str(chr)) == 0:
                     temp_char = str(temp_spell_check_list[sp_ctr])
                     temp_spell_check_list.pop(sp_ctr)
