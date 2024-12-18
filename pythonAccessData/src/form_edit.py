@@ -670,10 +670,27 @@ class EDIT_FORM:
                     temp_char = str(temp_spell_check_list[sp_ctr])
                     temp_spell_check_list.pop(sp_ctr)
                     temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-                if str(temp_spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
-                    temp_char = str(temp_spell_check_list[sp_ctr])
-                    temp_spell_check_list.pop(sp_ctr)
-                    temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+
+                ######
+                if chr == """'""":
+                    elem = str(temp_spell_check_list[sp_ctr])
+                    if elem.index(chr) < len(elem) - 1:
+                        post_apost = elem[elem.index("""'""") + 1:]
+                        if not post_apost[0:1].isalpha():
+                            temp_char = str(temp_spell_check_list[sp_ctr])
+                            temp_spell_check_list.pop(sp_ctr)
+                            temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                    else:
+                        temp_char = str(temp_spell_check_list[sp_ctr])
+                        temp_spell_check_list.pop(sp_ctr)
+                        temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                else:
+                    if str(temp_spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
+                        temp_char = str(temp_spell_check_list[sp_ctr])
+                        temp_spell_check_list.pop(sp_ctr)
+                        temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                        ########
+
         return temp_spell_check_list
 
     def __rebuild_txt_area(self, wrd_lst):
