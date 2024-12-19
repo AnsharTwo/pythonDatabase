@@ -343,6 +343,11 @@ class EDIT_FORM:
                     if has_newlines:
                         st.warning("""(new lines have been removed: {} 
                                        If you commit, please reformat the text with new lines as desired).""".format(str(where_newlines)))
+                    # TODO TASK - here V, implement removal of .. and nline chars, with a map list to reassemble them into spell markdown text
+                    # and can remove warning above for nl removed. See code in drinks xls. (note index of 2 words btaiend form one i.e.
+                    # word1..word2 or word1nlword2 will have to be catered for in temp_spell_list (to make popover checkboxes) variable below.
+                    # code to remove .. was worngly in __format_spell_List_words() (too late, as afte rebuild spell text area) and needed
+                    # rewrite as used strip() incorrectly as now fixed elsewhere.
                     st.session_state["spell_txt_area"] = self.__rebuild_txt_area(spell_check_list) # This updates with any extra words from dealing with splitline newline porcess above
                     spell_check_list = self.__format_spell_List_words(spell_check_list)
                     temp_wrds_unknwn = spell.unknown(spell_check_list)
@@ -625,37 +630,7 @@ class EDIT_FORM:
                 split_wrds = False
             if pref_postf_remd:
                 pref_postf_remd = False
-            if str(temp_spell_check_list[ctr]).find("..") != -1: # special case to handle all pos. instances of ..
-                tmp_wrd = str(temp_spell_check_list[ctr])
-                if tmp_wrd.startswith(".."):
-                    tmp_wrd = tmp_wrd.lstrip("..")
-                    pref_postf_remd = True
-                if tmp_wrd.endswith(".."):
-                    tmp_wrd = tmp_wrd.rstrip("..")
-                    if not pref_postf_remd:
-                        pref_postf_remd = True
-                if tmp_wrd.count("..") > 0:
-                    splt_wrds_indx = 0
-                    wrds_to_add_spll_lst = []
-                    while tmp_wrd.count("..") > 0:
-                        split_wrds = True
-                        tmp_wrds = tmp_wrd.split("..")
-                        wrds_to_add_spll_lst.insert(splt_wrds_indx, tmp_wrds[0])
-                        tmp_wrd = tmp_wrd.lstrip(str(tmp_wrds[0]) + "..")
-                        splt_wrds_indx += 1
-                    wrds_to_add_spll_lst.insert(splt_wrds_indx, tmp_wrds[1])
-                    if split_wrds:
-                        temp_spell_check_list.pop(ctr)
-                        temp_spell_check_list.insert(ctr, str(wrds_to_add_spll_lst[0]))
-                        w = 1
-                        for w in range(1, len(wrds_to_add_spll_lst)):
-                            temp_spell_check_list.append(str(wrds_to_add_spll_lst[w]))
-                        wrds_to_add_spll_lst.clear()
-                    tmp_wrds.clear()
-                else:
-                    if pref_postf_remd:
-                        temp_spell_check_list.pop(ctr)
-                        temp_spell_check_list.insert(ctr, tmp_wrd)
+        # code for rem of .. was here
         trim_chars_list = ["\"'", "'\"", "'.", ".'"] # works - add more multi-char if not caught by single char list below
         for chr in trim_chars_list:
             for sp_ctr in range(0, len(temp_spell_check_list)):
@@ -670,27 +645,25 @@ class EDIT_FORM:
                     temp_char = str(temp_spell_check_list[sp_ctr])
                     temp_spell_check_list.pop(sp_ctr)
                     temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-
-                ######
                 if chr == """'""":
                     elem = str(temp_spell_check_list[sp_ctr])
-                    if elem.index(chr) < len(elem) - 1:
-                        post_apost = elem[elem.index("""'""") + 1:]
-                        if not post_apost[0:1].isalpha():
-                            temp_char = str(temp_spell_check_list[sp_ctr])
-                            temp_spell_check_list.pop(sp_ctr)
-                            temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-                    else:
-                        temp_char = str(temp_spell_check_list[sp_ctr])
-                        temp_spell_check_list.pop(sp_ctr)
-                        temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                    if elem.find(chr) != -1:
+                        if elem.index(chr) < (len(elem) - 1): # handle case for words like couldn't, wouldn't, can't
+                            post_apost = elem[elem.index("""'""") + 1:]
+                            if not post_apost[0:1].isalpha():
+                                temp_char = str(temp_spell_check_list[sp_ctr])
+                                temp_spell_check_list.pop(sp_ctr)
+                                temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
+                        else:
+                            if str(temp_spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
+                                temp_char = str(temp_spell_check_list[sp_ctr])
+                                temp_spell_check_list.pop(sp_ctr)
+                                temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
                 else:
                     if str(temp_spell_check_list[sp_ctr]).rfind(str(chr), 1) != -1:
                         temp_char = str(temp_spell_check_list[sp_ctr])
                         temp_spell_check_list.pop(sp_ctr)
                         temp_spell_check_list.insert(sp_ctr, temp_char.replace(str(chr), "", 1))
-                        ########
-
         return temp_spell_check_list
 
     def __rebuild_txt_area(self, wrd_lst):
