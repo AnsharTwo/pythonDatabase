@@ -61,8 +61,11 @@ class EDIT_FORM:
     def annot_success_new_annot(self):
         st.session_state["form_flow"] = "post_add_new_annotation"
 
-    def updte_bk(self):
+    def add_updt_bk(self):
         st.session_state["form_flow_bk"] = "add_update_book"
+
+    def add_updt_bk_sbmttd(self):
+        st.session_state["form_flow_bk"] = "add_update_book_sbmttd"
 
     def select_edit_form(self):
         st.header("Edit annotations data")
@@ -153,6 +156,7 @@ class EDIT_FORM:
                 book_search = []
                 book_search.append(self.__format_sql_wrap(st.session_state["book_title"]))
                 book_search.append(self.__format_sql_wrap(st.session_state["author"]))
+                # TODO - use function created for add update book below
                 if st.session_state["publisher"] != "":
                     book_search.append(self.__format_sql_wrap(st.session_state["publisher"]))
                 else:
@@ -469,74 +473,98 @@ class EDIT_FORM:
                     st.rerun()
 
     def add_new_bk(self):
-
-        # TODO = separate flow for add book
         if "form_flow_bk" not in st.session_state:
             st.session_state["form_flow_bk"] = "add_update_book"
-        placeholder = st.empty()
-        placeholder.title("Add new book")
-        sbmt_bk = False
-        with placeholder.form("Add new book"):
-            st.write(":green[Add new book]")
-            book_title = st.text_input("Book title:red[*]", max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"))
-            author = st.text_input("Author:red[*]", max_chars=self.dict_db_fld_validations.get("books_auth_len"))
-            publisher = st.text_input("Publisher", max_chars=self.dict_db_fld_validations.get("books_pub_len"))
-            date_pub = st.text_input("Date", max_chars=self.dict_db_fld_validations.get("books_dat_pub_len"))
-            year_read = st.text_input("Year read", max_chars=self.dict_db_fld_validations.get("books_yr_rd"))
-            pub_location = st.text_input("Publication location", max_chars=self.dict_db_fld_validations.get("books_pub_locale"))
-            edition = st.text_input("Edition", max_chars=self.dict_db_fld_validations.get("books_edition"))
-            first_edition = st.text_input("First edition", max_chars=self.dict_db_fld_validations.get("books_frst_edition"))
-            first_edition_locale = st.text_input("First edition location", max_chars=self.dict_db_fld_validations.get("first_edition_locale"))
-            first_edition_name = st.text_input("First edition name", max_chars=self.dict_db_fld_validations.get("first_edition_name"))
-            first_edition_publisher = st.text_input("First edition publisher", max_chars=self.dict_db_fld_validations.get("first_edition_publisher"))
-            add = st.form_submit_button("Add")
-            if add:
-                if not sbmt_bk:
-                    sbmt_bk = True
-                if book_title == "":
-                    st.markdown(":red[No book title given]")
-                    sbmt_bk = False
-                elif author == "":
-                    st.markdown(":red[No author given]")
-                    sbmt_bk = False
-                elif date_pub != "" and not self.__isValidYearFormat(date_pub, "%Y"):
-                    st.write("DATE: " + date_pub)
-                    st.markdown(":red[Date of publication must be in YYYY format]")
-                    sbmt_bk = False
-                elif year_read != "" and not self.__isValidYearFormat(year_read, "%Y"):
-                    st.markdown(":red[Year read must be in YYYY format]")
-                    sbmt_bk = False
-                elif first_edition != "" and not self.__isValidYearFormat(first_edition, "%Y"):
-                    st.markdown(":red[First edition must be in YYYY format]")
-                    sbmt_bk = False
-                if sbmt_bk:
-                    book = []
-                    book.append(book_title)
-                    book.append(author)
-                    book.append(self.conv_none_for_db(publisher))
-                    book.append(self.conv_none_for_db(date_pub))
-                    book.append(self.conv_none_for_db(year_read))
-                    book.append(self.conv_none_for_db(pub_location))
-                    book.append(self.conv_none_for_db(edition))
-                    book.append(self.conv_none_for_db(first_edition))
-                    book.append(self.conv_none_for_db(first_edition_locale))
-                    book.append(self.conv_none_for_db(first_edition_name))
-                    book.append(self.conv_none_for_db(first_edition_publisher))
-                    placeholder.empty()
-                    self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
-        if sbmt_bk:
-            st.success("New book added.")
-            st.markdown(":blue[Title:] {}".format(book_title))
-            st.markdown(":blue[Author:] {}".format(author))
-            st.markdown(":blue[Publisher:] {}".format(publisher))
-            st.markdown(":blue[Publication date:] {}".format(date_pub))
-            st.markdown(":blue[Year read:] {}".format(year_read))
-            st.markdown(":blue[Publication location:] {}".format(pub_location))
-            st.markdown(":blue[Edition:] {}".format(edition))
-            st.markdown(":blue[First edition:] {}".format(first_edition))
-            st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
-            st.markdown(":blue[First edition name:] {}".format(first_edition_name))
-            st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
+        if "bk_book_title" not in st.session_state:
+            st.session_state["bk_book_title"] = ""
+        if "bk_author" not in st.session_state:
+            st.session_state["bk_author"] = ""
+        if "bk_publisher" not in st.session_state:
+            st.session_state["bk_publisher"] = ""
+        if "bk_date_pub" not in st.session_state:
+            st.session_state["bk_date_pub"] = ""
+        if "bk_year_read" not in st.session_state:
+            st.session_state["bk_year_read"] = ""
+        if "bk_pub_location" not in st.session_state:
+            st.session_state["bk_pub_location"] = ""
+        if "bk_edition" not in st.session_state:
+            st.session_state["bk_edition"] = ""
+        if "bk_first_edition" not in st.session_state:
+            st.session_state["bk_first_edition"] = ""
+        if "bk_first_edition_locale" not in st.session_state:
+            st.session_state["bk_first_edition_locale"] = ""
+        if "bk_first_edition_name" not in st.session_state:
+            st.session_state["bk_first_edition_name"] = ""
+        if "bk_first_edition_publisher" not in st.session_state:
+            st.session_state["bk_first_edition_publisher"] = ""
+        if st.session_state["form_flow_bk"] == "add_update_book":
+            with st.form("Add or update book"):
+                sbmt_bk = False
+                st.write(":green[Add new book]")
+                st.session_state["bk_book_title"] = st.text_input("Book title:red[*]", max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"))
+                st.session_state["bk_author"] = st.text_input("Author:red[*]", max_chars=self.dict_db_fld_validations.get("books_auth_len"))
+                st.session_state["bk_publisher"] = st.text_input("Publisher", max_chars=self.dict_db_fld_validations.get("books_pub_len"))
+                st.session_state["bk_date_pub"] = st.text_input("Date", max_chars=self.dict_db_fld_validations.get("books_dat_pub_len"))
+                st.session_state["bk_year_read"] = st.text_input("Year read", max_chars=self.dict_db_fld_validations.get("books_yr_rd"))
+                st.session_state["bk_pub_location"] = st.text_input("Publication location", max_chars=self.dict_db_fld_validations.get("books_pub_locale"))
+                st.session_state["bk_edition"] = st.text_input("Edition", max_chars=self.dict_db_fld_validations.get("books_edition"))
+                st.session_state["bk_first_edition"] = st.text_input("First edition", max_chars=self.dict_db_fld_validations.get("books_frst_edition"))
+                st.session_state["bk_first_edition_locale"] = st.text_input("First edition location", max_chars=self.dict_db_fld_validations.get("first_edition_locale"))
+                st.session_state["bk_first_edition_name"] = st.text_input("First edition name", max_chars=self.dict_db_fld_validations.get("first_edition_name"))
+                st.session_state["bk_first_edition_publisher"] = st.text_input("First edition publisher", max_chars=self.dict_db_fld_validations.get("first_edition_publisher"))
+                add = st.form_submit_button("Add")
+                if add:
+                    if not sbmt_bk:
+                        sbmt_bk = True
+                    if st.session_state["bk_book_title"] == "":
+                        st.markdown(":red[No book title given]")
+                        sbmt_bk = False
+                    elif st.session_state["bk_author"] == "":
+                        st.markdown(":red[No author given]")
+                        sbmt_bk = False
+                    elif st.session_state["bk_date_pub"] != "" and not self.__isValidYearFormat(st.session_state["bk_date_pub"],
+                                                                                                "%Y"):
+                        st.markdown(":red[Date of publication must be in YYYY format]")
+                        sbmt_bk = False
+                    elif st.session_state["bk_year_read"] != "" and not self.__isValidYearFormat(st.session_state["bk_year_read"],
+                                                                                                 "%Y"):
+                        st.markdown(":red[Year read must be in YYYY format]")
+                        sbmt_bk = False
+                    elif st.session_state["bk_first_edition"] != "" and not self.__isValidYearFormat(st.session_state["bk_first_edition"],
+                                                                                                     "%Y"):
+                        st.markdown(":red[First edition must be in YYYY format]")
+                        sbmt_bk = False
+                    if sbmt_bk:
+                        self.add_updt_bk_sbmttd()
+                        st.rerun()
+        if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
+            book = []
+            book.append(st.session_state["bk_book_title"])
+            book.append(st.session_state["bk_author"])
+            book.append(self.__append_for_db_write(st.session_state["bk_publisher"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_date_pub"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_year_read"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_pub_location"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_edition"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_first_edition"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_first_edition_locale"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_first_edition_name"]))
+            book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
+            self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
+
+            # SS flow for add edit done
+            # st.success("New book added.")
+            # st.markdown(":blue[Title:] {}".format(book_title))
+            # st.markdown(":blue[Author:] {}".format(author))
+            # st.markdown(":blue[Publisher:] {}".format(publisher))
+            # st.markdown(":blue[Publication date:] {}".format(date_pub))
+            # st.markdown(":blue[Year read:] {}".format(year_read))
+            # st.markdown(":blue[Publication location:] {}".format(pub_location))
+            # st.markdown(":blue[Edition:] {}".format(edition))
+            # st.markdown(":blue[First edition:] {}".format(first_edition))
+            # st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
+            # st.markdown(":blue[First edition name:] {}".format(first_edition_name))
+            # st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -740,3 +768,9 @@ class EDIT_FORM:
         temp__wrd = wrd[colour_prefix + 1:]
         temp__wrd = temp__wrd[0:len(temp__wrd) - 1] # rem ] (markdown closure bracket)
         return(temp__wrd)
+
+    def __append_for_db_write(self, fld):
+        if fld != "":
+            return fld
+        else:
+            return ""
