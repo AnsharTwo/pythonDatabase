@@ -13,7 +13,7 @@ class EDIT_FORM:
         "ants_edt_add_bk_srch": "Search for book for new annotation",
         "ants_edt_edt": "Edit existing annotation",
         "ants_edt_dlt": "Delete an annotation",
-        "ants_add_bk": "Add a new book"
+        "ants_add_update_bk": "Add or update a book"
     }
 
     dict_edit_annot_nonmenu_flags = {
@@ -74,7 +74,7 @@ class EDIT_FORM:
             self.dict_edit_annot_sel.get("ants_edt_add"),
             self.dict_edit_annot_sel.get("ants_edt_edt"),
             self.dict_edit_annot_sel.get("ants_edt_dlt"),
-            self.dict_edit_annot_sel.get("ants_add_bk")
+            self.dict_edit_annot_sel.get("ants_add_update_bk")
         ])
         if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
             self.edt_new_annot()
@@ -82,7 +82,7 @@ class EDIT_FORM:
             self.edt_edt_annot()
         if editSelection == self.dict_edit_annot_sel.get("ants_edt_dlt"):
             self.edt_dlt_annot()
-        elif editSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
+        elif editSelection == self.dict_edit_annot_sel.get("ants_add_update_bk"):
             self.add_new_bk()
 
     def edt_new_annot(self):
@@ -550,7 +550,41 @@ class EDIT_FORM:
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_locale"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_name"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
-            self.db_records(self.dict_edit_annot_sel.get("ants_add_bk"), book, False)
+
+            # HERE - see below HERE and 2 HEREs in db.py ###################################################
+            bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, True)
+
+            if bkSum > 0:
+                self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, False)
+
+
+
+            # if bkSum > 1:
+            #     st.write("Found {} results.".format(str(bkSum)))
+            # add_nw_bk = False
+            # if bkSum == 0:
+            #     st.markdown(":red[Book was not found.]")
+            #     search_books_again = st.form_submit_button(label="Search for book again")
+            #     if search_books_again:
+            #         self.annot_srch_bk()
+            #         st.rerun()
+            #     add_new_book = st.form_submit_button(label="Add as new book")
+            #     if add_new_book:
+            #         add_nw_bk = True
+            # elif bkSum == 1:
+            #     st.markdown(":green[Book was found.]")
+            #     for bk in bks:
+            #         st.session_state["book_no"] = bk.__getattribute__('Book No')
+            #         st.session_state["book_title"] = bk.__getattribute__('Book Title')
+            #         st.session_state["author"] = bk.Author
+            #         st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
+            #         st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
+            #     self.__show_bk_srch_res()
+            #     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
+            #     btn_annot_back = st.form_submit_button(label="Back")
+            #     if btn_annot_go:
+            #         self.annot_new_annot()
+            #         st.rerun()
 
             # SS flow for add edit done
             # st.success("New book added.")
@@ -578,8 +612,8 @@ class EDIT_FORM:
         sourceData.is_ms_access_driver()
         conn = sourceData.db_connect()
         sourceData.report_tables(conn.cursor())
-        if searchSelection == self.dict_edit_annot_sel.get("ants_add_bk"):
-            self.__add_book(sourceData, conn, record)
+        if searchSelection == self.dict_edit_annot_sel.get("ants_add_update_bk"):
+            return self.__add_update_book(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
@@ -588,9 +622,24 @@ class EDIT_FORM:
             self.__add_update_annot(sourceData, conn, record, getResultsCount)
         conn.close()
 
-    def __add_book(self, sourceData, conn, book):
-        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
-        sourceData.addNewBook(conn.cursor(), bk_sum, book)
+    def __add_update_book(self, sourceData, conn, book, getResultsCount):
+        bk_sum = 0
+        # 1 - see if book already exists
+        # HERE ###################################################################
+        bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
+
+        # 2 - if sum is 0, add
+
+        # 3 - if sum > 0, show
+
+        # 4 - add book
+
+
+        if getResultsCount:
+            bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book)
+
+
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
         if getResultsCount:
