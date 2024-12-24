@@ -539,8 +539,8 @@ class EDIT_FORM:
                         st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
             book = []
-            book.append(st.session_state["bk_book_title"])
-            book.append(st.session_state["bk_author"])
+            book.append(self.__format_sql_wrap(st.session_state["bk_book_title"]))
+            book.append(self.__format_sql_wrap(st.session_state["bk_author"]))
             book.append(self.__append_for_db_write(st.session_state["bk_publisher"]))
             book.append(self.__append_for_db_write(st.session_state["bk_date_pub"]))
             book.append(self.__append_for_db_write(st.session_state["bk_year_read"]))
@@ -554,8 +554,10 @@ class EDIT_FORM:
             # HERE - see below HERE and 2 HEREs in db.py ###################################################
             bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, True)
 
-            if bkSum > 0:
-                self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, False)
+            ###
+            st.write("Sum " + str(bkSum))
+            # if bkSum > 0:
+            #     self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, False)
 
 
 
@@ -624,21 +626,14 @@ class EDIT_FORM:
 
     def __add_update_book(self, sourceData, conn, book, getResultsCount):
         bk_sum = 0
-        # 1 - see if book already exists
-        # HERE ###################################################################
-        bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
-
-        # 2 - if sum is 0, add
-
-        # 3 - if sum > 0, show
-
-        # 4 - add book
-
-
         if getResultsCount:
-            bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
-        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book)
+            bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
 
+        return(bk_sum)
+
+        # if getResultsCount:
+        #     bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        # sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book)
 
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
@@ -820,6 +815,6 @@ class EDIT_FORM:
 
     def __append_for_db_write(self, fld):
         if fld != "":
-            return fld
+            return self.__format_sql_wrap(fld)
         else:
             return ""
