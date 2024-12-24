@@ -18,7 +18,8 @@ class EDIT_FORM:
 
     dict_edit_annot_nonmenu_flags = {
         "ants_edt_add_srch_ppg_no": "search for page number",
-        "ants_edt_add_updte_annot": "add or update annotation"
+        "ants_edt_add_updte_annot": "add or update annotation",
+        "bk_add_edit_bk_res_0": "Add a new book"
     }
 
     dict_db_fld_validations = {
@@ -66,6 +67,9 @@ class EDIT_FORM:
 
     def add_updt_bk_sbmttd(self):
         st.session_state["form_flow_bk"] = "add_update_book_sbmttd"
+
+    def add_updt_bk_added(self):
+        st.session_state["form_flow_bk"] = "add_update_book_added"
 
     def select_edit_form(self):
         st.header("Edit annotations data")
@@ -550,17 +554,32 @@ class EDIT_FORM:
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_locale"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_name"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
-
-            # HERE - see below HERE and 2 HEREs in db.py ###################################################
             bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, True)
+            if bkSum == 0:
+                self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, False)
+            self.add_updt_bk_added()
+            st.rerun()
+        if st.session_state["form_flow_bk"] == "add_update_book_added":
+            with st.form("Book added"):
+                st.success("New book added.")
+                st.markdown(":blue[Title:] {}".format(st.session_state["bk_book_title"]))
+                st.markdown(":blue[Author:] {}".format(st.session_state["bk_author"]))
+                st.markdown(":blue[Publisher:] {}".format(st.session_state["bk_publisher"]))
+                st.markdown(":blue[Publication date:] {}".format(st.session_state["bk_date_pub"]))
+                st.markdown(":blue[Year read:] {}".format(st.session_state["bk_year_read"]))
+                st.markdown(":blue[Publication location:] {}".format(st.session_state["bk_pub_location"]))
+                st.markdown(":blue[Edition:] {}".format(st.session_state["bk_edition"]))
+                st.markdown(":blue[First edition:] {}".format(st.session_state["bk_first_edition"]))
+                st.markdown(":blue[First edition location:] {}".format(st.session_state["bk_first_edition_locale"]))
+                st.markdown(":blue[First edition name:] {}".format(st.session_state["bk_first_edition_name"]))
+                st.markdown(":blue[First edition publisher:] {}".format(st.session_state["bk_first_edition_publisher"]))
+                cntnu  = st.form_submit_button("Continue")
+                if cntnu:
+                    self.add_updt_bk()
+                    st.rerun()
 
-            ###
-            st.write("Sum " + str(bkSum))
-            # if bkSum > 0:
+            # if bkSum == 1:
             #     self.db_records(self.dict_edit_annot_sel.get("ants_add_update_bk"), book, False)
-
-
-
             # if bkSum > 1:
             #     st.write("Found {} results.".format(str(bkSum)))
             # add_nw_bk = False
@@ -588,20 +607,6 @@ class EDIT_FORM:
             #         self.annot_new_annot()
             #         st.rerun()
 
-            # SS flow for add edit done
-            # st.success("New book added.")
-            # st.markdown(":blue[Title:] {}".format(book_title))
-            # st.markdown(":blue[Author:] {}".format(author))
-            # st.markdown(":blue[Publisher:] {}".format(publisher))
-            # st.markdown(":blue[Publication date:] {}".format(date_pub))
-            # st.markdown(":blue[Year read:] {}".format(year_read))
-            # st.markdown(":blue[Publication location:] {}".format(pub_location))
-            # st.markdown(":blue[Edition:] {}".format(edition))
-            # st.markdown(":blue[First edition:] {}".format(first_edition))
-            # st.markdown(":blue[First edition location:] {}".format(first_edition_locale))
-            # st.markdown(":blue[First edition name:] {}".format(first_edition_name))
-            # st.markdown(":blue[First edition publisher:] {}".format(first_edition_publisher))
-
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
 
@@ -615,7 +620,9 @@ class EDIT_FORM:
         conn = sourceData.db_connect()
         sourceData.report_tables(conn.cursor())
         if searchSelection == self.dict_edit_annot_sel.get("ants_add_update_bk"):
-            return self.__add_update_book(sourceData, conn, record, getResultsCount)
+            return self.__add_update_book_count(sourceData, conn, record)
+        elif searchSelection == self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"):
+            self.__add_update_book_new(sourceData, conn, record)
         elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
@@ -624,17 +631,17 @@ class EDIT_FORM:
             self.__add_update_annot(sourceData, conn, record, getResultsCount)
         conn.close()
 
-    def __add_update_book(self, sourceData, conn, book, getResultsCount):
-        bk_sum = 0
-        if getResultsCount:
-            bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
-
+    def __add_update_book_count(self, sourceData, conn, book):
+        bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
         return(bk_sum)
 
-        # if getResultsCount:
-        #     bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
-        # sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book)
-
+    def __add_update_book_new(self, sourceData, conn, book):
+        for ctr in range(0, len(book)):
+            tmp_fld = str(book[ctr])
+            book.pop(ctr)
+            book.insert(ctr, self.__rem_sql_wrap_chars(tmp_fld))
+        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book)
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
         if getResultsCount:
@@ -762,6 +769,9 @@ class EDIT_FORM:
             datum = datum + "%"
         datum = self.__formatSQLSpecialChars(datum)
         return datum
+
+    def __rem_sql_wrap_chars(self, datum):
+        return datum.strip("%")
 
     def __formatSQLSpecialChars(self, searchDatum):
         formattedDatum = searchDatum.replace("'", "\''")

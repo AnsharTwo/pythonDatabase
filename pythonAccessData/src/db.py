@@ -186,7 +186,13 @@ class DATA_SOURCE:
         annots = cursor.execute(self.dict_queries.get("books_by_yr_read").format(fromYear, toYear))
         return annots
 
-    def addNewBook(self, cursor, bk_sum, book):
+    def resAddUpdateNewBk(self, cursor, book):
+        sqlStr = self.__sql_bk_srch(True, book)
+        results = cursor.execute(sqlStr)
+        res = results.fetchone()
+        return res[0]
+
+    def addUpdateNewBook(self, cursor, bk_sum, book):
         cursor.execute(self.dict_inserts.get("books_new_add").format(
             bk_sum, # book no.
             str(book[self.dict_books_indx.get("title")]),
@@ -243,6 +249,63 @@ class DATA_SOURCE:
         except pyodbc.Error as ex:
             pyodbc_state = ex.args[1]
             st.write(pyodbc_state)
+
+    def __sql_bk_srch(self, isCountQuery, book):
+        if isCountQuery:
+            prefix_sqlStr = self.dict_queries.get("bk_add_edit_count")
+        else:
+            prefix_sqlStr = self.dict_queries.get("bk_add_edit")
+        sqlStr = prefix_sqlStr.format(str(book[int(self.dict_books_indx.get("title"))]),
+                                      str(book[int(self.dict_books_indx.get("author"))]))
+        if str(book[int(self.dict_books_indx.get("publisher"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_pub")).format(str(book[int(self.dict_books_indx.get("publisher"))]))
+        if str(book[int(self.dict_books_indx.get("dat"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_date")).format(str(book[int(self.dict_books_indx.get("dat"))]))
+        if str(book[int(self.dict_books_indx.get("year_read"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_yr_rd")).format(str(book[int(self.dict_books_indx.get("year_read"))]))
+        if str(book[int(self.dict_books_indx.get("publication_locale"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_pb_lcl")).format(str(book[int(self.dict_books_indx.get("publication_locale"))]))
+        if str(book[int(self.dict_books_indx.get("edition"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_edtn")).format(str(book[int(self.dict_books_indx.get("edition"))]))
+        if str(book[int(self.dict_books_indx.get("first_edition"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_frst_edtn")).format(str(book[int(self.dict_books_indx.get("first_edition"))]))
+        if str(book[int(self.dict_books_indx.get("first_edition_locale"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_frst_edtn_lcl")).format(str(book[int(self.dict_books_indx.get("first_edition_locale"))]))
+        if str(book[int(self.dict_books_indx.get("first_edition_name"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_date_frst_edtn_nm")).format(str(book[int(self.dict_books_indx.get("first_edition_name"))]))
+        if str(book[int(self.dict_books_indx.get("first_edition_publisher"))]) != "":
+            sqlStr = (sqlStr + self.dict_queries.get("bk_add_edit_date_frst_edtn_pb")).format(str(book[int(self.dict_books_indx.get("first_edition_publisher"))]))
+            if not isCountQuery:
+                sqlStr = sqlStr + self.dict_queries.get("bk_add_edit_order")
+
+        #########
+        st.write(sqlStr)
+
+        return sqlStr
+
+        # "bk_add_edit_pub": " AND Publisher LIKE ('{}')",
+        # "bk_add_edit_date": " AND Dat LIKE ('{}')",
+        # "bk_add_edit_yr_rd": " AND [Year Read] LIKE ('{}')",
+        # "bk_add_edit_pb_lcl": " AND [Publication Locale] LIKE ('{}')",
+        # "bk_add_edit_edtn": " AND Edition LIKE ('{}')",
+        # "bk_add_edit_frst_edtn": " AND [First Edition] LIKE ('{}')",
+        # "bk_add_edit_frst_edtn_lcl": " AND [First Edition Locale] LIKE ('{}')",
+        # "bk_add_edit_date_frst_edtn_nm": " AND [First Edition Name] LIKE ('{}')",
+        # "bk_add_edit_date_frst_edtn_pb": " AND [First Edition Publisher] LIKE ('{}')",
+        # "bk_add_edit_order": " ORDER BY [Book No]"
+
+        # "title":                    0,
+        # "author":                   1,
+        # "publisher":                2,
+        # "dat":                      3,
+        # "year_read":                4,
+        # "publication_locale":       5,
+        # "edition":                  6,
+        # "first_edition":            7,
+        # "first_edition_locale":     8,
+        # "first_edition_name":       9,
+        # "first_edition_publisher":  10
+
 
     def __sql_nw_annt_bk_srch(self, queryType, book):
         sqlStr = ""
@@ -409,19 +472,35 @@ class DATA_SOURCE:
         "bk_fr_annot_add_count": """SELECT COUNT(*) 
                           FROM Books
                           WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
-
         "new_annot_page_no_exists": """SELECT [Source Text].[Page No], [Source Text].[Source Text] 
                     FROM [Source Text]
                     WHERE [Source Text].[Book No] Like ('{}') 
                     AND [Source Text].[Page No] LIKE ('{}')""",
-
         "append_srch_txt": " OR [Source Text].[Source Text] Like ('{}')",
         "append_srch_txt_order_by": " ORDER BY [Source Text].[Book No], [Source Text].[Page No]",
         "insert_srch_txt_auth": " OR (Books.[Author] LIKE('{}') AND [Source Text].[Source Text] LIKE('{}'))",
         "insert_srch_txt_bk": " OR (Books.[Book Title] LIKE ('{}') AND [Source Text].[Source Text] LIKE ('{}'))",
         "insert_bk_fr_annot_add_pub": " AND Publisher LIKE ('{}')",
         "insert_bk_fr_annot_add_date": " AND Dat LIKE ('{}')",
-        "append_bk_fr_annot_add": " ORDER BY [Book No]"
+        "append_bk_fr_annot_add": " ORDER BY [Book No]",
+
+        "bk_add_edit_count": """SELECT COUNT(*) 
+                      FROM Books
+                      WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
+        "bk_add_edit": """SELECT Books.[Book No], [Book Title], Author, Publisher, Dat
+                          FROM Books 
+                          WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
+        "bk_add_edit_pub": " AND Publisher LIKE ('{}')",
+        "bk_add_edit_date": " AND Dat LIKE ('{}')",
+        "bk_add_edit_yr_rd": " AND [Year Read] LIKE ('{}')",
+        "bk_add_edit_pb_lcl": " AND [Publication Locale] LIKE ('{}')",
+        "bk_add_edit_edtn": " AND Edition LIKE ('{}')",
+        "bk_add_edit_frst_edtn": " AND [First Edition] LIKE ('{}')",
+        "bk_add_edit_frst_edtn_lcl": " AND [First Edition Locale] LIKE ('{}')",
+        "bk_add_edit_date_frst_edtn_nm": " AND [First Edition Name] LIKE ('{}')",
+        "bk_add_edit_date_frst_edtn_pb": " AND [First Edition Publisher] LIKE ('{}')",
+        "bk_add_edit_order": " ORDER BY [Book No]"
+
     }
 
     dict_inserts = {
