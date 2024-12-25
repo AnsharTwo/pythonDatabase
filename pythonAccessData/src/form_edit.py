@@ -581,82 +581,58 @@ class EDIT_FORM:
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_name"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
-
-            #########
-            print("book sum is " + str(st.session_state["bk_srch_sum"]))
-
             if st.session_state["bk_srch_sum"] == 0:
                 self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, False)
             elif st.session_state["bk_srch_sum"] == 1:
                 bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, False)
-                st.session_state["res1_bk_book_no"] = bk_rec.__getattribute__('Book No')
-                st.session_state["res1_bk_book_title"] = bk_rec.__getattribute__('Book Title')
-                st.session_state["res1_bk_author"] = bk_rec.Author
-                st.session_state["res1_bk_publisher"] = bk_rec.Publisher
-                st.session_state["res1_bk_date_pub"] = bk_rec.Dat
-                st.session_state["res1_bk_year_read"] = bk_rec.__getattribute__('Year Read')
-                st.session_state["res1_bk_pub_location"] = bk_rec.__getattribute__("Publication Locale")
-                st.session_state["res1_bk_edition"] = bk_rec.Edition
-                st.session_state["res1_bk_first_edition"] = bk_rec.__getattribute__("First Edition")
-                st.session_state["res1_bk_first_edition_locale"] = bk_rec.__getattribute__("First Edition Locale")
-                st.session_state["res1_bk_first_edition_name"] = bk_rec.__getattribute__("First Edition Name")
-                st.session_state["res1_bk_first_edition_publisher"] = bk_rec.__getattribute__("First Edition Publisher")
+                for bk in bk_rec:
+                    st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
+                    st.session_state["res1_bk_author"] = bk.Author
+                    st.session_state["res1_bk_publisher"] = bk.Publisher
+                    st.session_state["res1_bk_date_pub"] = bk.Dat
+                    st.session_state["res1_bk_year_read"] = bk.__getattribute__('Year Read')
+                    st.session_state["res1_bk_pub_location"] = bk.__getattribute__("Publication Locale")
+                    st.session_state["res1_bk_edition"] = bk.Edition
+                    st.session_state["res1_bk_first_edition"] = bk.__getattribute__("First Edition")
+                    st.session_state["res1_bk_first_edition_locale"] = bk.__getattribute__("First Edition Locale")
+                    st.session_state["res1_bk_first_edition_name"] = bk.__getattribute__("First Edition Name")
+                    st.session_state["res1_bk_first_edition_publisher"] = bk.__getattribute__("First Edition Publisher")
             self.add_updt_bk_added()
             st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
                 if st.session_state["bk_srch_sum"] == 0:
                     st.success("New book added.")
-                    st.markdown(":blue[Title:] {}".format(st.session_state["bk_book_title"]))
-                    st.markdown(":blue[Author:] {}".format(st.session_state["bk_author"]))
-                    st.markdown(":blue[Publisher:] {}".format(st.session_state["bk_publisher"]))
-                    st.markdown(":blue[Publication date:] {}".format(st.session_state["bk_date_pub"]))
-                    st.markdown(":blue[Year read:] {}".format(st.session_state["bk_year_read"]))
-                    st.markdown(":blue[Publication location:] {}".format(st.session_state["bk_pub_location"]))
-                    st.markdown(":blue[Edition:] {}".format(st.session_state["bk_edition"]))
-                    st.markdown(":blue[First edition:] {}".format(st.session_state["bk_first_edition"]))
-                    st.markdown(":blue[First edition location:] {}".format(st.session_state["bk_first_edition_locale"]))
-                    st.markdown(":blue[First edition name:] {}".format(st.session_state["bk_first_edition_name"]))
-                    st.markdown(":blue[First edition publisher:] {}".format(st.session_state["bk_first_edition_publisher"]))
+                    self.__show_book_entered(st.session_state["bk_book_title"], st.session_state["bk_author"],
+                                             st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
+                                             st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
+                                             st.session_state["bk_edition"], st.session_state["bk_first_edition"],
+                                             st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
+                                             st.session_state["bk_first_edition_publisher"])
                 elif st.session_state["bk_srch_sum"] == 1:
-
-                    print("hold")
-                    # TODO - report there is a book which closely or completely matches 1 already - either A) opt to edit or B) go back
-                    # set value of edit widgets with the res1 SS s
-
-                cntnu  = st.form_submit_button("Continue")
-                if cntnu:
-                    self.add_updt_bk()
-                    st.rerun()
-
-            # if bkSum == 1:
-            #     self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, False)
-            # if bkSum > 1:
-            #     st.write("Found {} results.".format(str(bkSum)))
-            # add_nw_bk = False
-            # if bkSum == 0:
-            #     st.markdown(":red[Book was not found.]")
-            #     search_books_again = st.form_submit_button(label="Search for book again")
-            #     if search_books_again:
-            #         self.annot_srch_bk()
-            #         st.rerun()
-            #     add_new_book = st.form_submit_button(label="Add as new book")
-            #     if add_new_book:
-            #         add_nw_bk = True
-            # elif bkSum == 1:
-            #     st.markdown(":green[Book was found.]")
-            #     for bk in bks:
-            #         st.session_state["book_no"] = bk.__getattribute__('Book No')
-            #         st.session_state["book_title"] = bk.__getattribute__('Book Title')
-            #         st.session_state["author"] = bk.Author
-            #         st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
-            #         st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
-            #     self.__show_bk_srch_res()
-            #     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
-            #     btn_annot_back = st.form_submit_button(label="Back")
-            #     if btn_annot_go:
-            #         self.annot_new_annot()
-            #         st.rerun()
+                    st.info("One book entry matches the data of the book you have entered into the Add/Edit book form.")
+                    self.__show_book_entered(st.session_state["res1_bk_book_title"], st.session_state["res1_bk_author"],
+                                             st.session_state["res1_bk_publisher"], st.session_state["res1_bk_date_pub"],
+                                             st.session_state["res1_bk_year_read"], st.session_state["res1_bk_pub_location"],
+                                             st.session_state["res1_bk_edition"], st.session_state["res1_bk_first_edition"],
+                                             st.session_state["res1_bk_first_edition_locale"], st.session_state["res1_bk_first_edition_name"],
+                                             st.session_state["res1_bk_first_edition_publisher"])
+                    btn_exit_bk = st.form_submit_button("Discard new book")
+                    btn_edt_bk = st.form_submit_button("Edit this book's details")
+                    btn_add_bk_anyway = st.form_submit_button("Add this book anyway")
+                    if btn_exit_bk:
+                        st.session_state["bk_srch_sum"] = 0
+                        # TODO - emtpy SS both sets of book fields
+                        self.add_updt_bk()
+                        st.rerun()
+                    if btn_edt_bk:
+                        self.add_updt_bk()
+                        # TODO - set value of widget edits above to res1 SS data
+                        st.rerun()
+                    if btn_add_bk_anyway:
+                        # TODO - add "if" struct for this case in submitted SS "if" block above
+                        self.add_updt_bk_sbmttd()
+                        st.rerun()
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -724,6 +700,20 @@ class EDIT_FORM:
             st.session_state["publisher"]))
         st.markdown(":gray[Date:] :orange[{}]\r\r".format(
             st.session_state["date_published"]))
+
+    def __show_book_entered(self, bk_title, bk_author, bk_publisher, bk_date_pub, bk_year_read, bk_pub_location, bk_edition,
+                            bk_first_edition, bk_first_edition_locale, bk_first_edition_name, bk_first_edition_publisher):
+        st.markdown(":blue[Title:] {}".format(bk_title))
+        st.markdown(":blue[Author:] {}".format(bk_author))
+        st.markdown(":blue[Publisher:] {}".format(bk_publisher))
+        st.markdown(":blue[Publication date:] {}".format(bk_date_pub))
+        st.markdown(":blue[Year read:] {}".format(bk_year_read))
+        st.markdown(":blue[Publication location:] {}".format(bk_pub_location))
+        st.markdown(":blue[Edition:] {}".format(bk_edition))
+        st.markdown(":blue[First edition:] {}".format(bk_first_edition))
+        st.markdown(":blue[First edition location:] {}".format(bk_first_edition_locale))
+        st.markdown(":blue[First edition name:] {}".format(bk_first_edition_name))
+        st.markdown(":blue[First edition publisher:] {}".format(bk_first_edition_publisher))
 
     def __checkbox_container(self, data):
             cols = st.columns(5, gap="small")
