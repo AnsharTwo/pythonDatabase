@@ -192,6 +192,11 @@ class DATA_SOURCE:
         res = results.fetchone()
         return res[0]
 
+    def addUpdateNewBk(self, cursor, book):
+        sqlStr = self.__sql_bk_srch(False, book)
+        bk = cursor.execute(sqlStr)
+        return bk
+
     def addUpdateNewBook(self, cursor, bk_sum, book):
         cursor.execute(self.dict_inserts.get("books_new_add").format(
             bk_sum, # book no.
@@ -487,7 +492,8 @@ class DATA_SOURCE:
         "bk_add_edit_count": """SELECT COUNT(*) 
                       FROM Books
                       WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
-        "bk_add_edit": """SELECT Books.[Book No], [Book Title], Author, Publisher, Dat
+        "bk_add_edit": """SELECT Books.[Book No], [Book Title], Author, Publisher, Dat, [Year Read], [Publication Locale], Edition,
+                                 [First Edition], [First Edition Locale], [First Edition Name], [First Edition Publisher]
                           FROM Books 
                           WHERE [Book Title] LIKE ('{}') AND Author LIKE ('{}')""",
         "bk_add_edit_pub": " AND Publisher LIKE ('{}')",
