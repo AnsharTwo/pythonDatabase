@@ -601,6 +601,9 @@ class EDIT_FORM:
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
             if st.session_state["bk_srch_sum"] == 0:
+
+                # TODO - think this needs "if SS is editing == True then do insert sql", else as below line
+
                 self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, False)
             elif st.session_state["bk_srch_sum"] == 1:
                 bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, False)
@@ -620,14 +623,23 @@ class EDIT_FORM:
             st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
-                if st.session_state["bk_srch_sum"] == 0:
+                if st.session_state["bk_srch_sum"] == 0: # must be 0 (set to) for all add ops
                     st.success("New book added.")
-                    self.__show_book_entered(st.session_state["bk_book_title"], st.session_state["bk_author"],
+                    self.__show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
                                              st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
                                              st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
                                              st.session_state["bk_edition"], st.session_state["bk_first_edition"],
                                              st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
                                              st.session_state["bk_first_edition_publisher"])
+                    if st.session_state["bk_is_editing"]:
+                        st.session_state["bk_is_editing"] = False
+                    btn_cntn = st.form_submit_button("Continue")
+                    if btn_cntn:
+                        st.session_state["bk_is_editing"] = False
+                        self.__clear_ss_bk_flds()
+                        self.__clear_ss_res1_bk_flds()
+                        self.add_updt_bk()
+                        st.rerun()
                 elif st.session_state["bk_srch_sum"] == 1:
                     st.info("One book entry matches the data of the book you have entered into the Add/Edit book form.")
                     col1, col2 = st.columns(2)
@@ -665,8 +677,11 @@ class EDIT_FORM:
                         self.add_updt_bk()
                         st.rerun()
                     if btn_add_bk_anyway:
-                        # TODO - add "if" struct for this case in submitted SS "if" block above
+                        st.session_state["bk_srch_sum"] = 0
+                        st.session_state["bk_is_editing"] = True
 
+                        # TODO - needs an UPDATE SQL action if editing a book
+                        
                         self.add_updt_bk_sbmttd()
                         st.rerun()
 
