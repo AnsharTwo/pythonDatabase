@@ -599,12 +599,13 @@ class EDIT_FORM:
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_locale"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_name"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
-            st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
+            if not st.session_state["bk_is_editing"]:
+                st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
             if st.session_state["bk_srch_sum"] == 0:
-
-                # TODO - think this needs "if SS is editing == True then do insert sql", else as below line
-
-                self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, False)
+                if st.session_state["bk_is_editing"]:
+                    self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, True) # get res count bool not ideal name for this
+                else:
+                    self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, False)
             elif st.session_state["bk_srch_sum"] == 1:
                 bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, False)
                 for bk in bk_rec:
@@ -671,17 +672,16 @@ class EDIT_FORM:
                         self.add_updt_bk()
                         st.rerun()
                     if btn_edt_bk:
-                        st.session_state["bk_srch_sum"] = 0
+                        st.session_state["bk_srch_sum"] = 0 # i.e. will treat on rerun as working with update of record
                         st.session_state["bk_is_editing"] = True
-                        self.__clear_ss_bk_flds()
                         self.add_updt_bk()
                         st.rerun()
                     if btn_add_bk_anyway:
+                        # TODO - only allow this if book title is NOT 100% match
+                        # TODO - if want to update book title (YES), add res1 SS title (original title to the book list
+                        #  "if SS is updating book" is True (and down call stack), try it. Else, make book title disable field on edit
                         st.session_state["bk_srch_sum"] = 0
-                        st.session_state["bk_is_editing"] = True
-
-                        # TODO - needs an UPDATE SQL action if editing a book
-                        
+                        st.session_state["bk_is_editing"] = False
                         self.add_updt_bk_sbmttd()
                         st.rerun()
 
@@ -703,7 +703,7 @@ class EDIT_FORM:
             else:
                 return self.__add_update_book(sourceData, conn, record)
         elif searchSelection == self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"):
-            self.__add_update_book_new(sourceData, conn, record)
+            self.__add_update_book_new(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
@@ -720,13 +720,15 @@ class EDIT_FORM:
         bk = sourceData.addUpdateNewBk(conn.cursor(), book)
         return bk
 
-    def __add_update_book_new(self, sourceData, conn, book):
+    def __add_update_book_new(self, sourceData, conn, book, bk_exists):
+        bk_sum = 0
         for ctr in range(0, len(book)):
             tmp_fld = str(book[ctr])
             book.pop(ctr)
             book.insert(ctr, self.__rem_sql_wrap_chars(tmp_fld))
-        bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
-        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book)
+        if not bk_exists:
+            bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
         if getResultsCount:

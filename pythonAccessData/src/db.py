@@ -197,21 +197,38 @@ class DATA_SOURCE:
         bk = cursor.execute(sqlStr)
         return bk
 
-    def addUpdateNewBook(self, cursor, bk_sum, book):
-        cursor.execute(self.dict_inserts.get("books_new_add").format(
-            bk_sum, # book no.
-            str(book[self.dict_books_indx.get("title")]),
-            str(book[self.dict_books_indx.get("author")]),
-            str(book[self.dict_books_indx.get("publisher")]),
-            str(book[self.dict_books_indx.get("dat")]),
-            str(book[self.dict_books_indx.get("year_read")]),
-            str(book[self.dict_books_indx.get("publication_locale")]),
-            str(book[self.dict_books_indx.get("edition")]), # edition
-            str(book[self.dict_books_indx.get("first_edition")]),
-            str(book[self.dict_books_indx.get("first_edition_locale")]),
-            str(book[self.dict_books_indx.get("first_edition_name")]),
-            str(book[self.dict_books_indx.get("first_edition_publisher")])
-        ))
+    def addUpdateNewBook(self, cursor, bk_sum, book, bk_exists):
+        if not bk_exists:
+            sql_str = self.dict_inserts.get("books_new_add")
+            cursor.execute(sql_str.format(
+                     bk_sum, # book no.
+                           str(book[self.dict_books_indx.get("title")]),
+                           str(book[self.dict_books_indx.get("author")]),
+                           str(book[self.dict_books_indx.get("publisher")]),
+                           str(book[self.dict_books_indx.get("dat")]),
+                           str(book[self.dict_books_indx.get("year_read")]),
+                           str(book[self.dict_books_indx.get("publication_locale")]),
+                           str(book[self.dict_books_indx.get("edition")]), # edition
+                           str(book[self.dict_books_indx.get("first_edition")]),
+                           str(book[self.dict_books_indx.get("first_edition_locale")]),
+                           str(book[self.dict_books_indx.get("first_edition_name")]),
+                           str(book[self.dict_books_indx.get("first_edition_publisher")])
+            ))
+        else:
+            sql_str = self.dict_updates.get("books_update_add")
+            cursor.execute(sql_str.format(
+                      str(book[self.dict_books_indx.get("author")]),
+                            str(book[self.dict_books_indx.get("publisher")]),
+                            str(book[self.dict_books_indx.get("dat")]),
+                            str(book[self.dict_books_indx.get("year_read")]),
+                            str(book[self.dict_books_indx.get("publication_locale")]),
+                            str(book[self.dict_books_indx.get("edition")]),  # edition
+                            str(book[self.dict_books_indx.get("first_edition")]),
+                            str(book[self.dict_books_indx.get("first_edition_locale")]),
+                            str(book[self.dict_books_indx.get("first_edition_name")]),
+                            str(book[self.dict_books_indx.get("first_edition_publisher")]),
+                            str(book[self.dict_books_indx.get("title")])
+            ))
         try:
             cursor.commit()
         except pyodbc.Error as ex:
@@ -476,5 +493,12 @@ class DATA_SOURCE:
 
     dict_updates = {
         "annots_update_add": """UPDATE [Source Text] SET [Source Text].[Source Text] = ('{}')
-                                WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')"""
+                                WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')""",
+        "books_update_add": """UPDATE Books SET Books.Author = ('{}'), Books.Publisher = ('{}'), 
+                                      Books.Dat = ('{}'),
+                                      Books.[Year Read] = ('{}'), Books.[Publication Locale] = ('{}'),
+                                      Books.Edition = ('{}'), Books.[First Edition] = ('{}'),
+                                      Books.[First Edition Locale] = ('{}'), Books.[First Edition Name] = ('{}'),
+                                      Books.[First Edition Publisher] = ('{}')
+                               WHERE Books.[Book Title] = ('{}')"""
     }
