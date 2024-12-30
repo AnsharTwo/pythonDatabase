@@ -62,6 +62,9 @@ class EDIT_FORM:
     def annot_success_new_annot(self):
         st.session_state["form_flow"] = "post_add_new_annotation"
 
+    def add_updt_bk_srch(self):
+        st.session_state["form_flow_bk"] = "add_update_book_search"
+
     def add_updt_bk(self):
         st.session_state["form_flow_bk"] = "add_update_book"
 
@@ -478,11 +481,13 @@ class EDIT_FORM:
 
     def add_new_bk(self):
         if "form_flow_bk" not in st.session_state:
-            st.session_state["form_flow_bk"] = "add_update_book"
+            st.session_state["form_flow_bk"] = "add_update_book_search"
         if "bk_srch_sum" not in st.session_state:
             st.session_state["bk_srch_sum"] = 0
         if "bk_is_editing" not in st.session_state:
             st.session_state["bk_is_editing"] = False
+        if "srch_book_title" not in st.session_state:
+            st.session_state["srch_book_title"] = ""
         if "bk_book_title" not in st.session_state:
             st.session_state["bk_book_title"] = ""
         if "bk_author" not in st.session_state:
@@ -529,7 +534,51 @@ class EDIT_FORM:
             st.session_state["res1_bk_first_edition_name"] = ""
         if "res1_bk_first_edition_publisher" not in st.session_state:
             st.session_state["res1_bk_first_edition_publisher"] = ""
+            if "res1_bk_first_edition_publisher" not in st.session_state:
+                st.session_state["res1_bk_first_edition_publisher"] = ""
+
+        #########################
+        if st.session_state["form_flow_bk"] == "add_update_book_search":
+            with st.form("Add or search for book to update"):
+                bk_lookup = False
+                st.write(":green[Add or update book]")
+                st.session_state["srch_book_title"] = st.text_input("Book title:red[*]",
+                                                                  max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"),
+                                                                  value=st.session_state["res1_bk_book_title"])
+                bk_go = st.form_submit_button("Go")
+                if bk_go:
+                    if not bk_lookup:
+                        bk_lookup = True
+                    if st.session_state["srch_book_title"] == "":
+                        st.markdown(":red[No book title given]")
+                        bk_lookup = False
+                    if bk_lookup:
+                        self.add_updt_bk()
+                        st.rerun()
+            #########################
+
         if st.session_state["form_flow_bk"] == "add_update_book":
+
+            #########################
+            bk_title = []
+            bk_title.append(self.__format_sql_wrap(st.session_state["srch_book_title"]))
+            # TODO - first needs to do exact match query as in flow chart
+            st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"),
+                                                              bk_title,
+                                                              True)
+            with st.form("Search results for book title"):
+
+                st.write("title " + st.session_state["srch_book_title"])
+                st.write("Sum " + str(st.session_state["bk_srch_sum"]))
+
+                if st.session_state["bk_srch_sum"] == 1:
+                    st.info("The following book has been found that matches your search text.")
+                    btn_edt_bk = st.form_submit_button("Edit book")
+                    btn_return_bk = st.form_submit_button("Search again")
+                #########################
+
+
+
             with st.form("Add or update book"):
                 sbmt_bk = False
                 st.write(":green[Add new book]")
@@ -669,7 +718,7 @@ class EDIT_FORM:
                         st.session_state["bk_is_editing"] = False
                         self.__clear_ss_bk_flds()
                         self.__clear_ss_res1_bk_flds()
-                        self.add_updt_bk()
+                        self.add_updt_bk_srch()
                         st.rerun()
                     if btn_edt_bk:
                         st.session_state["bk_srch_sum"] = 0 # i.e. will treat on rerun as working with update of record
