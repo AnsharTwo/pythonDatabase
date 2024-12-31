@@ -186,6 +186,15 @@ class DATA_SOURCE:
         annots = cursor.execute(self.dict_queries.get("books_by_yr_read").format(fromYear, toYear))
         return annots
 
+    def resAddUpdateExactBk(self, cursor, book):
+        results = cursor.execute(self.dict_queries.get("bk_add_edit_exact_count").format(str(book[0])))
+        res = results.fetchone()
+        return res[0]
+
+    def AddUpdateExactBk(self, cursor, book):
+        bk = cursor.execute(self.dict_queries.get("bk_add_edit_exact").format(str(book[0])))
+        return bk
+
     def resAddUpdateNewBk(self, cursor, book):
         sqlStr = self.__sql_bk_srch(True, book)
         results = cursor.execute(sqlStr)
@@ -462,9 +471,16 @@ class DATA_SOURCE:
         "insert_bk_fr_annot_add_pub": " AND Publisher LIKE ('{}')",
         "insert_bk_fr_annot_add_date": " AND Dat LIKE ('{}')",
         "append_bk_fr_annot_add": " ORDER BY [Book No]",
+        "bk_add_edit_exact_count": """SELECT COUNT(*) 
+                  FROM Books
+                  WHERE [Book Title] = ('{}')""",
+        "bk_add_edit_exact": """SELECT Books.[Book No], [Book Title], Author, Publisher, Dat, [Year Read], [Publication Locale], Edition,
+                                 [First Edition], [First Edition Locale], [First Edition Name], [First Edition Publisher] 
+                                FROM Books
+                                WHERE [Book Title] = ('{}')""",
         "bk_add_edit_count": """SELECT COUNT(*) 
-                      FROM Books
-                      WHERE [Book Title] LIKE ('{}')""",
+                                FROM Books
+                                WHERE [Book Title] LIKE ('{}')""",
         "bk_add_edit": """SELECT Books.[Book No], [Book Title], Author, Publisher, Dat, [Year Read], [Publication Locale], Edition,
                                  [First Edition], [First Edition Locale], [First Edition Name], [First Edition Publisher]
                           FROM Books 

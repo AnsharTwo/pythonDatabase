@@ -19,6 +19,7 @@ class EDIT_FORM:
     dict_edit_annot_nonmenu_flags = {
         "ants_edt_add_srch_ppg_no": "search for page number",
         "ants_edt_add_updte_annot": "add or update annotation",
+        "bk_add_edit_is_full_match": "Book search for exact title match",
         "bk_add_edit_bk_res_0": "Add a new book"
     }
 
@@ -67,6 +68,9 @@ class EDIT_FORM:
 
     def add_updt_bk(self):
         st.session_state["form_flow_bk"] = "add_update_book"
+
+    def add_updt_bk_edit(self):
+        st.session_state["form_flow_bk"] = "add_update_book_edit"
 
     def add_updt_bk_sbmttd(self):
         st.session_state["form_flow_bk"] = "add_update_book_sbmttd"
@@ -536,8 +540,6 @@ class EDIT_FORM:
             st.session_state["res1_bk_first_edition_publisher"] = ""
             if "res1_bk_first_edition_publisher" not in st.session_state:
                 st.session_state["res1_bk_first_edition_publisher"] = ""
-
-        #########################
         if st.session_state["form_flow_bk"] == "add_update_book_search":
             with st.form("Add or search for book to update"):
                 bk_lookup = False
@@ -555,37 +557,53 @@ class EDIT_FORM:
                     if bk_lookup:
                         self.add_updt_bk()
                         st.rerun()
-            #########################
-
         if st.session_state["form_flow_bk"] == "add_update_book":
-
-            #########################
             bk_title = []
-            bk_title.append(self.__format_sql_wrap(st.session_state["srch_book_title"]))
-            # TODO - first needs to do exact match query as in flow chart
-            st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"),
-                                                              bk_title,
-                                                              True)
+            book = []
+            bk_title.append(self.__formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
+            st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_is_full_match"),
+                                                              bk_title,True)
             with st.form("Search results for book title"):
-
-                st.write("title " + st.session_state["srch_book_title"])
-                st.write("Sum " + str(st.session_state["bk_srch_sum"]))
-
                 if st.session_state["bk_srch_sum"] == 1:
+                    bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_is_full_match"), bk_title, False)
                     st.info("The following book has been found that matches your search text.")
+                    for bk in bk_rec:
+                        self.__show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
+                                                 bk.__getattribute__('Year Read'), bk.__getattribute__('Publication Locale'),
+                                                 bk.Edition, bk.__getattribute__('First Edition'),
+                                                 bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
+                                                 bk.__getattribute__("First Edition Publisher"),
+                                                 )
+                    # TODO - add these vals above to res1 SSs
+                    bk_title.pop(
+                        0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
+                    bk_title.append(self.__format_sql_wrap(st.session_state["srch_book_title"]))
                     btn_edt_bk = st.form_submit_button("Edit book")
                     btn_return_bk = st.form_submit_button("Search again")
-                #########################
+                    if btn_return_bk:
+                        self.add_updt_bk_srch()
+                        st.rerun()
+                    if btn_edt_bk:
+                        st.session_state["bk_is_editing"] = True
+                        self.add_updt_bk_edit()
+                        st.rerun()
+                else:
+                    # TODO continue from here as flow chart - inc. here > 1 results as partial match and is possible but not on exact
+                    # match above
+                    print("Is partial match?")
 
-
-
+        if st.session_state["form_flow_bk"] == "add_update_book_edit":
             with st.form("Add or update book"):
                 sbmt_bk = False
-                st.write(":green[Add new book]")
-                st.session_state["bk_book_title"] = st.text_input("Book title:red[*]",
+                if st.session_state["bk_is_editing"]:
+                    st.write(":green[Edit new book]")
+                else:
+                    st.write(":green[Add new book]")
+                st.session_state["bk_book_title"] = st.text_input("Book title",
                                                                   max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"),
-                                                                  value=st.session_state["res1_bk_book_title"])
-                st.session_state["bk_author"] = st.text_input("Author:red[*]", max_chars=self.dict_db_fld_validations.get("books_auth_len"),
+                                                                  value=st.session_state["res1_bk_book_title"],
+                                                                  disabled=st.session_state["bk_is_editing"])
+                st.session_state["bk_author"] = st.text_input("Author", max_chars=self.dict_db_fld_validations.get("books_auth_len"),
                                                                value=st.session_state["res1_bk_author"])
                 st.session_state["bk_publisher"] = st.text_input("Publisher", max_chars=self.dict_db_fld_validations.get("books_pub_len"),
                                                                  value=st.session_state["res1_bk_publisher"])
@@ -746,6 +764,12 @@ class EDIT_FORM:
         sourceData.is_ms_access_driver()
         conn = sourceData.db_connect()
         sourceData.report_tables(conn.cursor())
+        if searchSelection == self.dict_edit_annot_sel.get("bk_add_edit_is_full_match"):
+            if getResultsCount:
+                return self.__add_update_book_exact_count(sourceData, conn, record)
+            else:
+                return self.__add_update_book_exact(sourceData, conn, record)
+
         if searchSelection == self.dict_edit_annot_sel.get("bk_add_update_bk"):
             if getResultsCount:
                 return self.__add_update_book_count(sourceData, conn, record)
@@ -760,6 +784,14 @@ class EDIT_FORM:
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
             self.__add_update_annot(sourceData, conn, record, getResultsCount)
         conn.close()
+
+    def __add_update_book_exact_count(self, sourceData, conn, book):
+        bk_sum = sourceData.resAddUpdateExactBk(conn.cursor(), book)
+        return(bk_sum)
+
+    def __add_update_book_exact(self, sourceData, conn, book):
+        bk = sourceData.AddUpdateExactBk(conn.cursor(), book)
+        return bk
 
     def __add_update_book_count(self, sourceData, conn, book):
         bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
