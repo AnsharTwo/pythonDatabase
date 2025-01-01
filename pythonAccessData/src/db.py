@@ -236,7 +236,7 @@ class DATA_SOURCE:
                             str(book[self.dict_books_indx.get("first_edition_locale")]),
                             str(book[self.dict_books_indx.get("first_edition_name")]),
                             str(book[self.dict_books_indx.get("first_edition_publisher")]),
-                            str(book[self.dict_books_indx.get("title")])
+                            str(book[self.dict_books_indx.get("no")])
             ))
         try:
             cursor.commit()
@@ -339,17 +339,18 @@ class DATA_SOURCE:
         return sqlStr
 
     dict_books_indx = {
-        "title":                    0,
-        "author":                   1,
-        "publisher":                2,
-        "dat":                      3,
-        "year_read":                4,
-        "publication_locale":       5,
-        "edition":                  6,
-        "first_edition":            7,
-        "first_edition_locale":     8,
-        "first_edition_name":       9,
-        "first_edition_publisher":  10
+        "no":                       0,
+        "title":                    1,
+        "author":                   2,
+        "publisher":                3,
+        "dat":                      4,
+        "year_read":                5,
+        "publication_locale":       6,
+        "edition":                  7,
+        "first_edition":            8,
+        "first_edition_locale":     9,
+        "first_edition_name":       10,
+        "first_edition_publisher":  11
     }
 
     dict_annots_indx = {
@@ -516,5 +517,5 @@ class DATA_SOURCE:
                                       Books.Edition = ('{}'), Books.[First Edition] = ('{}'),
                                       Books.[First Edition Locale] = ('{}'), Books.[First Edition Name] = ('{}'),
                                       Books.[First Edition Publisher] = ('{}')
-                               WHERE Books.[Book Title] = ('{}')"""
+                               WHERE Books.[Book No] = ('{}')"""
     }

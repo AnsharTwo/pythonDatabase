@@ -20,7 +20,7 @@ class EDIT_FORM:
         "ants_edt_add_srch_ppg_no": "search for page number",
         "ants_edt_add_updte_annot": "add or update annotation",
         "bk_add_edit_is_full_match": "Book search for exact title match",
-        "bk_add_edit_bk_res_0": "Add a new book"
+        "bk_add_edit_bk_write": "Book to database"
     }
 
     dict_db_fld_validations = {
@@ -559,7 +559,6 @@ class EDIT_FORM:
                         st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book":
             bk_title = []
-            book = []
             bk_title.append(self.__formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_is_full_match"),
                                                               bk_title,True)
@@ -574,7 +573,23 @@ class EDIT_FORM:
                                                  bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
                                                  bk.__getattribute__("First Edition Publisher"),
                                                  )
-                    # TODO - add these vals above to res1 SSs
+                    st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
+                    st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
+                    st.session_state["res1_bk_author"] = bk.Author
+                    st.session_state["res1_bk_publisher"] = self.conv_none_for_db(bk.Publisher)
+                    st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(bk.Dat)
+                    st.session_state["res1_bk_year_read"] = self.conv_none_for_db(bk.__getattribute__('Year Read'))
+                    st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(
+                        bk.__getattribute__("Publication Locale"))
+                    st.session_state["res1_bk_edition"] = self.conv_none_for_db(bk.Edition)
+                    st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(
+                        bk.__getattribute__("First Edition"))
+                    st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(
+                        bk.__getattribute__("First Edition Locale"))
+                    st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(
+                        bk.__getattribute__("First Edition Name"))
+                    st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(
+                        bk.__getattribute__("First Edition Publisher"))
                     bk_title.pop(
                         0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
                     bk_title.append(self.__format_sql_wrap(st.session_state["srch_book_title"]))
@@ -599,11 +614,11 @@ class EDIT_FORM:
                     st.write(":green[Edit new book]")
                 else:
                     st.write(":green[Add new book]")
-                st.session_state["bk_book_title"] = st.text_input("Book title",
+                st.session_state["bk_book_title"] = st.text_input("Book title:red[*]",
                                                                   max_chars=self.dict_db_fld_validations.get("books_bk_ttl_len"),
                                                                   value=st.session_state["res1_bk_book_title"],
                                                                   disabled=st.session_state["bk_is_editing"])
-                st.session_state["bk_author"] = st.text_input("Author", max_chars=self.dict_db_fld_validations.get("books_auth_len"),
+                st.session_state["bk_author"] = st.text_input("Author:red[*]", max_chars=self.dict_db_fld_validations.get("books_auth_len"),
                                                                value=st.session_state["res1_bk_author"])
                 st.session_state["bk_publisher"] = st.text_input("Publisher", max_chars=self.dict_db_fld_validations.get("books_pub_len"),
                                                                  value=st.session_state["res1_bk_publisher"])
@@ -628,13 +643,14 @@ class EDIT_FORM:
                 st.session_state["bk_first_edition_publisher"] = st.text_input("First edition publisher",
                                                                                max_chars=self.dict_db_fld_validations.get("first_edition_publisher"),
                                                                                value=st.session_state["res1_bk_first_edition_publisher"])
-                add = st.form_submit_button("Add")
-                if add:
+                btn_add_edit = st.form_submit_button("Submit book")
+                if btn_add_edit:
                     if not sbmt_bk:
                         sbmt_bk = True
-                    if st.session_state["bk_book_title"] == "":
-                        st.markdown(":red[No book title given]")
-                        sbmt_bk = False
+                    if not st.session_state["bk_is_editing"]:
+                        if st.session_state["bk_book_title"] == "":
+                            st.markdown(":red[No book title given]")
+                            sbmt_bk = False
                     elif st.session_state["bk_author"] == "":
                         st.markdown(":red[No author given]")
                         sbmt_bk = False
@@ -655,6 +671,8 @@ class EDIT_FORM:
                         st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
             book = []
+            if st.session_state["bk_is_editing"]:
+                book.append(self.__format_sql_wrap(st.session_state["res1_bk_book_no"]))
             book.append(self.__format_sql_wrap(st.session_state["bk_book_title"]))
             book.append(self.__format_sql_wrap(st.session_state["bk_author"]))
             book.append(self.__append_for_db_write(st.session_state["bk_publisher"]))
@@ -666,91 +684,68 @@ class EDIT_FORM:
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_locale"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_name"]))
             book.append(self.__append_for_db_write(st.session_state["bk_first_edition_publisher"]))
-            if not st.session_state["bk_is_editing"]:
-                st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
-            if st.session_state["bk_srch_sum"] == 0:
-                if st.session_state["bk_is_editing"]:
-                    self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, True) # get res count bool not ideal name for this
+            with st.form("Book submission"):
+                if not st.session_state["bk_is_editing"]:
+                    st.session_state["bk_srch_sum"] = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
+                    if st.session_state["bk_srch_sum"] == 0:
+                        # TODO - add book to DB (new book)
+                        print("x")
+                    else:
+                        st.warning("The book title already exists.")
+                        btn_edit_instead_bk = st.form_submit_button("Edit book instead")
+                        btn_leave_add_bk = st.form_submit_button("Discard new book")
+                        if btn_edit_instead_bk:
+                            st.session_state["bk_is_editing"] = True
+                            bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, True)
+                            for bk in bk_rec:
+                                st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
+                                st.session_state["res1_bk_author"] = bk.Author
+                                st.session_state["res1_bk_publisher"] = self.conv_none_for_db(bk.Publisher)
+                                st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(bk.Dat)
+                                st.session_state["res1_bk_year_read"] = self.conv_none_for_db(
+                                    bk.__getattribute__('Year Read'))
+                                st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(
+                                    bk.__getattribute__("Publication Locale"))
+                                st.session_state["res1_bk_edition"] = self.conv_none_for_db(bk.Edition)
+                                st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(
+                                    bk.__getattribute__("First Edition"))
+                                st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(
+                                    bk.__getattribute__("First Edition Locale"))
+                                st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(
+                                    bk.__getattribute__("First Edition Name"))
+                                st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(
+                                    bk.__getattribute__("First Edition Publisher"))
+                            self.add_updt_bk_edit()
+                            st.rerun()
+                        if btn_leave_add_bk:
+                            st.session_state["bk_is_editing"] = False
+                            self.__clear_ss_bk_flds()
+                            self.__clear_ss_res1_bk_flds()
+                            self.add_updt_bk_srch()
+                            st.rerun()
                 else:
-                    self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"), book, False)
-            elif st.session_state["bk_srch_sum"] == 1:
-                bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), book, False)
-                for bk in bk_rec:
-                    st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
-                    st.session_state["res1_bk_author"] = bk.Author
-                    st.session_state["res1_bk_publisher"] = bk.Publisher
-                    st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(bk.Dat)
-                    st.session_state["res1_bk_year_read"] = self.conv_none_for_db(bk.__getattribute__('Year Read'))
-                    st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(bk.__getattribute__("Publication Locale"))
-                    st.session_state["res1_bk_edition"] = self.conv_none_for_db(bk.Edition)
-                    st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(bk.__getattribute__("First Edition"))
-                    st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(bk.__getattribute__("First Edition Locale"))
-                    st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(bk.__getattribute__("First Edition Name"))
-                    st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(bk.__getattribute__("First Edition Publisher"))
-            self.add_updt_bk_added()
-            st.rerun()
+                    self.db_records(self.dict_edit_annot_sel.get("bk_add_edit_bk_write"), book, True)
+                    self.add_updt_bk_added()
+                    st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
-                if st.session_state["bk_srch_sum"] == 0: # must be 0 (set to) for all add ops
+                if not st.session_state["bk_is_editing"]:
                     st.success("New book added.")
-                    self.__show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
-                                             st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
-                                             st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
-                                             st.session_state["bk_edition"], st.session_state["bk_first_edition"],
-                                             st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
-                                             st.session_state["bk_first_edition_publisher"])
-                    if st.session_state["bk_is_editing"]:
-                        st.session_state["bk_is_editing"] = False
-                    btn_cntn = st.form_submit_button("Continue")
-                    if btn_cntn:
-                        st.session_state["bk_is_editing"] = False
-                        self.__clear_ss_bk_flds()
-                        self.__clear_ss_res1_bk_flds()
-                        self.add_updt_bk()
-                        st.rerun()
-                elif st.session_state["bk_srch_sum"] == 1:
-                    st.info("One book entry matches the data of the book you have entered into the Add/Edit book form.")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.write(":orange[Existing book]")
-                        self.__show_book_entered("blue", st.session_state["res1_bk_book_title"], st.session_state["res1_bk_author"],
-                                                 st.session_state["res1_bk_publisher"], st.session_state["res1_bk_date_pub"],
-                                                 st.session_state["res1_bk_year_read"], st.session_state["res1_bk_pub_location"],
-                                                 st.session_state["res1_bk_edition"], st.session_state["res1_bk_first_edition"],
-                                                 st.session_state["res1_bk_first_edition_locale"], st.session_state["res1_bk_first_edition_name"],
-                                                 st.session_state["res1_bk_first_edition_publisher"])
-                    with col2:
-                        st.write(":orange[Your updates to this book]")
-                        self.__show_book_entered("green", st.session_state["bk_book_title"], st.session_state["bk_author"],
-                                                 st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
-                                                 st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
-                                                 st.session_state["bk_edition"], st.session_state["bk_first_edition"],
-                                                 st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
-                                                 st.session_state["bk_first_edition_publisher"])
-
-                    btn_exit_bk = st.form_submit_button("Discard new book")
-                    btn_edt_bk = st.form_submit_button("Edit this book's details")
-                    btn_add_bk_anyway = st.form_submit_button("Add this book anyway")
-                    if btn_exit_bk:
-                        st.session_state["bk_srch_sum"] = 0
-                        st.session_state["bk_is_editing"] = False
-                        self.__clear_ss_bk_flds()
-                        self.__clear_ss_res1_bk_flds()
-                        self.add_updt_bk_srch()
-                        st.rerun()
-                    if btn_edt_bk:
-                        st.session_state["bk_srch_sum"] = 0 # i.e. will treat on rerun as working with update of record
-                        st.session_state["bk_is_editing"] = True
-                        self.add_updt_bk()
-                        st.rerun()
-                    if btn_add_bk_anyway:
-                        # TODO - only allow this if book title is NOT 100% match
-                        # TODO - if want to update book title (YES), add res1 SS title (original title to the book list
-                        #  "if SS is updating book" is True (and down call stack), try it. Else, make book title disable field on edit
-                        st.session_state["bk_srch_sum"] = 0
-                        st.session_state["bk_is_editing"] = False
-                        self.add_updt_bk_sbmttd()
-                        st.rerun()
+                else:
+                    st.success("Book updated.")
+                self.__show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
+                                         st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
+                                         st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
+                                         st.session_state["bk_edition"], st.session_state["bk_first_edition"],
+                                         st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
+                                         st.session_state["bk_first_edition_publisher"])
+                btn_book_done = st.form_submit_button("Leave book add/edits")
+                if btn_book_done:
+                    st.session_state["bk_is_editing"] = False
+                    self.__clear_ss_bk_flds()
+                    self.__clear_ss_res1_bk_flds()
+                    self.add_updt_bk_srch()
+                    st.rerun()
 
     def edt_edt_annot(self):
         st.write("Page is under construction - edit annotation. Check back real soon.")
@@ -775,7 +770,7 @@ class EDIT_FORM:
                 return self.__add_update_book_count(sourceData, conn, record)
             else:
                 return self.__add_update_book(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_sel.get("bk_add_edit_bk_res_0"):
+        elif searchSelection == self.dict_edit_annot_sel.get("bk_add_edit_bk_write"):
             self.__add_update_book_new(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
