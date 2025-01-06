@@ -576,23 +576,7 @@ class EDIT_FORM:
                                                  bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
                                                  bk.__getattribute__("First Edition Publisher"),
                                                  )
-                    st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
-                    st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
-                    st.session_state["res1_bk_author"] = bk.Author
-                    st.session_state["res1_bk_publisher"] = self.conv_none_for_db(bk.Publisher)
-                    st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(bk.Dat)
-                    st.session_state["res1_bk_year_read"] = self.conv_none_for_db(bk.__getattribute__('Year Read'))
-                    st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(
-                        bk.__getattribute__("Publication Locale"))
-                    st.session_state["res1_bk_edition"] = self.conv_none_for_db(bk.Edition)
-                    st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(
-                        bk.__getattribute__("First Edition"))
-                    st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(
-                        bk.__getattribute__("First Edition Locale"))
-                    st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(
-                        bk.__getattribute__("First Edition Name"))
-                    st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(
-                        bk.__getattribute__("First Edition Publisher"))
+                        self.__add_bk_to_s_state(bk)
                     bk_title.pop(
                         0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
                     bk_title.append(self.__format_sql_wrap(st.session_state["srch_book_title"]))
@@ -639,9 +623,7 @@ class EDIT_FORM:
                                 st.rerun()
                             if btn_edt_prt_mtch_bk:
                                 st.session_state["bk_is_editing"] = True
-
-                                # TODO - set res1 ss fields first - create function from line 579
-
+                                self.__add_bk_to_s_state(bk)
                                 self.add_updt_bk_edit()
                                 st.rerun()
                             if btn_add_prt_mtch_bk:
@@ -745,14 +727,51 @@ class EDIT_FORM:
             with st.form("Book submission"):
                 if not st.session_state["bk_is_editing"]:
                     if st.session_state["bk_add_from_part_match"]:
-                        print("HERE")
-                        # TODO -before writing, check that title does not exist
-
-                    self.db_records(self.dict_edit_annot_nonmenu_flags.get("bk_add_edit_bk_write"), book, False)
+                        bk_title = []
+                        bk_title.append(self.__formatSQLSpecialChars(
+                            st.session_state["bk_book_title"]))  # i.e. without padding with % (need exact mtch)
+                        temp_bk_sum = self.db_records(
+                            self.dict_edit_annot_sel.get("bk_add_edit_is_full_match"),
+                            bk_title, True)
+                        if temp_bk_sum == 0:
+                            self.db_records(self.dict_edit_annot_nonmenu_flags.get("bk_add_edit_bk_write"), book, False)
+                            self.add_updt_bk_added()
+                            st.rerun()
+                        else:
+                            st.warning("Book title already exists.")
+                            btn_again_bk_add = st.form_submit_button("Return to book form")
+                            btn_abndn_bk_add = st.form_submit_button("Leave adding book")
+                            if btn_abndn_bk_add:
+                                if st.session_state["bk_is_editing"]:
+                                    st.session_state["bk_is_editing"] = False
+                                if st.session_state["bk_add_from_part_match"]:
+                                    st.session_state["bk_add_from_part_match"] = False
+                                self.__clear_ss_bk_flds()
+                                self.__clear_ss_res1_bk_flds()
+                                self.add_updt_bk_srch()
+                                st.rerun()
+                            if btn_again_bk_add:
+                                st.session_state["res1_bk_book_title"] = self.conv_none_for_db(st.session_state["srch_book_title"])
+                                st.session_state["res1_bk_author"] = self.conv_none_for_db(st.session_state["bk_author"])
+                                st.session_state["res1_bk_publisher"] = self.conv_none_for_db(st.session_state["bk_publisher"])
+                                st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(st.session_state["bk_date_pub"])
+                                st.session_state["res1_bk_year_read"] = self.conv_none_for_db(st.session_state["bk_year_read"])
+                                st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(st.session_state["bk_pub_location"])
+                                st.session_state["res1_bk_edition"] = self.conv_none_for_db(st.session_state["bk_edition"])
+                                st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(st.session_state["bk_first_edition"])
+                                st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(st.session_state["bk_first_edition_locale"])
+                                st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(st.session_state["bk_first_edition_name"])
+                                st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(st.session_state["bk_first_edition_publisher"])
+                                self.add_updt_bk_edit()
+                                st.rerun()
+                    else:
+                        self.db_records(self.dict_edit_annot_nonmenu_flags.get("bk_add_edit_bk_write"), book, False)
+                        self.add_updt_bk_added()
+                        st.rerun()
                 else:
                     self.db_records(self.dict_edit_annot_nonmenu_flags.get("bk_add_edit_bk_write"), book, True)
-                self.add_updt_bk_added()
-                st.rerun()
+                    self.add_updt_bk_added()
+                    st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
                 if not st.session_state["bk_is_editing"]:
@@ -1060,3 +1079,22 @@ class EDIT_FORM:
         st.session_state["res1_bk_first_edition_locale"] = ""
         st.session_state["res1_bk_first_edition_name"] = ""
         st.session_state["res1_bk_first_edition_publisher"] = ""
+
+    def __add_bk_to_s_state(self, bk):
+        st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
+        st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
+        st.session_state["res1_bk_author"] = bk.Author
+        st.session_state["res1_bk_publisher"] = self.conv_none_for_db(bk.Publisher)
+        st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(bk.Dat)
+        st.session_state["res1_bk_year_read"] = self.conv_none_for_db(bk.__getattribute__('Year Read'))
+        st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(
+            bk.__getattribute__("Publication Locale"))
+        st.session_state["res1_bk_edition"] = self.conv_none_for_db(bk.Edition)
+        st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(
+            bk.__getattribute__("First Edition"))
+        st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(
+            bk.__getattribute__("First Edition Locale"))
+        st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(
+            bk.__getattribute__("First Edition Name"))
+        st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(
+            bk.__getattribute__("First Edition Publisher"))
