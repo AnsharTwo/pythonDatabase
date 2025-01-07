@@ -632,9 +632,54 @@ class EDIT_FORM:
                                 self.add_updt_bk_edit()
                                 st.rerun()
                         elif bk_sum > 1:
-                            # TODO
-                            print("HERE")
+                            bk_rec = self.db_records(self.dict_edit_annot_sel.get("bk_add_update_bk"), bk_title,
+                                                 False)
+                            st.info(str(bk_sum) + " books partially match your search.")
+                            editSelection = st.selectbox("Select book to work with", [
+                                "{title}>>{author}>>{publisher}>>{date}".format(
+                                    title=bk.__getattribute__('Book Title'),
+                                    author=bk.Author,
+                                    publisher=bk.Publisher,
+                                    date=bk.Dat
+                                )
+                                for bk in bk_rec
+                            ])
+                            btn_bk_sel = st.form_submit_button(label="Select and annotate")
+                            st.markdown(":orange[OR...]")
+                            btn_book_again = st.form_submit_button(label="Refine the book search")
+                            if btn_bk_sel:
+                                st.session_state["bk_res_multi_books_for_new_annot"] = True
+                                book_selected = editSelection.split(">>")
+                                st.session_state["srch_book_title"] = self.__formatSQLSpecialChars(str(book_selected[0]))
 
+
+
+                                # TODO rerun - the below should go into the top filtered with the new SS below
+                                st.session_state["bk_orig_title"] = st.session_state[
+                                    "bk_book_title"]  # save srch to go back to multi-search result page
+                                st.session_state["bk_orig_author"] = st.session_state["bk_author"]
+                                st.session_state["bk_orig_publisher"] = st.session_state["bk_publisher"]
+                                st.session_state["bk_orig_date_pub"] = st.session_state["bk_date_pub"]
+                                st.session_state["bk_orig_year_read"] = st.session_state["bk_year_read"]
+                                st.session_state["bk_orig_pub_location"] = st.session_state["bk_pub_location"]
+                                st.session_state["bk_orig_edition"] = st.session_state["bk_edition"]
+                                st.session_state["bk_orig_first_edition"] = st.session_state["bk_first_edition"]
+                                st.session_state["bk_orig_first_edition_locale"] = st.session_state["bk_first_edition_locale"]
+                                st.session_state["bk_orig_first_edition_name"] = st.session_state[
+                                    "bk_first_edition_name"]
+                                st.session_state["bk_orig_first_edition_publisher"] = st.session_state[
+                                    "bk_first_edition_publisher"]
+                                self.add_updt_bk()
+                                st.rerun()
+                            elif btn_book_again:
+                                if st.session_state["bk_is_editing"]:
+                                    st.session_state["bk_is_editing"] = False
+                                if st.session_state["bk_add_from_part_match"]:
+                                    st.session_state["bk_add_from_part_match"] = False
+                                self.__clear_ss_bk_flds()
+                                self.__clear_ss_res1_bk_flds()
+                                self.add_updt_bk_srch()
+                                st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_edit":
             with st.form("Add or update book"):
                 sbmt_bk = False
@@ -685,8 +730,8 @@ class EDIT_FORM:
                 if btn_add_edit:
                     if not sbmt_bk:
                         sbmt_bk = True
-                    if not st.session_state["bk_is_editing"]:
-                        if st.session_state["bk_book_title"] == "":
+                    if st.session_state["bk_book_title"] == "":
+                        if not st.session_state["bk_is_editing"]:
                             st.markdown(":red[No book title given]")
                             sbmt_bk = False
                     elif st.session_state["bk_author"] == "":
@@ -762,6 +807,7 @@ class EDIT_FORM:
                                 st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(st.session_state["bk_first_edition_locale"])
                                 st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(st.session_state["bk_first_edition_name"])
                                 st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(st.session_state["bk_first_edition_publisher"])
+                                self.__clear_ss_bk_flds()
                                 self.add_updt_bk_edit()
                                 st.rerun()
                     else:
