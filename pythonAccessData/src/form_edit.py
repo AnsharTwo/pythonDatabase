@@ -543,8 +543,10 @@ class EDIT_FORM:
             st.session_state["res1_bk_first_edition_name"] = ""
         if "res1_bk_first_edition_publisher" not in st.session_state:
             st.session_state["res1_bk_first_edition_publisher"] = ""
-            if "res1_bk_first_edition_publisher" not in st.session_state:
-                st.session_state["res1_bk_first_edition_publisher"] = ""
+        if "res1_bk_first_edition_publisher" not in st.session_state:
+            st.session_state["res1_bk_first_edition_publisher"] = ""
+        if "bk_orig_title" not in st.session_state:
+            st.session_state["bk_orig_title"] = ""
         if st.session_state["form_flow_bk"] == "add_update_book_search":
             with st.form("Add or search for book to update"):
                 bk_lookup = False
@@ -579,8 +581,6 @@ class EDIT_FORM:
                                                  bk.__getattribute__("First Edition Publisher"),
                                                  )
                         self.__add_bk_to_s_state(bk)
-                    if st.session_state["bk_res_multi_books_part_mtch_srch"]:
-                        self.__add__mulsi_sel_bk_to_s_state()
                     bk_title.pop(
                         0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
                     bk_title.append(self.__format_sql_wrap(st.session_state["srch_book_title"]))
@@ -593,6 +593,18 @@ class EDIT_FORM:
                         self.__clear_ss_res1_bk_flds()
                         self.add_updt_bk_srch()
                         st.rerun()
+                    if st.session_state["bk_res_multi_books_part_mtch_srch"]:
+                        btn_bk_back = st.form_submit_button("Back to book selection")
+                        btn_add_prt_mtch_multi_sel_bk = st.form_submit_button("Add as a new book")
+                        if btn_bk_back:
+                            st.session_state["srch_book_title"] = st.session_state["bk_orig_title"]
+                            self.add_updt_bk()
+                            st.rerun()
+                        if btn_add_prt_mtch_multi_sel_bk:
+                            st.session_state["bk_add_from_part_match"] = True
+                            st.session_state["res1_bk_book_title"] = st.session_state["bk_orig_title"]
+                            self.add_updt_bk_edit()
+                            st.rerun()
                     if btn_edt_bk:
                         st.session_state["bk_is_editing"] = True
                         self.add_updt_bk_edit()
@@ -658,6 +670,7 @@ class EDIT_FORM:
                             if btn_bk_sel:
                                 st.session_state["bk_res_multi_books_part_mtch_srch"] = True
                                 book_selected = editSelection.split(">>")
+                                st.session_state["bk_orig_title"] = st.session_state["srch_book_title"]
                                 st.session_state["srch_book_title"] = str(book_selected[0])
                                 self.add_updt_bk()
                                 st.rerun()
@@ -718,11 +731,6 @@ class EDIT_FORM:
                     self.__clear_ss_res1_bk_flds()
                     self.add_updt_bk_srch()
                     st.rerun()
-
-                # TODO - add Back button for when book has been selected from multi-search and is at this edit stage, and user wants to
-                # go back to the drop down to select book from the book res list.
-                # TODO add book title to srch bk title SS for it to show in return to search page as ss bks are now set to ""
-
                 btn_add_edit = st.form_submit_button("Submit book")
                 if btn_add_edit:
                     if not sbmt_bk:
@@ -1143,19 +1151,3 @@ class EDIT_FORM:
             bk.__getattribute__("First Edition Name"))
         st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(
             bk.__getattribute__("First Edition Publisher"))
-
-    def __add__mulsi_sel_bk_to_s_state(self):
-        st.session_state["bk_orig_title"] = st.session_state[
-            "bk_book_title"]
-        st.session_state["bk_orig_author"] = st.session_state["bk_author"]
-        st.session_state["bk_orig_publisher"] = st.session_state["bk_publisher"]
-        st.session_state["bk_orig_date_pub"] = st.session_state["bk_date_pub"]
-        st.session_state["bk_orig_year_read"] = st.session_state["bk_year_read"]
-        st.session_state["bk_orig_pub_location"] = st.session_state["bk_pub_location"]
-        st.session_state["bk_orig_edition"] = st.session_state["bk_edition"]
-        st.session_state["bk_orig_first_edition"] = st.session_state["bk_first_edition"]
-        st.session_state["bk_orig_first_edition_locale"] = st.session_state["bk_first_edition_locale"]
-        st.session_state["bk_orig_first_edition_name"] = st.session_state[
-            "bk_first_edition_name"]
-        st.session_state["bk_orig_first_edition_publisher"] = st.session_state[
-            "bk_first_edition_publisher"]
