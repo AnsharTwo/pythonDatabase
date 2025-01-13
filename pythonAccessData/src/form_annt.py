@@ -1,22 +1,26 @@
 import sys
-from datetime import datetime, date
+from datetime import datetime
 import streamlit as st
 from spellchecker import SpellChecker
 import db
+import form_sr
 import form_bk
 
-class EDIT_FORM:
+class EDIT_ANNOT(form_sr.FORM):
 
-    # def __init__(self):
+    # TODO - remove when d downs are in super class
+    def __init__(self):
+        self.annot_remover = self.instant_del_annt()
 
     book_worker = form_bk.EDIT_BOOK()
+    book_remover = form_bk.DEL_BOOK()
 
     dict_edit_annot_sel = {
-        "ants_edt_add": "Create new annotation",
+        "ants_edt_add": "Create or update annotation",
         "ants_edt_add_bk_srch": "Search for book for new annotation",
-        "ants_edt_edt": "Edit existing annotation",
         "ants_edt_dlt": "Delete an annotation",
-        "bk_add_update_bk": "Add or update a book"
+        "bk_add_update_bk": "Add or update a book",
+        "bk_dlt": "Delete a book"
     }
 
     dict_edit_annot_nonmenu_flags = {
@@ -46,6 +50,10 @@ class EDIT_FORM:
         "spell_chk_orng_prefix_len": 7
     }
 
+    # TODO - remove when d downs are in super class
+    def instant_del_annt(self):
+        return DEL_ANNOT()
+
     def annot_srch_bk(self):
         st.session_state["form_flow"] = "search_for_book_to_annotate"
 
@@ -69,18 +77,18 @@ class EDIT_FORM:
         editSelection = st.selectbox("Select data activity", [
             "---",
             self.dict_edit_annot_sel.get("ants_edt_add"),
-            self.dict_edit_annot_sel.get("ants_edt_edt"),
             self.dict_edit_annot_sel.get("ants_edt_dlt"),
-            self.dict_edit_annot_sel.get("bk_add_update_bk")
+            self.dict_edit_annot_sel.get("bk_add_update_bk"),
+            self.dict_edit_annot_sel.get("bk_dlt")
         ])
         if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
             self.edt_new_annot()
-        if editSelection == self.dict_edit_annot_sel.get("ants_edt_edt"):
-            self.edt_edt_annot()
         if editSelection == self.dict_edit_annot_sel.get("ants_edt_dlt"):
-            self.edt_dlt_annot()
+            self.annot_remover.dlt_annot()
         elif editSelection == self.dict_edit_annot_sel.get("bk_add_update_bk"):
             self.book_worker.add_new_bk()
+        elif editSelection == self.dict_edit_annot_sel.get("bk_dlt"):
+            self.book_remover.dlt_bk()
 
     def edt_new_annot(self):
         bkSum = -1
@@ -140,7 +148,7 @@ class EDIT_FORM:
                         st.markdown(":red[Book title must be given.]")
                     elif st.session_state["author"] == "":
                         st.markdown(":red[No author given]")
-                    elif st.session_state["date_published"] != "" and not self.__isValidYearFormat(
+                    elif st.session_state["date_published"] != "" and not super().isValidYearFormat(
                                                                                                   st.session_state["date_published"],
                                                                                            "%Y"
                                                                                                  ):
@@ -152,15 +160,15 @@ class EDIT_FORM:
             with st.form("Search book results"):
                 book_search = []
                 book_search.append(st.session_state["book_no"]) # not used but needed to set correct index
-                book_search.append(self.__format_sql_wrap(st.session_state["book_title"]))
-                book_search.append(self.__format_sql_wrap(st.session_state["author"]))
+                book_search.append(super().format_sql_wrap(st.session_state["book_title"]))
+                book_search.append(super().format_sql_wrap(st.session_state["author"]))
                 # TODO - use function created for add update book below
                 if st.session_state["publisher"] != "":
-                    book_search.append(self.__format_sql_wrap(st.session_state["publisher"]))
+                    book_search.append(super().format_sql_wrap(st.session_state["publisher"]))
                 else:
                     book_search.append("")
                 if st.session_state["date_published"] != "":
-                    book_search.append(self.__format_sql_wrap(str(st.session_state["date_published"])))
+                    book_search.append(super().format_sql_wrap(str(st.session_state["date_published"])))
                 else:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
@@ -183,8 +191,8 @@ class EDIT_FORM:
                         st.session_state["book_no"] = bk.__getattribute__('Book No')
                         st.session_state["book_title"] = bk.__getattribute__('Book Title')
                         st.session_state["author"] = bk.Author
-                        st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
-                        st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
+                        st.session_state["publisher"] = super().conv_none_for_db(bk.Publisher)
+                        st.session_state["date_published"] = super().conv_none_for_db(bk.Dat)
                     self.__show_bk_srch_res()
                     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
@@ -280,9 +288,9 @@ class EDIT_FORM:
                     stops_txt = ["..."]
                     if st.session_state["annot_txt_area"] == "":
                         st.markdown(":red[No annotation to spell check.]")
-                    elif self.__has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
+                    elif super().has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
                         st.markdown(":red[text cannot contain a bracket immediately enclosing a space chracter e.g. '( ', ' }'.]")
-                    elif self.__has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
+                    elif super().has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
                         st.markdown(":red[text cannot contain 3 consecutive full-stops (2 are allowed).]")
                     else:
                         self.spell_chk()
@@ -303,7 +311,7 @@ class EDIT_FORM:
                     else:
                         annot_record = [st.session_state["book_no"],
                                         st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
-                                        self.__formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
+                                        super().formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
                                         ]
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
@@ -471,64 +479,19 @@ class EDIT_FORM:
                     self.annot_srch_bk()
                     st.rerun()
 
-    def edt_edt_annot(self):
-        st.write("Page is under construction - edit annotation. Check back real soon.")
-
-    def edt_dlt_annot(self):
-        st.write("Page is under construction - delete annotation. Check back real soon.")
-
     def db_records(self, searchSelection, record, getResultsCount):
         dbPath = sys.argv[1] + sys.argv[2]
         sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
         sourceData.is_ms_access_driver()
         conn = sourceData.db_connect()
         sourceData.report_tables(conn.cursor())
-        if searchSelection == self.dict_edit_annot_sel.get("bk_add_edit_is_full_match"):
-            if getResultsCount:
-                return self.__add_update_book_exact_count(sourceData, conn, record)
-            else:
-                return self.__add_update_book_exact(sourceData, conn, record)
-
-        if searchSelection == self.dict_edit_annot_sel.get("bk_add_update_bk"):
-            if getResultsCount:
-                return self.__add_update_book_count(sourceData, conn, record)
-            else:
-                return self.__add_update_book(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("bk_add_edit_bk_write"):
-           self.__add_update_book_new(sourceData, conn, record, getResultsCount)
-        elif searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
+        if searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
             return self.__srch_ants_for_exists_annot(sourceData, conn, record)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
             self.__add_update_annot(sourceData, conn, record, getResultsCount)
         conn.close()
-
-    def __add_update_book_exact_count(self, sourceData, conn, book):
-        bk_sum = sourceData.resAddUpdateExactBk(conn.cursor(), book)
-        return(bk_sum)
-
-    def __add_update_book_exact(self, sourceData, conn, book):
-        bk = sourceData.AddUpdateExactBk(conn.cursor(), book)
-        return bk
-
-    def __add_update_book_count(self, sourceData, conn, book):
-        bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
-        return(bk_sum)
-
-    def __add_update_book(self, sourceData, conn, book):
-        bk = sourceData.addUpdateNewBk(conn.cursor(), book)
-        return bk
-
-    def __add_update_book_new(self, sourceData, conn, book, bk_exists):
-        bk_sum = 0
-        for ctr in range(0, len(book)):
-            tmp_fld = str(book[ctr])
-            book.pop(ctr)
-            book.insert(ctr, self.__rem_sql_wrap_chars(tmp_fld))
-        if not bk_exists:
-            bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
-        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
         if getResultsCount:
@@ -553,20 +516,6 @@ class EDIT_FORM:
             st.session_state["publisher"]))
         st.markdown(":gray[Date:] :orange[{}]\r\r".format(
             st.session_state["date_published"]))
-
-    def __show_book_entered(self, colour, bk_title, bk_author, bk_publisher, bk_date_pub, bk_year_read, bk_pub_location, bk_edition,
-                            bk_first_edition, bk_first_edition_locale, bk_first_edition_name, bk_first_edition_publisher):
-        st.markdown(":{}[Title:] {}".format(colour, bk_title))
-        st.markdown(":{}[Author:] {}".format(colour, bk_author))
-        st.markdown(":{}[Publisher:] {}".format(colour, bk_publisher))
-        st.markdown(":{}[Publication date:] {}".format(colour, bk_date_pub))
-        st.markdown(":{}[Year read:] {}".format(colour, bk_year_read))
-        st.markdown(":{}[Publication location:] {}".format(colour, bk_pub_location))
-        st.markdown(":{}[Edition:] {}".format(colour, bk_edition))
-        st.markdown(":{}[First edition:] {}".format(colour, bk_first_edition))
-        st.markdown(":{}[First edition location:] {}".format(colour, bk_first_edition_locale))
-        st.markdown(":{}[First edition name:] {}".format(colour, bk_first_edition_name))
-        st.markdown(":{}[First edition publisher:] {}".format(colour, bk_first_edition_publisher))
 
     def __checkbox_container(self, data):
             cols = st.columns(5, gap="small")
@@ -655,47 +604,11 @@ class EDIT_FORM:
                 tmp_txt_area = tmp_txt_area + " "
         return tmp_txt_area
 
-    def __isValidYearFormat(self,year, format):
-        try:
-            res = bool(datetime.strptime(year, format))
-        except ValueError:
-            res = False
-        return res
-
-    def __format_sql_wrap(self, searchDatum):
-        datum = searchDatum
-        if not searchDatum.startswith("%"):
-            datum = "%" + datum
-        if not searchDatum.endswith("%"):
-            datum = datum + "%"
-        datum = self.__formatSQLSpecialChars(datum)
-        return datum
-
-    def __rem_sql_wrap_chars(self, datum):
-        return datum.strip("%")
-
-    def __formatSQLSpecialChars(self, searchDatum):
-        formattedDatum = searchDatum.replace("'", "\''")
-        return formattedDatum
-
     def __format_page_no(self, pageNo):
         return pageNo.lstrip("0")
 
     def __format_book_no(self, bookNo):
         return bookNo.lstrip("0")
-
-    def __has_illegal_text(self, txt_area, illegal_txt):
-        is_illegal_txt = False
-        for il_txt in illegal_txt:
-            if txt_area.find(il_txt) != -1:
-                is_illegal_txt = True
-        return is_illegal_txt
-
-    def conv_none_for_db(self, fld_val):
-        if fld_val == None:
-            return ""
-        else:
-            return fld_val
 
     def __get_spell_word_split(self, w_Line):
         temp_wl = w_Line.split("||")
@@ -724,8 +637,6 @@ class EDIT_FORM:
         temp__wrd = temp__wrd[0:len(temp__wrd) - 1] # rem ] (markdown closure bracket)
         return(temp__wrd)
 
-    def __append_for_db_write(self, fld):
-        if fld != "":
-            return self.__format_sql_wrap(fld)
-        else:
-            return ""
+class DEL_ANNOT(form_sr.FORM):
+    def dlt_annot(self):
+        st.write("Page is under construction - delete annotation. Check back real soon.")

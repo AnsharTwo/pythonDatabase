@@ -1,7 +1,7 @@
 import streamlit as st
 import form
 import form_sheet
-import form_edit
+import form_annt
 import form_sheet_edit
 
 class SIDEBAR:
@@ -29,7 +29,7 @@ class SIDEBAR:
 
         dataForm = form.DATA_FORM()
         sheetForm = form_sheet.SHEET_FORM()
-        editForm = form_edit.EDIT_FORM()
+        editForm = form_annt.EDIT_ANNOT()
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
 
         st.sidebar.title("Annotations and URL manager")

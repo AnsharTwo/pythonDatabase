@@ -132,7 +132,7 @@ class EDIT_BOOK(form_sr.FORM):
                     bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"), bk_title, False)
                     st.info("The following book has been found that matches your search text.")
                     for bk in bk_rec:
-                        self.__show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
+                        super().show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
                                                  bk.__getattribute__('Year Read'), bk.__getattribute__('Publication Locale'),
                                                  bk.Edition, bk.__getattribute__('First Edition'),
                                                  bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
@@ -184,7 +184,7 @@ class EDIT_BOOK(form_sr.FORM):
                                                  False)
                             st.info("One book partially matches your search.")
                             for bk in bk_rec:
-                                self.__show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
+                                super().show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
                                                          bk.Publisher, bk.Dat,
                                                          bk.__getattribute__('Year Read'),
                                                          bk.__getattribute__('Publication Locale'),
@@ -387,7 +387,7 @@ class EDIT_BOOK(form_sr.FORM):
                     st.success("New book added.")
                 else:
                     st.success("Book updated.")
-                self.__show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
+                super().show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
                                          st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
                                          st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
                                          st.session_state["bk_edition"], st.session_state["bk_first_edition"],
@@ -453,20 +453,6 @@ class EDIT_BOOK(form_sr.FORM):
             bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
 
-    def __show_book_entered(self, colour, bk_title, bk_author, bk_publisher, bk_date_pub, bk_year_read, bk_pub_location, bk_edition,
-                            bk_first_edition, bk_first_edition_locale, bk_first_edition_name, bk_first_edition_publisher):
-        st.markdown(":{}[Title:] {}".format(colour, bk_title))
-        st.markdown(":{}[Author:] {}".format(colour, bk_author))
-        st.markdown(":{}[Publisher:] {}".format(colour, bk_publisher))
-        st.markdown(":{}[Publication date:] {}".format(colour, bk_date_pub))
-        st.markdown(":{}[Year read:] {}".format(colour, bk_year_read))
-        st.markdown(":{}[Publication location:] {}".format(colour, bk_pub_location))
-        st.markdown(":{}[Edition:] {}".format(colour, bk_edition))
-        st.markdown(":{}[First edition:] {}".format(colour, bk_first_edition))
-        st.markdown(":{}[First edition location:] {}".format(colour, bk_first_edition_locale))
-        st.markdown(":{}[First edition name:] {}".format(colour, bk_first_edition_name))
-        st.markdown(":{}[First edition publisher:] {}".format(colour, bk_first_edition_publisher))
-
     def __add_bk_to_s_state(self, bk):
         st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
         st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
@@ -511,3 +497,7 @@ class EDIT_BOOK(form_sr.FORM):
         st.session_state["res1_bk_first_edition_locale"] = ""
         st.session_state["res1_bk_first_edition_name"] = ""
         st.session_state["res1_bk_first_edition_publisher"] = ""
+
+class DEL_BOOK(form_sr.FORM):
+    def dlt_bk(self):
+        st.write("Page is under construction - delete book. Check back real soon.")
