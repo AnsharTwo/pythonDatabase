@@ -1,6 +1,4 @@
-import sys
 import streamlit as st
-import db
 import form_sr
 
 class EDIT_BOOK(form_sr.FORM):
@@ -407,11 +405,8 @@ class EDIT_BOOK(form_sr.FORM):
                     st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-        dbPath = sys.argv[1] + sys.argv[2]
-        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
-        sourceData.is_ms_access_driver()
-        conn = sourceData.db_connect()
-        sourceData.report_tables(conn.cursor())
+        sourceData = super().get_data_source()
+        conn = super().get_connection(sourceData)
         if searchSelection == self.dict_flow_flags.get("bk_add_edit_is_full_match"):
             if getResultsCount:
                 return self.__add_update_book_exact_count(sourceData, conn, record)

@@ -1,10 +1,9 @@
-import sys
 from datetime import datetime, date
 import pandas as pd
 import streamlit as st
-import db
+import form_sr
 
-class DATA_FORM:
+class DATA_FORM(form_sr.FORM):
 
     dict_searches = {
         "ants_srch_txt": "Annotations by search text",
@@ -190,14 +189,9 @@ class DATA_FORM:
                                     self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
-        dbPath = sys.argv[1] + sys.argv[2]
-        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
-        sourceData.is_ms_access_driver()
-        conn = sourceData.db_connect()
-        sourceData.report_tables(conn.cursor())
-
+        sourceData = super().get_data_source()
+        conn = super().get_connection(sourceData)
         st.header("Database Records")
-
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
             self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
         elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
@@ -218,7 +212,6 @@ class DATA_FORM:
             self.__show_srch_ants_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("ants_yr_read"):
             self.__show_srch_ants_yr_rd(sourceData, conn, yearFrom, yearTo)
-
         conn.close()
 
     def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):

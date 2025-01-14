@@ -1,29 +1,15 @@
-import sys
-from datetime import datetime
 import streamlit as st
 from spellchecker import SpellChecker
-import db
 import form_sr
 import form_bk
 
 class EDIT_ANNOT(form_sr.FORM):
 
-    # TODO - remove when d downs are in super class
-    def __init__(self):
-        self.annot_remover = self.instant_del_annt()
-
     book_worker = form_bk.EDIT_BOOK()
     book_remover = form_bk.DEL_BOOK()
 
-    dict_edit_annot_sel = {
-        "ants_edt_add": "Create or update annotation",
-        "ants_edt_add_bk_srch": "Search for book for new annotation",
-        "ants_edt_dlt": "Delete an annotation",
-        "bk_add_update_bk": "Add or update a book",
-        "bk_dlt": "Delete a book"
-    }
-
     dict_edit_annot_nonmenu_flags = {
+        "ants_edt_add_bk_srch": "Search for book for new annotation",
         "ants_edt_add_srch_ppg_no": "search for page number",
         "ants_edt_add_updte_annot": "add or update annotation",
     }
@@ -50,10 +36,6 @@ class EDIT_ANNOT(form_sr.FORM):
         "spell_chk_orng_prefix_len": 7
     }
 
-    # TODO - remove when d downs are in super class
-    def instant_del_annt(self):
-        return DEL_ANNOT()
-
     def annot_srch_bk(self):
         st.session_state["form_flow"] = "search_for_book_to_annotate"
 
@@ -71,24 +53,6 @@ class EDIT_ANNOT(form_sr.FORM):
 
     def annot_success_new_annot(self):
         st.session_state["form_flow"] = "post_add_new_annotation"
-
-    def select_edit_form(self):
-        st.header("Edit annotations data")
-        editSelection = st.selectbox("Select data activity", [
-            "---",
-            self.dict_edit_annot_sel.get("ants_edt_add"),
-            self.dict_edit_annot_sel.get("ants_edt_dlt"),
-            self.dict_edit_annot_sel.get("bk_add_update_bk"),
-            self.dict_edit_annot_sel.get("bk_dlt")
-        ])
-        if editSelection == self.dict_edit_annot_sel.get("ants_edt_add"):
-            self.edt_new_annot()
-        if editSelection == self.dict_edit_annot_sel.get("ants_edt_dlt"):
-            self.annot_remover.dlt_annot()
-        elif editSelection == self.dict_edit_annot_sel.get("bk_add_update_bk"):
-            self.book_worker.add_new_bk()
-        elif editSelection == self.dict_edit_annot_sel.get("bk_dlt"):
-            self.book_remover.dlt_bk()
 
     def edt_new_annot(self):
         bkSum = -1
@@ -171,8 +135,8 @@ class EDIT_ANNOT(form_sr.FORM):
                     book_search.append(super().format_sql_wrap(str(st.session_state["date_published"])))
                 else:
                     book_search.append("")
-                bkSum = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, True)
-                bks = self.db_records(self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"), book_search, False)
+                bkSum = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, True)
+                bks = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, False)
                 if bkSum > 1:
                     st.write("Found {} results.".format(str(bkSum)))
                 add_nw_bk = False
@@ -480,12 +444,9 @@ class EDIT_ANNOT(form_sr.FORM):
                     st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-        dbPath = sys.argv[1] + sys.argv[2]
-        sourceData = db.DATA_SOURCE(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;' % dbPath)
-        sourceData.is_ms_access_driver()
-        conn = sourceData.db_connect()
-        sourceData.report_tables(conn.cursor())
-        if searchSelection == self.dict_edit_annot_sel.get("ants_edt_add_bk_srch"):
+        sourceData = super().get_data_source()
+        conn = super().get_connection(sourceData)
+        if searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
             return self.__srch_ants_for_exists_annot(sourceData, conn, record)

@@ -1,7 +1,32 @@
+import sys
 from datetime import datetime
 import streamlit as st
+import db
 
 class FORM:
+
+    def __init__(self):
+        self.connStr = r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;'
+
+    def get_data_source(self):
+        dbPath = sys.argv[1] + sys.argv[2]
+        sourceData = db.DATA_SOURCE(self.connStr % dbPath)
+        sourceData.is_ms_access_driver()
+        return sourceData
+
+    def get_connection(self, source_data):
+        conn = source_data.db_connect()
+        source_data.report_tables(conn.cursor())
+        return conn
+
+    def select_edit_form(self, listHeader, listTitle, selectListDict):
+        st.header(listHeader)
+        editSelection = st.selectbox(listTitle, [
+                value
+            for value in selectListDict.values()
+        ])
+        if editSelection != "None":
+            return editSelection
 
     def isValidYearFormat(self, year, format):
         try:
