@@ -565,12 +565,6 @@ class EDIT_ANNOT(form_sr.FORM):
                 tmp_txt_area = tmp_txt_area + " "
         return tmp_txt_area
 
-    def __format_page_no(self, pageNo):
-        return pageNo.lstrip("0")
-
-    def __format_book_no(self, bookNo):
-        return bookNo.lstrip("0")
-
     def __get_spell_word_split(self, w_Line):
         temp_wl = w_Line.split("||")
         return str(temp_wl[0])

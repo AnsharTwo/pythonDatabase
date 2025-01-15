@@ -30,7 +30,12 @@ class SIDEBAR:
         "title": "Select data activity"
     }
 
-    dict_list_annt_wrkr_items = {
+    dict_List_view = {
+        "header": "Select annotations search",
+        "title": "Select search type"
+    }
+
+    dict_list_wrkr_items = {
         "None": "none",
         "ants_edt_add": "Create or update annotation",
         "ants_edt_dlt": "Delete an annotation",
@@ -38,9 +43,24 @@ class SIDEBAR:
         "bk_dlt": "Delete a book",
     }
 
+    dict_list_view_items = {
+        "None": "none",
+        "ants_srch_txt": "Annotations by search text",
+        "ants_srch_txt_auth": "Annotations by search text and author",
+        "ants_srch_txt_bk": "Annotations by search text and book",
+        "ants_bk": "Annotations by book",
+        "ants_auth": "Annotations by author",
+        "bks_auth": "Books by author",
+        "bks_all": "All books",
+        "bks_yr_read": "Books by year read",
+        "ants_all": "All annotations",
+        "ants_yr_read": "Annotations by year read"
+    }
+
+
     def init_sidebars(self):
         super_form = form_sr.FORM()
-        dataForm = form.DATA_FORM()
+        db_viewer = form.DATA_FORM()
         annt_worker_form = form_annt.EDIT_ANNOT()
         annt_worker_del_form = form_annt.DEL_ANNOT()
         bk_worker_form = form_bk.EDIT_BOOK()
@@ -53,7 +73,14 @@ class SIDEBAR:
                                             )
         if dropSelectApp == self.dict_data_app.get("annotDb"):
             with tabViewData:
-                dataForm.select_search()
+
+                itm_slctd = super_form.select_edit_form(self.dict_List_view.get("header"),
+                                                        self.dict_List_view.get("title"),
+                                                        self.dict_list_view_items)
+                if itm_slctd == self.dict_list_view_items.get("ants_srch_txt"):
+                    db_viewer.srch_searchtext()
+
+
         elif dropSelectApp == self.dict_data_app.get("urlExcel"):
             with tabViewData:
                 sheetForm.select_url_search()
@@ -63,15 +90,15 @@ class SIDEBAR:
         if dropSelectDataApp == self.dict_edit_data_app.get("annotDb"):
             with (tabEditData):
                 itm_slctd = super_form.select_edit_form(self.dict_list_annt_wrkr.get("header"),
-                                            self.dict_list_annt_wrkr.get("title"),
-                                            self.dict_list_annt_wrkr_items)
-                if itm_slctd == self.dict_list_annt_wrkr_items.get("ants_edt_add"):
+                                                        self.dict_list_annt_wrkr.get("title"),
+                                                        self.dict_list_wrkr_items)
+                if itm_slctd == self.dict_list_wrkr_items.get("ants_edt_add"):
                     annt_worker_form.edt_new_annot()
-                elif itm_slctd == self.dict_list_annt_wrkr_items.get("bk_add_update_bk"):
+                elif itm_slctd == self.dict_list_wrkr_items.get("bk_add_update_bk"):
                     bk_worker_form.add_new_bk()
-                elif itm_slctd == self.dict_list_annt_wrkr_items.get("ants_edt_dlt"):
+                elif itm_slctd == self.dict_list_wrkr_items.get("ants_edt_dlt"):
                     annt_worker_del_form.dlt_annot()
-                elif itm_slctd == self.dict_list_annt_wrkr_items.get("bk_dlt"):
+                elif itm_slctd == self.dict_list_wrkr_items.get("bk_dlt"):
                     bk_worker_del_form.dlt_bk()
         elif dropSelectDataApp == self.dict_edit_data_app.get("urlExcel"):
             with tabEditData:

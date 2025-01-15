@@ -35,6 +35,12 @@ class FORM:
             res = False
         return res
 
+    def format_page_no(self, pageNo):
+        return pageNo.lstrip("0")
+
+    def format_book_no(self, bookNo):
+        return bookNo.lstrip("0")
+
     def format_sql_wrap(self, searchDatum):
         datum = searchDatum
         if not searchDatum.startswith("%"):
