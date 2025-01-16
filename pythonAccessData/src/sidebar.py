@@ -1,6 +1,6 @@
 import streamlit as st
 import form_sr
-import form
+import form_view
 import form_sheet
 import form_bk
 import form_annt
@@ -27,7 +27,7 @@ class SIDEBAR:
 
     def init_sidebars(self):
         super_form = form_sr.FORM()
-        db_viewer = form.DATA_FORM()
+        db_viewer = form_view.DATA_FORM()
         annt_worker_form = form_annt.EDIT_ANNOT()
         annt_worker_del_form = form_annt.DEL_ANNOT()
         bk_worker_form = form_bk.EDIT_BOOK()
