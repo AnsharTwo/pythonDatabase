@@ -5,6 +5,19 @@ import db
 
 class FORM:
 
+    dict_list_annt_wrkr = {
+        "header": "Edit annotations data",
+        "title": "Select data activity"
+    }
+
+    dict_list_wrkr_items = {
+        "None": "none",
+        "ants_edt_add": "Create or update annotation",
+        "ants_edt_dlt": "Delete an annotation",
+        "bk_add_update_bk": "Add or update a book",
+        "bk_dlt": "Delete a book",
+    }
+
     def __init__(self):
         self.connStr = r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;'
 

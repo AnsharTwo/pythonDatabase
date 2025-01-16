@@ -5,6 +5,11 @@ import form_sr
 
 class DATA_FORM(form_sr.FORM):
 
+    dict_List_view = {
+        "header": "Select annotations search",
+        "title": "Select search type"
+    }
+
     dict_searches = {
         "ants_srch_txt": "Annotations by search text",
         "ants_srch_txt_auth": "Annotations by search text and author",
@@ -234,7 +239,7 @@ class DATA_FORM(form_sr.FORM):
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
         if resCountBooksAll > 0:
-            df = pd.DataFrame(([super().format_book_no(bk.__getattribute__('Book No')),
+            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note super().format_book_no() not working
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
@@ -269,7 +274,7 @@ class DATA_FORM(form_sr.FORM):
         books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
         st.write("Found {} results.".format(resCountBooksYearRead))
         if resCountBooksYearRead > 0:
-            df = pd.DataFrame(([super().format_book_no(bk.__getattribute__('Book No')),
+            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note super().format_book_no() not working
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
