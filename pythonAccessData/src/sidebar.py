@@ -1,7 +1,9 @@
 import streamlit as st
-import form
+import form_sr
+import form_view
 import form_sheet
-import form_edit
+import form_bk
+import form_annt
 import form_sheet_edit
 
 class SIDEBAR:
@@ -24,32 +26,62 @@ class SIDEBAR:
     }
 
     def init_sidebars(self):
-
-        tabViewData, tabEditData = st.tabs([self.dict_tabh_drs.get("Read"), self.dict_tabh_drs.get("Edit")])
-
-        dataForm = form.DATA_FORM()
+        super_form = form_sr.FORM()
+        db_viewer = form_view.DATA_FORM()
+        annt_worker_form = form_annt.EDIT_ANNOT()
+        annt_worker_del_form = form_annt.DEL_ANNOT()
+        bk_worker_form = form_bk.EDIT_BOOK()
+        bk_worker_del_form = form_bk.DEL_BOOK()
         sheetForm = form_sheet.SHEET_FORM()
-        editForm = form_edit.EDIT_FORM()
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
-
-        st.sidebar.title("Annotations and URL manager")
-
+        tabViewData, tabEditData = st.tabs([self.dict_tabh_drs.get("Read"), self.dict_tabh_drs.get("Edit")])
         dropSelectApp = st.sidebar.selectbox("Select to view", [self.dict_data_app.get("annotDb"),
                                                                 self.dict_data_app.get("urlExcel"), "None"]
                                             )
         if dropSelectApp == self.dict_data_app.get("annotDb"):
             with tabViewData:
-                dataForm.select_search()
+                itm_slctd = super_form.select_edit_form(db_viewer.dict_List_view.get("header"),
+                                                        db_viewer.dict_List_view.get("title"),
+                                                        db_viewer.dict_searches)
+                if itm_slctd == db_viewer.dict_searches.get("ants_srch_txt"):
+                    db_viewer.srch_searchtext()
+                elif itm_slctd == db_viewer.dict_searches.get("ants_srch_txt_auth"):
+                    db_viewer.srch_searchtext_auth()
+                elif itm_slctd == db_viewer.dict_searches.get("ants_srch_txt_bk"):
+                    db_viewer.srch_searchtext_bk()
+                elif itm_slctd == db_viewer.dict_searches.get("ants_bk"):
+                    db_viewer.srch_bk()
+                elif itm_slctd == db_viewer.dict_searches.get("ants_auth"):
+                    db_viewer.srch_auth()
+                elif itm_slctd == db_viewer.dict_searches.get("bks_auth"):
+                    db_viewer.bks_auth()
+                elif itm_slctd == db_viewer.dict_searches.get("bks_all"):
+                    db_viewer.bks_all()
+                elif itm_slctd == db_viewer.dict_searches.get("bks_yr_read"):
+                    db_viewer.bks_yr_read()
+                elif itm_slctd == db_viewer.dict_searches.get("ants_all"):
+                    db_viewer.ants_all()
+                elif itm_slctd == db_viewer.dict_searches.get("ants_yr_read"):
+                    db_viewer.ants_yr_read()
         elif dropSelectApp == self.dict_data_app.get("urlExcel"):
             with tabViewData:
                 sheetForm.select_url_search()
-
         dropSelectDataApp = st.sidebar.selectbox("Select to do", [self.dict_edit_data_app.get("annotDb"),
                                                                   self.dict_edit_data_app.get("urlExcel"),"None"],
                                                 )
         if dropSelectDataApp == self.dict_edit_data_app.get("annotDb"):
-            with tabEditData:
-                editForm.select_edit_form()
+            with (tabEditData):
+                itm_slctd = super_form.select_edit_form(super_form.dict_list_annt_wrkr.get("header"),
+                                                        super_form.dict_list_annt_wrkr.get("title"),
+                                                        super_form.dict_list_wrkr_items)
+                if itm_slctd == super_form.dict_list_wrkr_items.get("ants_edt_add"):
+                    annt_worker_form.edt_new_annot()
+                elif itm_slctd == super_form.dict_list_wrkr_items.get("bk_add_update_bk"):
+                    bk_worker_form.add_new_bk()
+                elif itm_slctd == super_form.dict_list_wrkr_items.get("ants_edt_dlt"):
+                    annt_worker_del_form.dlt_annot()
+                elif itm_slctd == super_form.dict_list_wrkr_items.get("bk_dlt"):
+                    bk_worker_del_form.dlt_bk()
         elif dropSelectDataApp == self.dict_edit_data_app.get("urlExcel"):
             with tabEditData:
                 editSheetForm.select_edit_form_sheet()
