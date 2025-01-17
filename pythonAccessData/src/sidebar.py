@@ -6,9 +6,10 @@ import form_bk
 import form_annt
 import form_sheet_edit
 
-class SIDEBAR:
+class SIDEBAR (form_sr.FORM):
 
-    # def __init__(self):
+    def __init__(self):
+        super().__init__()
 
     dict_data_app = {
         "annotDb": "Annotations database",
@@ -26,7 +27,6 @@ class SIDEBAR:
     }
 
     def init_sidebars(self):
-        super_form = form_sr.FORM()
         db_viewer = form_view.DATA_FORM()
         annt_worker_form = form_annt.EDIT_ANNOT()
         annt_worker_del_form = form_annt.DEL_ANNOT()
@@ -40,7 +40,7 @@ class SIDEBAR:
                                             )
         if dropSelectApp == self.dict_data_app.get("annotDb"):
             with tabViewData:
-                itm_slctd = super_form.select_edit_form(db_viewer.dict_List_view.get("header"),
+                itm_slctd = self.select_edit_form(db_viewer.dict_List_view.get("header"),
                                                         db_viewer.dict_List_view.get("title"),
                                                         db_viewer.dict_searches)
                 if itm_slctd == db_viewer.dict_searches.get("ants_srch_txt"):
@@ -71,16 +71,16 @@ class SIDEBAR:
                                                 )
         if dropSelectDataApp == self.dict_edit_data_app.get("annotDb"):
             with (tabEditData):
-                itm_slctd = super_form.select_edit_form(super_form.dict_list_annt_wrkr.get("header"),
-                                                        super_form.dict_list_annt_wrkr.get("title"),
-                                                        super_form.dict_list_wrkr_items)
-                if itm_slctd == super_form.dict_list_wrkr_items.get("ants_edt_add"):
+                itm_slctd = self.select_edit_form(self.dict_list_annt_wrkr.get("header"),
+                                                        self.dict_list_annt_wrkr.get("title"),
+                                                        self.dict_list_wrkr_items)
+                if itm_slctd == self.dict_list_wrkr_items.get("ants_edt_add"):
                     annt_worker_form.edt_new_annot()
-                elif itm_slctd == super_form.dict_list_wrkr_items.get("bk_add_update_bk"):
+                elif itm_slctd == self.dict_list_wrkr_items.get("bk_add_update_bk"):
                     bk_worker_form.add_new_bk()
-                elif itm_slctd == super_form.dict_list_wrkr_items.get("ants_edt_dlt"):
+                elif itm_slctd == self.dict_list_wrkr_items.get("ants_edt_dlt"):
                     annt_worker_del_form.dlt_annot()
-                elif itm_slctd == super_form.dict_list_wrkr_items.get("bk_dlt"):
+                elif itm_slctd == self.dict_list_wrkr_items.get("bk_dlt"):
                     bk_worker_del_form.dlt_bk()
         elif dropSelectDataApp == self.dict_edit_data_app.get("urlExcel"):
             with tabEditData:

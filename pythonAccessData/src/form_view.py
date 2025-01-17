@@ -5,6 +5,9 @@ import form_sr
 
 class DATA_FORM(form_sr.FORM):
 
+    def __init__(self):
+        super().__init__()
+
     dict_List_view = {
         "header": "Select annotations search",
         "title": "Select search type"
@@ -29,6 +32,9 @@ class DATA_FORM(form_sr.FORM):
         "lwr": "lower",
         "upr": "upper"
     }
+
+    def ss_form_flow_ants_srch_txt(self):
+        st.session_state["formview_flow"] = "ants_srch_txt"
 
     def srch_searchtext(self):
         with st.form("Search by annotation only"):
@@ -116,10 +122,10 @@ class DATA_FORM(form_sr.FORM):
                     if yearTo == "":
                         st.markdown(":red[no end year given.]")
                     else:
-                        if not super().isValidYearFormat(yearFrom, "%Y"):
+                        if not self.isValidYearFormat(yearFrom, "%Y"):
                             st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if not super().isValidYearFormat(yearTo, "%Y"):
+                            if not self.isValidYearFormat(yearTo, "%Y"):
                                 st.markdown(":red[To year is not in format yyyy.]")
                             else:
                                 if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
@@ -146,10 +152,10 @@ class DATA_FORM(form_sr.FORM):
                     if yearTo == "":
                         st.markdown(":red[no end year given.]")
                     else:
-                        if not super().isValidYearFormat(yearFrom, "%Y"):
+                        if not self.isValidYearFormat(yearFrom, "%Y"):
                             st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if not super().isValidYearFormat(yearTo, "%Y"):
+                            if not self.isValidYearFormat(yearTo, "%Y"):
                                 st.markdown(":red[To year is not in format yyyy.]")
                             else:
                                 if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
@@ -158,8 +164,8 @@ class DATA_FORM(form_sr.FORM):
                                     self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
-        sourceData = super().get_data_source()
-        conn = super().get_connection(sourceData)
+        sourceData = self.get_data_source()
+        conn = self.get_connection(sourceData)
         st.header("Database Records")
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
             self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
@@ -195,9 +201,9 @@ class DATA_FORM(form_sr.FORM):
     def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
         resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                                                          super().format_sql_wrap(auth),
+                                                                          self.format_sql_wrap(auth),
                                                                           searchTxtArr)
-        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), super().format_sql_wrap(auth),
+        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.format_sql_wrap(auth),
                                                                           searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndAuthor))
         for ant in annots:
@@ -205,31 +211,31 @@ class DATA_FORM(form_sr.FORM):
 
     def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
-        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), super().format_sql_wrap(bk),
+        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.format_sql_wrap(bk),
                                                                                      searchTxtArr)
-        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  super().format_sql_wrap(bk),
+        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.format_sql_wrap(bk),
                                                                          searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndBook))
         for ant in annots:
             self.__markdown_srch_res(ant, searchTxtArr)
 
     def __show_srch_ants_bk(self, sourceData, conn, bk):
-        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), super().format_sql_wrap(bk))
-        annots = sourceData.selectAnnotsbyBook(conn.cursor(), super().format_sql_wrap(bk))
+        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
+        annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
         st.write("Found {} results.".format(resCountBooks))
         for ant in annots:
             self.__markdown_srch_res(ant, "")
 
     def __show_srch_ants_auth(self, sourceData, conn, auth):
-        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), super().format_sql_wrap(auth))
-        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), super().format_sql_wrap(auth))
+        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
         st.write("Found {} results.".format(resCountAuthor))
         for ant in annots:
             self.__markdown_srch_res(ant, "")
 
     def __show_srch_bks_auth(self, sourceData, conn, auth):
-        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), super().format_sql_wrap(auth))
-        annots = sourceData.selectBooksByAuthor(conn.cursor(), super().format_sql_wrap(auth))
+        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
+        annots = sourceData.selectBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
         st.write("Found {} results.".format(resCountBks))
         for ant in annots:
             self.__markdown_bks_res(ant)
@@ -239,7 +245,7 @@ class DATA_FORM(form_sr.FORM):
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
         if resCountBooksAll > 0:
-            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note super().format_book_no() not working
+            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note self.format_book_no() not working
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
@@ -274,7 +280,7 @@ class DATA_FORM(form_sr.FORM):
         books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
         st.write("Found {} results.".format(resCountBooksYearRead))
         if resCountBooksYearRead > 0:
-            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note super().format_book_no() not working
+            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note self.format_book_no() not working
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
@@ -340,7 +346,7 @@ class DATA_FORM(form_sr.FORM):
             .format(
                 title=ant.__getattribute__('Book Title'),
                 author=ant.Author,
-                pageno=super().format_page_no(ant.__getattribute__('Page No')),
+                pageno=self.format_page_no(ant.__getattribute__('Page No')),
                 sourcetext=srcText
             )
         )
@@ -391,9 +397,9 @@ class DATA_FORM(form_sr.FORM):
     def __formatSearchText(self, searchText):
         searchArr = []
         if searchText.find(",") == -1:
-            searchArr.append(super().format_sql_wrap(searchText))
+            searchArr.append(self.format_sql_wrap(searchText))
         else:
             searchTxt = searchText.split(",")
             for txt in searchTxt:
-                searchArr.append(super().format_sql_wrap(txt))
+                searchArr.append(self.format_sql_wrap(txt))
         return searchArr
