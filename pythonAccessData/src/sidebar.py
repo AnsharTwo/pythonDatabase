@@ -36,8 +36,7 @@ class SIDEBAR (form_sr.FORM):
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
         tabViewData, tabEditData = st.tabs([self.dict_tabh_drs.get("Read"), self.dict_tabh_drs.get("Edit")])
         dropSelectApp = st.sidebar.selectbox("Select to view", [self.dict_data_app.get("annotDb"),
-                                                                self.dict_data_app.get("urlExcel"), "None"]
-                                            )
+                                                                self.dict_data_app.get("urlExcel"), "None"])
         if dropSelectApp == self.dict_data_app.get("annotDb"):
             with tabViewData:
                 itm_slctd = self.select_edit_form(db_viewer.dict_List_view.get("header"),
@@ -67,8 +66,7 @@ class SIDEBAR (form_sr.FORM):
             with tabViewData:
                 sheetForm.select_url_search()
         dropSelectDataApp = st.sidebar.selectbox("Select to do", [self.dict_edit_data_app.get("annotDb"),
-                                                                  self.dict_edit_data_app.get("urlExcel"),"None"],
-                                                )
+                                                                  self.dict_edit_data_app.get("urlExcel"),"None"])
         if dropSelectDataApp == self.dict_edit_data_app.get("annotDb"):
             with (tabEditData):
                 itm_slctd = self.select_edit_form(self.dict_list_annt_wrkr.get("header"),

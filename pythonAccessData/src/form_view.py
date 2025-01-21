@@ -14,6 +14,7 @@ class DATA_FORM(form_sr.FORM):
     }
 
     dict_searches = {
+        "None": "none",
         "ants_srch_txt": "Annotations by search text",
         "ants_srch_txt_auth": "Annotations by search text and author",
         "ants_srch_txt_bk": "Annotations by search text and book",
@@ -33,32 +34,50 @@ class DATA_FORM(form_sr.FORM):
         "upr": "upper"
     }
 
-    def ss_form_flow_ants_srch_txt(self):
-        st.session_state["formview_flow"] = "ants_srch_txt"
-
     def srch_searchtext(self):
+        if "go_srch_searchtext" not in st.session_state:
+            st.session_state["go_srch_searchtext"] = False
+        if "txt_srch_searchtext" not in st.session_state:
+            st.session_state["txt_srch_searchtext"] = ""
         with st.form("Search by annotation only"):
-            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
+            st.session_state["txt_srch_searchtext"] = st.text_area("Annotated text to search for (separate multiple with comma)",
+                                                   value=st.session_state["txt_srch_searchtext"])
             searched = st.form_submit_button("Search")
             if searched:
-                if txt == "":
+                if st.session_state["txt_srch_searchtext"] == "":
                     st.markdown(":red[no search text given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "", "", "", "")
+                    st.session_state["go_srch_searchtext"] = True
+                    st.rerun()
+            elif st.session_state["go_srch_searchtext"]:
+                self.db_records(self.dict_searches.get("ants_srch_txt"), st.session_state["txt_srch_searchtext"], "", "", "", "")
 
     def srch_searchtext_auth(self):
+        if "go_srch_searchtext_auth" not in st.session_state:
+            st.session_state["go_srch_searchtext_auth"] = False
+        if "txt_srch_searchtext_auth" not in st.session_state:
+            st.session_state["txt_srch_searchtext_auth"] = ""
+        if "auth_srch_searchtext_auth" not in st.session_state:
+            st.session_state["auth_srch_searchtext_auth"] = ""
         with st.form("Search by annotation and author"):
-            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
-            author = st.text_input("Author")
+            st.session_state["txt_srch_searchtext_auth"] = st.text_area("Annotated text to search for (separate multiple with comma)",
+                                                                        value=st.session_state["txt_srch_searchtext_auth"])
+            st.session_state["auth_srch_searchtext_auth"] = st.text_input("Author",
+                                                                          value=st.session_state["auth_srch_searchtext_auth"])
             searched = st.form_submit_button("Search")
             if searched:
-                if txt == "":
+                if st.session_state["txt_srch_searchtext_auth"] == "":
                     st.markdown(":red[no search text given.]")
                 else:
-                    if author == "":
+                    if st.session_state["auth_srch_searchtext_auth"] == "":
                         st.markdown(":red[no author given.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_srch_txt_auth"), txt, author, "", "", "")
+                        st.session_state["go_srch_searchtext_auth"] = True
+                        st.rerun()
+            elif st.session_state["go_srch_searchtext_auth"]:
+                self.db_records(self.dict_searches.get("ants_srch_txt_auth"),
+                                st.session_state["txt_srch_searchtext_auth"],
+                                st.session_state["auth_srch_searchtext_auth"], "", "", "")
 
     def srch_searchtext_bk(self):
         with st.form("Search by annotation and book title"):
