@@ -204,34 +204,50 @@ class DATA_FORM(form_sr.FORM):
                                 st.session_state["yr_bks_to"])
 
     def ants_all(self):
+        if "go_ants_all" not in st.session_state:
+            st.session_state["go_ants_all"] = False
         with st.form("Search for all annotations"):
             st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
             searched = st.form_submit_button("Search")
             if searched:
+                st.session_state["go_ants_all"] = True
+                st.rerun()
+            elif st.session_state["go_ants_all"]:
                 self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
 
     def ants_yr_read(self):
         with st.form("Search for annotations by year book titles read"):
-            yearFrom = st.text_input("From year (yyyy)")
-            yearTo = st.text_input("To year (yyyy)")
+            if "go_ants_yr" not in st.session_state:
+                st.session_state["go_ants_yr"] = False
+            if "yr_ants_from" not in st.session_state:
+                st.session_state["yr_ants_from"] = ""
+            if "yr_ants_to" not in st.session_state:
+                st.session_state["yr_ants_to"] = ""
+            st.session_state["yr_ants_from"] = st.text_input("From year (yyyy)", value=st.session_state["yr_ants_from"])
+            st.session_state["yr_ants_to"] = st.text_input("To year (yyyy)", value=st.session_state["yr_ants_to"])
             searched = st.form_submit_button("Search")
             if searched:
-                if yearFrom == "":
+                if st.session_state["yr_ants_from"] == "":
                     st.markdown(":red[no start year given.]")
                 else:
-                    if yearTo == "":
+                    if st.session_state["yr_ants_to"] == "":
                         st.markdown(":red[no end year given.]")
                     else:
-                        if not self.isValidYearFormat(yearFrom, "%Y"):
+                        if not self.isValidYearFormat(st.session_state["yr_ants_from"], "%Y"):
                             st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if not self.isValidYearFormat(yearTo, "%Y"):
+                            if not self.isValidYearFormat(st.session_state["yr_ants_to"], "%Y"):
                                 st.markdown(":red[To year is not in format yyyy.]")
                             else:
-                                if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                if date(int(st.session_state["yr_ants_from"]), 1, 1) > date(int(st.session_state["yr_ants_to"]),
+                                                                                                1, 1):
                                     st.markdown(":red[From year cannot be greater than To year.]")
                                 else:
-                                    self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
+                                    st.session_state["go_ants_yr"] = True
+                                    st.rerun()
+            elif st.session_state["go_ants_yr"]:
+                self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", st.session_state["yr_ants_from"],
+                                st.session_state["yr_ants_to"])
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
         sourceData = self.get_data_source()
