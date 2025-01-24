@@ -3,6 +3,9 @@ import form_sr
 
 class EDIT_BOOK(form_sr.FORM):
 
+    def __init__(self):
+        super().__init__()
+
     dict_flow_flags = {
         "bk_add_update_bk": "Add or update a book",
         "bk_add_edit_is_full_match": "Book search for exact title match",
@@ -122,7 +125,7 @@ class EDIT_BOOK(form_sr.FORM):
                         st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book":
             bk_title = []
-            bk_title.append(super().formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
+            bk_title.append(self.formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"),
                                                               bk_title,True)
             with st.form("Search results for book title"):
@@ -130,7 +133,7 @@ class EDIT_BOOK(form_sr.FORM):
                     bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"), bk_title, False)
                     st.info("The following book has been found that matches your search text.")
                     for bk in bk_rec:
-                        super().show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
+                        self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
                                                  bk.__getattribute__('Year Read'), bk.__getattribute__('Publication Locale'),
                                                  bk.Edition, bk.__getattribute__('First Edition'),
                                                  bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
@@ -139,7 +142,7 @@ class EDIT_BOOK(form_sr.FORM):
                         self.__add_bk_to_s_state(bk)
                     bk_title.pop(
                         0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
-                    bk_title.append(super().format_sql_wrap(st.session_state["srch_book_title"]))
+                    bk_title.append(self.format_sql_wrap(st.session_state["srch_book_title"]))
                     btn_edt_bk = st.form_submit_button("Edit book")
                     btn_return_bk = st.form_submit_button("Search again")
                     if btn_return_bk:
@@ -168,7 +171,7 @@ class EDIT_BOOK(form_sr.FORM):
                 else:
                     bk_title.insert(0, "0") # dummy val to set correct index for bk title
                     temp_bk_title = str(bk_title[1])
-                    temp_bk_title = super().format_sql_wrap(temp_bk_title)
+                    temp_bk_title = self.format_sql_wrap(temp_bk_title)
                     bk_title.pop(1)
                     bk_title.insert(1, temp_bk_title) # now search for partial match of book title
                     bk_sum = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title, True)
@@ -182,7 +185,7 @@ class EDIT_BOOK(form_sr.FORM):
                                                  False)
                             st.info("One book partially matches your search.")
                             for bk in bk_rec:
-                                super().show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
+                                self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
                                                          bk.Publisher, bk.Dat,
                                                          bk.__getattribute__('Year Read'),
                                                          bk.__getattribute__('Publication Locale'),
@@ -298,15 +301,15 @@ class EDIT_BOOK(form_sr.FORM):
                     elif st.session_state["bk_author"] == "":
                         st.markdown(":red[No author given]")
                         sbmt_bk = False
-                    elif st.session_state["bk_date_pub"] != "" and not super().isValidYearFormat(st.session_state["bk_date_pub"],
+                    elif st.session_state["bk_date_pub"] != "" and not self.isValidYearFormat(st.session_state["bk_date_pub"],
                                                                                                 "%Y"):
                         st.markdown(":red[Date of publication must be in YYYY format]")
                         sbmt_bk = False
-                    elif st.session_state["bk_year_read"] != "" and not super().isValidYearFormat(st.session_state["bk_year_read"],
+                    elif st.session_state["bk_year_read"] != "" and not self.isValidYearFormat(st.session_state["bk_year_read"],
                                                                                                  "%Y"):
                         st.markdown(":red[Year read must be in YYYY format]")
                         sbmt_bk = False
-                    elif st.session_state["bk_first_edition"] != "" and not super().isValidYearFormat(st.session_state["bk_first_edition"],
+                    elif st.session_state["bk_first_edition"] != "" and not self.isValidYearFormat(st.session_state["bk_first_edition"],
                                                                                                      "%Y"):
                         st.markdown(":red[First edition must be in YYYY format]")
                         sbmt_bk = False
@@ -316,25 +319,25 @@ class EDIT_BOOK(form_sr.FORM):
         if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
             book = []
             if st.session_state["bk_is_editing"]:
-                book.append(super().format_sql_wrap(st.session_state["res1_bk_book_no"]))
+                book.append(self.format_sql_wrap(st.session_state["res1_bk_book_no"]))
             else:
                 book.append("")
-            book.append(super().format_sql_wrap(st.session_state["bk_book_title"]))
-            book.append(super().format_sql_wrap(st.session_state["bk_author"]))
-            book.append(super().append_for_db_write(st.session_state["bk_publisher"]))
-            book.append(super().append_for_db_write(st.session_state["bk_date_pub"]))
-            book.append(super().append_for_db_write(st.session_state["bk_year_read"]))
-            book.append(super().append_for_db_write(st.session_state["bk_pub_location"]))
-            book.append(super().append_for_db_write(st.session_state["bk_edition"]))
-            book.append(super().append_for_db_write(st.session_state["bk_first_edition"]))
-            book.append(super().append_for_db_write(st.session_state["bk_first_edition_locale"]))
-            book.append(super().append_for_db_write(st.session_state["bk_first_edition_name"]))
-            book.append(super().append_for_db_write(st.session_state["bk_first_edition_publisher"]))
+            book.append(self.format_sql_wrap(st.session_state["bk_book_title"]))
+            book.append(self.format_sql_wrap(st.session_state["bk_author"]))
+            book.append(self.append_for_db_write(st.session_state["bk_publisher"]))
+            book.append(self.append_for_db_write(st.session_state["bk_date_pub"]))
+            book.append(self.append_for_db_write(st.session_state["bk_year_read"]))
+            book.append(self.append_for_db_write(st.session_state["bk_pub_location"]))
+            book.append(self.append_for_db_write(st.session_state["bk_edition"]))
+            book.append(self.append_for_db_write(st.session_state["bk_first_edition"]))
+            book.append(self.append_for_db_write(st.session_state["bk_first_edition_locale"]))
+            book.append(self.append_for_db_write(st.session_state["bk_first_edition_name"]))
+            book.append(self.append_for_db_write(st.session_state["bk_first_edition_publisher"]))
             with st.form("Book submission"):
                 if not st.session_state["bk_is_editing"]:
                     if st.session_state["bk_add_from_part_match"]:
                         bk_title = []
-                        bk_title.append(super().formatSQLSpecialChars(
+                        bk_title.append(self.formatSQLSpecialChars(
                             st.session_state["bk_book_title"]))  # i.e. without padding with % (need exact mtch)
                         temp_bk_sum = self.db_records(
                             self.dict_flow_flags.get("bk_add_edit_is_full_match"),
@@ -357,17 +360,17 @@ class EDIT_BOOK(form_sr.FORM):
                                 self.add_updt_bk_srch()
                                 st.rerun()
                             if btn_again_bk_add:
-                                st.session_state["res1_bk_book_title"] = super().conv_none_for_db(st.session_state["srch_book_title"])
-                                st.session_state["res1_bk_author"] = super().conv_none_for_db(st.session_state["bk_author"])
-                                st.session_state["res1_bk_publisher"] = super().conv_none_for_db(st.session_state["bk_publisher"])
-                                st.session_state["res1_bk_date_pub"] = super().conv_none_for_db(st.session_state["bk_date_pub"])
-                                st.session_state["res1_bk_year_read"] = super().conv_none_for_db(st.session_state["bk_year_read"])
-                                st.session_state["res1_bk_pub_location"] = super().conv_none_for_db(st.session_state["bk_pub_location"])
-                                st.session_state["res1_bk_edition"] = super().conv_none_for_db(st.session_state["bk_edition"])
-                                st.session_state["res1_bk_first_edition"] = super().conv_none_for_db(st.session_state["bk_first_edition"])
-                                st.session_state["res1_bk_first_edition_locale"] = super().conv_none_for_db(st.session_state["bk_first_edition_locale"])
-                                st.session_state["res1_bk_first_edition_name"] = super().conv_none_for_db(st.session_state["bk_first_edition_name"])
-                                st.session_state["res1_bk_first_edition_publisher"] = super().conv_none_for_db(st.session_state["bk_first_edition_publisher"])
+                                st.session_state["res1_bk_book_title"] = self.conv_none_for_db(st.session_state["srch_book_title"])
+                                st.session_state["res1_bk_author"] = self.conv_none_for_db(st.session_state["bk_author"])
+                                st.session_state["res1_bk_publisher"] = self.conv_none_for_db(st.session_state["bk_publisher"])
+                                st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(st.session_state["bk_date_pub"])
+                                st.session_state["res1_bk_year_read"] = self.conv_none_for_db(st.session_state["bk_year_read"])
+                                st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(st.session_state["bk_pub_location"])
+                                st.session_state["res1_bk_edition"] = self.conv_none_for_db(st.session_state["bk_edition"])
+                                st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(st.session_state["bk_first_edition"])
+                                st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(st.session_state["bk_first_edition_locale"])
+                                st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(st.session_state["bk_first_edition_name"])
+                                st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(st.session_state["bk_first_edition_publisher"])
                                 self.__clear_ss_bk_flds()
                                 self.add_updt_bk_edit()
                                 st.rerun()
@@ -385,7 +388,7 @@ class EDIT_BOOK(form_sr.FORM):
                     st.success("New book added.")
                 else:
                     st.success("Book updated.")
-                super().show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
+                self.show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
                                          st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
                                          st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
                                          st.session_state["bk_edition"], st.session_state["bk_first_edition"],
@@ -405,14 +408,13 @@ class EDIT_BOOK(form_sr.FORM):
                     st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-        sourceData = super().get_data_source()
-        conn = super().get_connection(sourceData)
+        sourceData = self.get_data_source()
+        conn = self.get_connection(sourceData)
         if searchSelection == self.dict_flow_flags.get("bk_add_edit_is_full_match"):
             if getResultsCount:
                 return self.__add_update_book_exact_count(sourceData, conn, record)
             else:
                 return self.__add_update_book_exact(sourceData, conn, record)
-
         if searchSelection == self.dict_flow_flags.get("bk_add_update_bk"):
             if getResultsCount:
                 return self.__add_update_book_count(sourceData, conn, record)
@@ -443,7 +445,7 @@ class EDIT_BOOK(form_sr.FORM):
         for ctr in range(0, len(book)):
             tmp_fld = str(book[ctr])
             book.pop(ctr)
-            book.insert(ctr, super().rem_sql_wrap_chars(tmp_fld))
+            book.insert(ctr, self.rem_sql_wrap_chars(tmp_fld))
         if not bk_exists:
             bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
@@ -452,19 +454,19 @@ class EDIT_BOOK(form_sr.FORM):
         st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
         st.session_state["res1_bk_book_title"] = bk.__getattribute__('Book Title')
         st.session_state["res1_bk_author"] = bk.Author
-        st.session_state["res1_bk_publisher"] = super().conv_none_for_db(bk.Publisher)
-        st.session_state["res1_bk_date_pub"] = super().conv_none_for_db(bk.Dat)
-        st.session_state["res1_bk_year_read"] = super().conv_none_for_db(bk.__getattribute__('Year Read'))
-        st.session_state["res1_bk_pub_location"] = super().conv_none_for_db(
+        st.session_state["res1_bk_publisher"] = self.conv_none_for_db(bk.Publisher)
+        st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(bk.Dat)
+        st.session_state["res1_bk_year_read"] = self.conv_none_for_db(bk.__getattribute__('Year Read'))
+        st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(
             bk.__getattribute__("Publication Locale"))
-        st.session_state["res1_bk_edition"] = super().conv_none_for_db(bk.Edition)
-        st.session_state["res1_bk_first_edition"] = super().conv_none_for_db(
+        st.session_state["res1_bk_edition"] = self.conv_none_for_db(bk.Edition)
+        st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(
             bk.__getattribute__("First Edition"))
-        st.session_state["res1_bk_first_edition_locale"] = super().conv_none_for_db(
+        st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(
             bk.__getattribute__("First Edition Locale"))
-        st.session_state["res1_bk_first_edition_name"] = super().conv_none_for_db(
+        st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(
             bk.__getattribute__("First Edition Name"))
-        st.session_state["res1_bk_first_edition_publisher"] = super().conv_none_for_db(
+        st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(
             bk.__getattribute__("First Edition Publisher"))
 
     def __clear_ss_bk_flds(self):

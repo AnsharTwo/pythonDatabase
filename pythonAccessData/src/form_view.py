@@ -5,12 +5,16 @@ import form_sr
 
 class DATA_FORM(form_sr.FORM):
 
+    def __init__(self):
+        super().__init__()
+
     dict_List_view = {
         "header": "Select annotations search",
         "title": "Select search type"
     }
 
     dict_searches = {
+        "None": "none",
         "ants_srch_txt": "Annotations by search text",
         "ants_srch_txt_auth": "Annotations by search text and author",
         "ants_srch_txt_bk": "Annotations by search text and book",
@@ -31,135 +35,224 @@ class DATA_FORM(form_sr.FORM):
     }
 
     def srch_searchtext(self):
+        if "go_srch_searchtext" not in st.session_state:
+            st.session_state["go_srch_searchtext"] = False
+        if "txt_srch_searchtext" not in st.session_state:
+            st.session_state["txt_srch_searchtext"] = ""
         with st.form("Search by annotation only"):
-            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
+            st.session_state["txt_srch_searchtext"] = st.text_area("Annotated text to search for (separate multiple with comma)",
+                                                   value=st.session_state["txt_srch_searchtext"])
             searched = st.form_submit_button("Search")
             if searched:
-                if txt == "":
+                st.session_state["go_srch_searchtext"] = True
+                st.rerun()
+            elif st.session_state["go_srch_searchtext"]:
+                if st.session_state["txt_srch_searchtext"] == "":
                     st.markdown(":red[no search text given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt"), txt, "", "", "", "")
+                    self.db_records(self.dict_searches.get("ants_srch_txt"), st.session_state["txt_srch_searchtext"],
+                                    "", "", "", "")
 
     def srch_searchtext_auth(self):
+        if "go_srch_searchtext_auth" not in st.session_state:
+            st.session_state["go_srch_searchtext_auth"] = False
+        if "txt_srch_searchtext_auth" not in st.session_state:
+            st.session_state["txt_srch_searchtext_auth"] = ""
+        if "auth_srch_searchtext_auth" not in st.session_state:
+            st.session_state["auth_srch_searchtext_auth"] = ""
         with st.form("Search by annotation and author"):
-            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
-            author = st.text_input("Author")
+            st.session_state["txt_srch_searchtext_auth"] = st.text_area("Annotated text to search for (separate multiple with comma)",
+                                                                        value=st.session_state["txt_srch_searchtext_auth"])
+            st.session_state["auth_srch_searchtext_auth"] = st.text_input("Author",
+                                                                          value=st.session_state["auth_srch_searchtext_auth"])
             searched = st.form_submit_button("Search")
             if searched:
-                if txt == "":
+                st.session_state["go_srch_searchtext_auth"] = True
+                st.rerun()
+            elif st.session_state["go_srch_searchtext_auth"]:
+                if st.session_state["txt_srch_searchtext_auth"] == "":
                     st.markdown(":red[no search text given.]")
                 else:
-                    if author == "":
+                    if st.session_state["auth_srch_searchtext_auth"] == "":
                         st.markdown(":red[no author given.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_srch_txt_auth"), txt, author, "", "", "")
+                        self.db_records(self.dict_searches.get("ants_srch_txt_auth"),
+                                        st.session_state["txt_srch_searchtext_auth"],
+                                        st.session_state["auth_srch_searchtext_auth"], "", "", "")
 
     def srch_searchtext_bk(self):
+        if "go_srch_searchtext_bk" not in st.session_state:
+            st.session_state["go_srch_searchtext_bk"] = False
+        if "txt_srch_searchtext_bk" not in st.session_state:
+            st.session_state["txt_srch_searchtext_bk"] = ""
+        if "bk_srch_searchtext_bk" not in st.session_state:
+            st.session_state["bk_srch_searchtext_bk"] = ""
         with st.form("Search by annotation and book title"):
-            txt = st.text_area("Annotated text to search for (separate multiple with comma)")
-            book = st.text_input("Book")
+            st.session_state["txt_srch_searchtext_bk"] = st.text_area("Annotated text to search for (separate multiple with comma)",
+                                                                      value=st.session_state["txt_srch_searchtext_bk"])
+            st.session_state["bk_srch_searchtext_bk"] = st.text_input("Book", value=st.session_state["bk_srch_searchtext_bk"])
             searched = st.form_submit_button("Search")
             if searched:
-                if txt == "":
+                st.session_state["go_srch_searchtext_bk"] = True
+                st.rerun()
+            elif st.session_state["go_srch_searchtext_bk"]:
+                if st.session_state["txt_srch_searchtext_bk"] == "":
                     st.markdown(":red[no search text given.]")
                 else:
-                    if book == "":
+                    if st.session_state["bk_srch_searchtext_bk"] == "":
                         st.markdown(":red[no book given.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_srch_txt_bk"), txt, "", book, "", "")
+                        self.db_records(self.dict_searches.get("ants_srch_txt_bk"), st.session_state["txt_srch_searchtext_bk"],
+                                        "", st.session_state["bk_srch_searchtext_bk"], "", "")
 
     def srch_bk(self):
+        if "go_srch_bk" not in st.session_state:
+            st.session_state["go_srch_bk"] = False
+        if "bk_srch_bk" not in st.session_state:
+            st.session_state["bk_srch_bk"] = ""
         with st.form("Search for annotations by book title"):
-            book = st.text_input("Book")
+            st.session_state["bk_srch_bk"] = st.text_input("Book", value=st.session_state["bk_srch_bk"])
             searched = st.form_submit_button("Search")
             if searched:
-                if book == "":
+                st.session_state["go_srch_bk"] = True
+                st.rerun()
+            elif st.session_state["go_srch_bk"]:
+                if st.session_state["bk_srch_bk"] == "":
                     st.markdown(":red[no book given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_bk"), "", "", book, "", "")
+                    self.db_records(self.dict_searches.get("ants_bk"), "", "", st.session_state["bk_srch_bk"],
+                                    "", "")
 
     def srch_auth(self):
+        if "go_srch_auth" not in st.session_state:
+            st.session_state["go_srch_auth"] = False
+        if "auth_srch_auth" not in st.session_state:
+            st.session_state["auth_srch_auth"] = ""
         with st.form("Search for annotations by author"):
-            author = st.text_input("Author")
+            st.session_state["auth_srch_auth"] = st.text_input("Author", value=st.session_state["auth_srch_auth"])
             searched = st.form_submit_button("Search")
             if searched:
-                if author == "":
+                st.session_state["go_srch_auth"] = True
+                st.rerun()
+            elif st.session_state["go_srch_auth"]:
+                if st.session_state["auth_srch_auth"] == "":
                     st.markdown(":red[no author given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_auth"), "", author, "", "", "")
+                    self.db_records(self.dict_searches.get("ants_auth"), "", st.session_state["auth_srch_auth"],
+                                "", "", "")
 
     def bks_auth(self):
+        if "go_srch_bks_auth" not in st.session_state:
+            st.session_state["go_srch_bks_auth"] = False
+        if "auth_srch_bks_auth" not in st.session_state:
+            st.session_state["auth_srch_bks_auth"] = ""
         with st.form("Search for book titles by author"):
-            author = st.text_input("Author")
+            st.session_state["auth_srch_bks_auth"] = st.text_input("Author", value=st.session_state["auth_srch_bks_auth"])
             searched = st.form_submit_button("Search")
             if searched:
-                if author == "":
+                st.session_state["go_srch_bks_auth"] = True
+                st.rerun()
+            elif st.session_state["go_srch_bks_auth"]:
+                if st.session_state["auth_srch_bks_auth"] == "":
                     st.markdown(":red[no author given.]")
                 else:
-                    self.db_records(self.dict_searches.get("bks_auth"), "", author, "", "", "")
+                    self.db_records(self.dict_searches.get("bks_auth"), "", st.session_state["auth_srch_bks_auth"],
+                                    "", "", "")
 
     def bks_all(self):
+        if "go_bks_all" not in st.session_state:
+            st.session_state["go_bks_all"] = False
         with st.form("Search for all book titles"):
             searched = st.form_submit_button("Search")
             if searched:
+                st.session_state["go_bks_all"] = True
+                st.rerun()
+            elif st.session_state["go_bks_all"]:
                 self.db_records(self.dict_searches.get("bks_all"), "", "", "", "", "")
 
     def bks_yr_read(self):
+        if "go_bks_yr" not in st.session_state:
+            st.session_state["go_bks_yr"] = False
+        if "yr_bks_from" not in st.session_state:
+            st.session_state["yr_bks_from"] = ""
+        if "yr_bks_to" not in st.session_state:
+            st.session_state["yr_bks_to"] = ""
         with st.form("Search for book titles by year read"):
-            yearFrom = st.text_input("From year (yyyy)")
-            yearTo = st.text_input("To year (yyyy)")
+            st.session_state["yr_bks_from"] = st.text_input("From year (yyyy)", value=st.session_state["yr_bks_from"])
+            st.session_state["yr_bks_to"] = st.text_input("To year (yyyy)", value=st.session_state["yr_bks_to"])
             searched = st.form_submit_button("Search")
             if searched:
-                if yearFrom == "":
+                st.session_state["go_bks_yr"] = True
+                st.rerun()
+            elif st.session_state["go_bks_yr"]:
+                if st.session_state["yr_bks_from"] == "":
                     st.markdown(":red[no start year given.]")
                 else:
-                    if yearTo == "":
+                    if st.session_state["yr_bks_to"] == "":
                         st.markdown(":red[no end year given.]")
                     else:
-                        if not super().isValidYearFormat(yearFrom, "%Y"):
+                        if not self.isValidYearFormat(st.session_state["yr_bks_from"], "%Y"):
                             st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if not super().isValidYearFormat(yearTo, "%Y"):
+                            if not self.isValidYearFormat(st.session_state["yr_bks_to"], "%Y"):
                                 st.markdown(":red[To year is not in format yyyy.]")
                             else:
-                                if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                if date(int(st.session_state["yr_bks_from"]), 1,
+                                        1) > date(int(st.session_state["yr_bks_to"]), 1, 1):
                                     st.markdown(":red[From year cannot be greater than To year.]")
                                 else:
-                                    self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", yearFrom, yearTo)
+                                    self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", st.session_state["yr_bks_from"],
+                                                    st.session_state["yr_bks_to"])
 
     def ants_all(self):
+        if "go_ants_all" not in st.session_state:
+            st.session_state["go_ants_all"] = False
         with st.form("Search for all annotations"):
             st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
             searched = st.form_submit_button("Search")
             if searched:
+                st.session_state["go_ants_all"] = True
+                st.rerun()
+            elif st.session_state["go_ants_all"]:
                 self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
 
     def ants_yr_read(self):
         with st.form("Search for annotations by year book titles read"):
-            yearFrom = st.text_input("From year (yyyy)")
-            yearTo = st.text_input("To year (yyyy)")
+            if "go_ants_yr" not in st.session_state:
+                st.session_state["go_ants_yr"] = False
+            if "yr_ants_from" not in st.session_state:
+                st.session_state["yr_ants_from"] = ""
+            if "yr_ants_to" not in st.session_state:
+                st.session_state["yr_ants_to"] = ""
+            st.session_state["yr_ants_from"] = st.text_input("From year (yyyy)", value=st.session_state["yr_ants_from"])
+            st.session_state["yr_ants_to"] = st.text_input("To year (yyyy)", value=st.session_state["yr_ants_to"])
             searched = st.form_submit_button("Search")
             if searched:
-                if yearFrom == "":
+                st.session_state["go_ants_yr"] = True
+                st.rerun()
+            elif st.session_state["go_ants_yr"]:
+                if st.session_state["yr_ants_from"] == "":
                     st.markdown(":red[no start year given.]")
                 else:
-                    if yearTo == "":
+                    if st.session_state["yr_ants_to"] == "":
                         st.markdown(":red[no end year given.]")
                     else:
-                        if not super().isValidYearFormat(yearFrom, "%Y"):
+                        if not self.isValidYearFormat(st.session_state["yr_ants_from"], "%Y"):
                             st.markdown(":red[From year is not in format yyyy.]")
                         else:
-                            if not super().isValidYearFormat(yearTo, "%Y"):
+                            if not self.isValidYearFormat(st.session_state["yr_ants_to"], "%Y"):
                                 st.markdown(":red[To year is not in format yyyy.]")
                             else:
-                                if date(int(yearFrom), 1, 1) > date(int(yearTo), 1, 1):
+                                if date(int(st.session_state["yr_ants_from"]), 1, 1) > date(int(st.session_state["yr_ants_to"]),
+                                                                                                1, 1):
                                     st.markdown(":red[From year cannot be greater than To year.]")
                                 else:
-                                    self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", yearFrom, yearTo)
+                                    self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", st.session_state["yr_ants_from"],
+                                                    st.session_state["yr_ants_to"])
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
-        sourceData = super().get_data_source()
-        conn = super().get_connection(sourceData)
+        sourceData = self.get_data_source()
+        conn = self.get_connection(sourceData)
         st.header("Database Records")
         if searchSelection == self.dict_searches.get("ants_srch_txt"):
             self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
@@ -195,9 +288,9 @@ class DATA_FORM(form_sr.FORM):
     def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
         resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                                                          super().format_sql_wrap(auth),
+                                                                          self.format_sql_wrap(auth),
                                                                           searchTxtArr)
-        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), super().format_sql_wrap(auth),
+        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.format_sql_wrap(auth),
                                                                           searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndAuthor))
         for ant in annots:
@@ -205,31 +298,31 @@ class DATA_FORM(form_sr.FORM):
 
     def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
         searchTxtArr = self.__formatSearchText(searchText)
-        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), super().format_sql_wrap(bk),
+        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.format_sql_wrap(bk),
                                                                                      searchTxtArr)
-        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  super().format_sql_wrap(bk),
+        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.format_sql_wrap(bk),
                                                                          searchTxtArr)
         st.write("Found {} results.".format(resCountSrchStrAndBook))
         for ant in annots:
             self.__markdown_srch_res(ant, searchTxtArr)
 
     def __show_srch_ants_bk(self, sourceData, conn, bk):
-        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), super().format_sql_wrap(bk))
-        annots = sourceData.selectAnnotsbyBook(conn.cursor(), super().format_sql_wrap(bk))
+        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
+        annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
         st.write("Found {} results.".format(resCountBooks))
         for ant in annots:
             self.__markdown_srch_res(ant, "")
 
     def __show_srch_ants_auth(self, sourceData, conn, auth):
-        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), super().format_sql_wrap(auth))
-        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), super().format_sql_wrap(auth))
+        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
+        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
         st.write("Found {} results.".format(resCountAuthor))
         for ant in annots:
             self.__markdown_srch_res(ant, "")
 
     def __show_srch_bks_auth(self, sourceData, conn, auth):
-        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), super().format_sql_wrap(auth))
-        annots = sourceData.selectBooksByAuthor(conn.cursor(), super().format_sql_wrap(auth))
+        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
+        annots = sourceData.selectBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
         st.write("Found {} results.".format(resCountBks))
         for ant in annots:
             self.__markdown_bks_res(ant)
@@ -239,7 +332,7 @@ class DATA_FORM(form_sr.FORM):
         books = sourceData.selectBooksAll(conn.cursor())
         st.write("Found {} results.".format(resCountBooksAll))
         if resCountBooksAll > 0:
-            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note super().format_book_no() not working
+            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note self.format_book_no() not working
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
@@ -274,7 +367,7 @@ class DATA_FORM(form_sr.FORM):
         books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
         st.write("Found {} results.".format(resCountBooksYearRead))
         if resCountBooksYearRead > 0:
-            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note super().format_book_no() not working
+            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note self.format_book_no() not working
                                 bk.__getattribute__('Book Title'),
                                 bk.Author,
                                 bk.Publisher,
@@ -340,7 +433,7 @@ class DATA_FORM(form_sr.FORM):
             .format(
                 title=ant.__getattribute__('Book Title'),
                 author=ant.Author,
-                pageno=super().format_page_no(ant.__getattribute__('Page No')),
+                pageno=self.format_page_no(ant.__getattribute__('Page No')),
                 sourcetext=srcText
             )
         )
@@ -391,9 +484,9 @@ class DATA_FORM(form_sr.FORM):
     def __formatSearchText(self, searchText):
         searchArr = []
         if searchText.find(",") == -1:
-            searchArr.append(super().format_sql_wrap(searchText))
+            searchArr.append(self.format_sql_wrap(searchText))
         else:
             searchTxt = searchText.split(",")
             for txt in searchTxt:
-                searchArr.append(super().format_sql_wrap(txt))
+                searchArr.append(self.format_sql_wrap(txt))
         return searchArr

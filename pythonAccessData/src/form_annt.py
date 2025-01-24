@@ -1,12 +1,11 @@
 import streamlit as st
 from spellchecker import SpellChecker
 import form_sr
-import form_bk
 
 class EDIT_ANNOT(form_sr.FORM):
 
-    book_worker = form_bk.EDIT_BOOK()
-    book_remover = form_bk.DEL_BOOK()
+    def __init__(self):
+        super().__init__()
 
     dict_edit_annot_nonmenu_flags = {
         "ants_edt_add_bk_srch": "Search for book for new annotation",
@@ -112,7 +111,7 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.markdown(":red[Book title must be given.]")
                     elif st.session_state["author"] == "":
                         st.markdown(":red[No author given]")
-                    elif st.session_state["date_published"] != "" and not super().isValidYearFormat(
+                    elif st.session_state["date_published"] != "" and not self.isValidYearFormat(
                                                                                                   st.session_state["date_published"],
                                                                                            "%Y"
                                                                                                  ):
@@ -124,15 +123,15 @@ class EDIT_ANNOT(form_sr.FORM):
             with st.form("Search book results"):
                 book_search = []
                 book_search.append(st.session_state["book_no"]) # not used but needed to set correct index
-                book_search.append(super().format_sql_wrap(st.session_state["book_title"]))
-                book_search.append(super().format_sql_wrap(st.session_state["author"]))
+                book_search.append(self.format_sql_wrap(st.session_state["book_title"]))
+                book_search.append(self.format_sql_wrap(st.session_state["author"]))
                 # TODO - use function created for add update book below
                 if st.session_state["publisher"] != "":
-                    book_search.append(super().format_sql_wrap(st.session_state["publisher"]))
+                    book_search.append(self.format_sql_wrap(st.session_state["publisher"]))
                 else:
                     book_search.append("")
                 if st.session_state["date_published"] != "":
-                    book_search.append(super().format_sql_wrap(str(st.session_state["date_published"])))
+                    book_search.append(self.format_sql_wrap(str(st.session_state["date_published"])))
                 else:
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, True)
@@ -155,8 +154,8 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.session_state["book_no"] = bk.__getattribute__('Book No')
                         st.session_state["book_title"] = bk.__getattribute__('Book Title')
                         st.session_state["author"] = bk.Author
-                        st.session_state["publisher"] = super().conv_none_for_db(bk.Publisher)
-                        st.session_state["date_published"] = super().conv_none_for_db(bk.Dat)
+                        st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
+                        st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
                     self.__show_bk_srch_res()
                     btn_annot_go = st.form_submit_button(label="Create or edit annotation")
                     btn_annot_back = st.form_submit_button(label="Back")
@@ -209,7 +208,6 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.rerun()
             # TODO - get below working (btn above is disabled while not
             #if add_nw_bk:
-            #    self.book_worker.add_new_bk()
         elif st.session_state["form_flow"] == "create_the_new_annotation":
             with st.form("New annotation"):
                 self.__show_bk_srch_res()
@@ -252,9 +250,9 @@ class EDIT_ANNOT(form_sr.FORM):
                     stops_txt = ["..."]
                     if st.session_state["annot_txt_area"] == "":
                         st.markdown(":red[No annotation to spell check.]")
-                    elif super().has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
+                    elif self.has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
                         st.markdown(":red[text cannot contain a bracket immediately enclosing a space chracter e.g. '( ', ' }'.]")
-                    elif super().has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
+                    elif self.has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
                         st.markdown(":red[text cannot contain 3 consecutive full-stops (2 are allowed).]")
                     else:
                         self.spell_chk()
@@ -275,7 +273,7 @@ class EDIT_ANNOT(form_sr.FORM):
                     else:
                         annot_record = [st.session_state["book_no"],
                                         st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
-                                        super().formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
+                                        self.formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
                                         ]
                         self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
                                         annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
@@ -444,8 +442,8 @@ class EDIT_ANNOT(form_sr.FORM):
                     st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-        sourceData = super().get_data_source()
-        conn = super().get_connection(sourceData)
+        sourceData = self.get_data_source()
+        conn = self.get_connection(sourceData)
         if searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"):
             return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
