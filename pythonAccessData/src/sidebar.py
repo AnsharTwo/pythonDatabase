@@ -57,6 +57,21 @@ class SIDEBAR (form_sr.FORM):
         else:
             if st.session_state["select_edit_form_selected"] != "None":
                 return st.session_state["select_edit_form_selected"]
+        # INCORPORATE CODE BELOW INTO THE ABOVE
+        # if listTitle not in st.session_state:
+        #     st.session_state.listTitle = ""
+        # #values_list = list(selectListDict.values())
+        #
+        # st.header(listHeader)
+        # st.session_state["select_edit_form_selected"] = st.selectbox(listTitle, options=[
+        #         value
+        #     for value in selectListDict.values()
+        # ], key=listTitle, placeholder=st.session_state.listTitle)
+        #
+        # if st.session_state["select_edit_form_selected"] != "None":
+        #     print("item " + st.session_state[listTitle])
+        #     return st.session_state["select_edit_form_selected"]
+
 
     def init_sidebars(self):
         db_viewer = form_view.DATA_FORM()
