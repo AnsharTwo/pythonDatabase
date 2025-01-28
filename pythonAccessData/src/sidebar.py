@@ -57,7 +57,6 @@ class SIDEBAR (form_sr.FORM):
         else:
             if st.session_state["select_edit_form_selected"] != "None":
                 return st.session_state["select_edit_form_selected"]
-                #####
 
     def init_sidebars(self):
         db_viewer = form_view.DATA_FORM()
