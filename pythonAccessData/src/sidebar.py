@@ -26,52 +26,21 @@ class SIDEBAR (form_sr.FORM):
         "Edit": "Do"
     }
 
-    def select_edit_form(self, listHeader, listTitle, selectListDict):
-        if "select_edit_form_selected" not in st.session_state:
-            st.session_state["select_edit_form_selected"] = "None"
-        if "select_edit_form_index" not in st.session_state:
-            st.session_state["select_edit_form_index"] = 0
-        if "select_edit_form_rerun" not in st.session_state:
-            st.session_state["select_edit_form_rerun"] = False
+    def select_edit_formx(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
+        if 'selectbox_option' not in st.session_state:
+            st.session_state["selectbox_option"] = 0
         st.header(listHeader)
-        editSelection = st.selectbox(listTitle, [
+        edt_selection = st.selectbox(listTitle,
+            [
                 value
-            for value in selectListDict.values()
-        ], index=st.session_state["select_edit_form_index"])
-        if not st.session_state["select_edit_form_rerun"]:
-            st.session_state["select_edit_form_selected"] = editSelection
-            for c in range(0, len(values_list)):
-
-                print("editSelection " + st.session_state["select_edit_form_selected"])
-                print("dict item " + str(values_list[c]) + " " + str(c))
-
-                if st.session_state["select_edit_form_selected"] == str(values_list[c]):
-                    print("Got to index " + str(c))
-                    st.session_state["select_edit_form_index"] = c
-
-            print("========================================")
-
-            st.session_state["select_edit_form_rerun"] = True
-            st.rerun()
-        else:
-            if st.session_state["select_edit_form_selected"] != "None":
-                return st.session_state["select_edit_form_selected"]
-        # INCORPORATE CODE BELOW INTO THE ABOVE
-        # if listTitle not in st.session_state:
-        #     st.session_state.listTitle = ""
-        # #values_list = list(selectListDict.values())
-        #
-        # st.header(listHeader)
-        # st.session_state["select_edit_form_selected"] = st.selectbox(listTitle, options=[
-        #         value
-        #     for value in selectListDict.values()
-        # ], key=listTitle, placeholder=st.session_state.listTitle)
-        #
-        # if st.session_state["select_edit_form_selected"] != "None":
-        #     print("item " + st.session_state[listTitle])
-        #     return st.session_state["select_edit_form_selected"]
-
+                for value in selectListDict.values()
+            ],
+            index=st.session_state["selectbox_option"]
+        )
+        st.session_state["selectbox_option"] = values_list.index(edt_selection)
+        if edt_selection != "None":
+            return edt_selection
 
     def init_sidebars(self):
         db_viewer = form_view.DATA_FORM()
@@ -86,7 +55,7 @@ class SIDEBAR (form_sr.FORM):
                                                                 self.dict_data_app.get("urlExcel"), "None"])
         if dropSelectApp == self.dict_data_app.get("annotDb"):
             with tabViewData:
-                itm_slctd = self.select_edit_form(db_viewer.dict_List_view.get("header"),
+                itm_slctd = self.select_edit_formx(db_viewer.dict_List_view.get("header"),
                                                         db_viewer.dict_List_view.get("title"),
                                                         db_viewer.dict_searches)
                 if itm_slctd == db_viewer.dict_searches.get("ants_srch_txt"):
