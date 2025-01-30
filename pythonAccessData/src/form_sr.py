@@ -33,13 +33,21 @@ class FORM:
         return conn
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
+        values_list = list(selectListDict.values())
+        sel_opt = 'selectbox_option_' + listTitle
+        if sel_opt not in st.session_state:
+            st.session_state[sel_opt] = 0
         st.header(listHeader)
-        editSelection = st.selectbox(listTitle, [
+        edt_selection = st.selectbox(listTitle,
+            [
                 value
-            for value in selectListDict.values()
-        ])
-        if editSelection != "None":
-            return editSelection
+                for value in selectListDict.values()
+            ],
+            index=st.session_state[sel_opt]
+        )
+        st.session_state[sel_opt] = values_list.index(edt_selection)
+        if edt_selection != "None":
+            return edt_selection
 
     def isValidYearFormat(self, year, format):
         try:

@@ -26,22 +26,6 @@ class SIDEBAR (form_sr.FORM):
         "Edit": "Do"
     }
 
-    def select_edit_formx(self, listHeader, listTitle, selectListDict):
-        values_list = list(selectListDict.values())
-        if 'selectbox_option' not in st.session_state:
-            st.session_state["selectbox_option"] = 0
-        st.header(listHeader)
-        edt_selection = st.selectbox(listTitle,
-            [
-                value
-                for value in selectListDict.values()
-            ],
-            index=st.session_state["selectbox_option"]
-        )
-        st.session_state["selectbox_option"] = values_list.index(edt_selection)
-        if edt_selection != "None":
-            return edt_selection
-
     def init_sidebars(self):
         db_viewer = form_view.DATA_FORM()
         annt_worker_form = form_annt.EDIT_ANNOT()
@@ -55,7 +39,7 @@ class SIDEBAR (form_sr.FORM):
                                                                 self.dict_data_app.get("urlExcel"), "None"])
         if dropSelectApp == self.dict_data_app.get("annotDb"):
             with tabViewData:
-                itm_slctd = self.select_edit_formx(db_viewer.dict_List_view.get("header"),
+                itm_slctd = self.select_edit_form(db_viewer.dict_List_view.get("header"),
                                                         db_viewer.dict_List_view.get("title"),
                                                         db_viewer.dict_searches)
                 if itm_slctd == db_viewer.dict_searches.get("ants_srch_txt"):
