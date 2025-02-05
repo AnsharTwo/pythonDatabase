@@ -45,9 +45,12 @@ class FORM:
             ],
             index=st.session_state[sel_opt]
         )
-        st.session_state[sel_opt] = values_list.index(edt_selection)
-        if edt_selection != "None":
-            return edt_selection
+        if values_list.index(edt_selection) != st.session_state[sel_opt]:
+            st.session_state[sel_opt] = values_list.index(edt_selection)
+            st.rerun()
+        else:
+            if edt_selection != "None":
+                return edt_selection
 
     def isValidYearFormat(self, year, format):
         try:
