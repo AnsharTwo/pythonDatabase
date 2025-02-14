@@ -8,8 +8,9 @@ import form_sheet_edit
 
 class SIDEBAR (form_sr.FORM):
 
-    def __init__(self):
+    def __init__(self, name_of_user):
         super().__init__()
+        self.user = name_of_user
 
     dict_data_app = {
         "annotDb": "Annotations database",
@@ -35,6 +36,7 @@ class SIDEBAR (form_sr.FORM):
         sheetForm = form_sheet.SHEET_FORM()
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
         tabViewData, tabEditData = st.tabs([self.dict_tabh_drs.get("Read"), self.dict_tabh_drs.get("Edit")])
+        st.sidebar.write(":green[Welcome, {}!]".format(self.user))
         dropSelectApp = st.sidebar.selectbox("Select to view", [self.dict_data_app.get("annotDb"),
                                                                 self.dict_data_app.get("urlExcel"), "None"])
         if dropSelectApp == self.dict_data_app.get("annotDb"):

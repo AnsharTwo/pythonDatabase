@@ -27,11 +27,13 @@ class LOGIN(form_sr.FORM):
     def login_to_app(self):
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
-        authenticator.login(location='main')
+        st.header(":blue[Librotate]")
+        authenticator.login(location='main', max_concurrent_users=100, captcha=False, single_session=False, clear_on_submit=False,
+                            key="lbrtt_auth_01")
         if st.session_state["authentication_status"]:
-            sbar = sidebar.SIDEBAR()
+            sbar = sidebar.SIDEBAR(st.session_state.name)
             sbar.init_sidebars()
-            authenticator.logout()
+            authenticator.logout(location="sidebar")
         elif st.session_state["authentication_status"] is None:
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
