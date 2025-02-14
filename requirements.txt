@@ -2,3 +2,4 @@ pyodbc
 streamlit
 pandas
 spellchecker
+streamlit-authenticator

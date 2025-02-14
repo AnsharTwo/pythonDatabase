@@ -1,4 +1,4 @@
-import sidebar
+import form_auth
 
-sbar = sidebar.SIDEBAR()
-sbar.init_sidebars()
+login = form_auth.LOGIN()
+login.login_to_app()
