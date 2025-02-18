@@ -11,7 +11,7 @@ class LOGIN(form_sr.FORM):
         super().__init__()
 
     def create_auth_ojb(self):
-        with open('auth/auths.YAML') as file:
+        with open('../auth/auths.YAML') as file:
             ath_cnfg = yaml.load(file, Loader=SafeLoader)
             return ath_cnfg
 
@@ -34,6 +34,9 @@ class LOGIN(form_sr.FORM):
             sbar = sidebar.SIDEBAR(st.session_state.name)
             sbar.init_sidebars()
             authenticator.logout(location="sidebar")
+            if st.session_state["authentication_status"] is None:
+                st.session_state.clear()
+                st.rerun()
         elif st.session_state["authentication_status"] is None:
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
