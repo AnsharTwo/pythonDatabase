@@ -30,7 +30,6 @@ class SIDEBAR (form_sr.FORM):
     def init_sidebars(self):
         db_viewer = form_view.DATA_FORM()
         annt_worker_form = form_annt.EDIT_ANNOT()
-        annt_worker_del_form = form_annt.DEL_ANNOT()
         bk_worker_form = form_bk.EDIT_BOOK()
         bk_worker_del_form = form_bk.DEL_BOOK()
         sheetForm = form_sheet.SHEET_FORM()
@@ -78,8 +77,6 @@ class SIDEBAR (form_sr.FORM):
                     annt_worker_form.edt_new_annot()
                 elif itm_slctd == self.dict_list_wrkr_items.get("bk_add_update_bk"):
                     bk_worker_form.add_new_bk()
-                elif itm_slctd == self.dict_list_wrkr_items.get("ants_edt_dlt"):
-                    annt_worker_del_form.dlt_annot()
                 elif itm_slctd == self.dict_list_wrkr_items.get("bk_dlt"):
                     bk_worker_del_form.dlt_bk()
         elif dropSelectDataApp == self.dict_edit_data_app.get("urlExcel"):

@@ -10,7 +10,7 @@ class EDIT_ANNOT(form_sr.FORM):
     dict_edit_annot_nonmenu_flags = {
         "ants_edt_add_bk_srch": "Search for book for new annotation",
         "ants_edt_add_srch_ppg_no": "search for page number",
-        "ants_edt_add_updte_annot": "add or update annotation",
+        "ants_edt_add_updte_annot": "add update or delete annotation",
     }
 
     dict_db_fld_validations = {
@@ -259,6 +259,8 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.rerun()
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
+                btn_delete_annot = st.form_submit_button("Delete annotation")
+                # TODO - continue here, also add column for these buttons
                 if discard_doing_new_annot:
                     st.session_state["annot_sql_done"] = False
                     st.session_state["has_annot"] = False
@@ -484,7 +486,7 @@ class EDIT_ANNOT(form_sr.FORM):
             if cols[2].form_submit_button('UnSelect All'):
                 for datum in data:
                     st.session_state['dynamic_checkbox_' + datum] = False
-            if cols[3].form_submit_button('Back/Discard'):
+            if cols[3].form_submit_button('Back/Discard changes'):
                 st.session_state["annot_text"] = st.session_state["annot_txt_area"] # revoke to text in text area
                 st.session_state["spell_txt_area"] = ""
                 st.session_state["mis_spelled"] = []
@@ -589,7 +591,3 @@ class EDIT_ANNOT(form_sr.FORM):
         temp__wrd = wrd[colour_prefix + 1:]
         temp__wrd = temp__wrd[0:len(temp__wrd) - 1] # rem ] (markdown closure bracket)
         return(temp__wrd)
-
-class DEL_ANNOT(form_sr.FORM):
-    def dlt_annot(self):
-        st.write("Page is under construction - delete annotation. Check back real soon.")
