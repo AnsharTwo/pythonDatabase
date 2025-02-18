@@ -1,14 +1,14 @@
 credentials:
   usernames:
     robAsc01:
-      email:  robert.tomsett@btinternet.com
-      name: Rob
-      password: $2b$12$.ac/.oK8c7Um8x3JDz/BoeL/GbNYahQevz/eNnGQEsiz3Fta7yeFm
+      email:
+      name:
+      password:
     guest01:
-      email:  robert.annexe@gmail.com
-      name: Guest
-      password: $2b$12$UPPcr.wNESLBATr3w8JJve8/XQm4wWtrhwCQqo/VoG401HV2ztALC
+      email:
+      name:
+      password:
 cookie:
-  expiry_days: 30
-  key: rk43m9rfo54lf0rn # Must be string
-  name: cknm_309zx
+  expiry_days:
+  key:
+  name:
