@@ -10,7 +10,8 @@ class EDIT_ANNOT(form_sr.FORM):
     dict_edit_annot_nonmenu_flags = {
         "ants_edt_add_bk_srch": "Search for book for new annotation",
         "ants_edt_add_srch_ppg_no": "search for page number",
-        "ants_edt_add_updte_annot": "add update or delete annotation",
+        "ants_edt_add_updte_annot": "add or update annotation",
+        "ants_edt_del_annot": "delete annotation",
     }
 
     dict_db_fld_validations = {
@@ -95,6 +96,8 @@ class EDIT_ANNOT(form_sr.FORM):
             st.session_state["spell_txt_area"] = ""
         if "has_annot" not in st.session_state:
             st.session_state["has_annot"] = False
+        if "del_annot" not in st.session_state:
+            st.session_state["del_annot"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -259,8 +262,22 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.rerun()
                 add_update_annot = st.form_submit_button("Add or update annotation")
                 discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
-                btn_delete_annot = st.form_submit_button("Delete annotation")
-                # TODO - continue here, also add column for these buttons
+                if st.session_state["has_annot"]:
+                    btn_delete_annot = st.form_submit_button("Delete annotation")
+                    if btn_delete_annot:
+                        st.session_state["del_annot"] = True
+                        annot_del_record = [st.session_state["book_no"],
+                                            st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
+                                        ]
+                        self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_del_annot"),
+                                        annot_del_record, False)
+                        st.session_state["annot_sql_done"] = False
+                        st.session_state["has_annot"] = False
+                        st.session_state["visited_spell_check"] = False
+                        st.session_state["annot_text"] = ""
+                        self.annot_success_new_annot()
+                        st.rerun()
+
                 if discard_doing_new_annot:
                     st.session_state["annot_sql_done"] = False
                     st.session_state["has_annot"] = False
@@ -427,14 +444,21 @@ class EDIT_ANNOT(form_sr.FORM):
                     st.rerun()
         elif st.session_state["form_flow"] == "post_add_new_annotation":
             with st.form("Annotation done."):
-                st.success("Annotation added.")
-                btn_add_anoth_annot = st.form_submit_button("Add or edit a new annotation")
+                if st.session_state["del_annot"]:
+                    st.info("Annotation deleted.")
+                else:
+                    st.success("Annotation added.")
+                btn_add_anoth_annot = st.form_submit_button("Add edit or delete a new annotation")
                 btn_not_add_annot = st.form_submit_button("Done")
                 if btn_add_anoth_annot:
+                    if st.session_state["del_annot"]:
+                        st.session_state["del_annot"] = False
                     self.annot_new_annot()
                     st.rerun()
                 if btn_not_add_annot:
                     st.session_state["res_multi_books_for_new_annot"] = False # was-multi-srch-result originally (for Back processing)
+                    if st.session_state["del_annot"]:
+                        st.session_state["del_annot"] = False
                     st.session_state["book_no"] = ""
                     st.session_state["book_title"] = ""
                     st.session_state["author"] = ""
@@ -452,6 +476,8 @@ class EDIT_ANNOT(form_sr.FORM):
             return self.__srch_ants_for_exists_annot(sourceData, conn, record)
         elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
             self.__add_update_annot(sourceData, conn, record, getResultsCount)
+        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_del_annot"):
+            self.__delete_annot(sourceData, conn, record)
         conn.close()
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
@@ -467,6 +493,9 @@ class EDIT_ANNOT(form_sr.FORM):
 
     def __add_update_annot(self, sourceData, conn, ant, annotExists):
         sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
+
+    def __delete_annot(self, sourceData, conn, ant):
+        sourceData.deleteAnnot(conn.cursor(), ant)
 
     def __show_bk_srch_res(self):
         st.markdown(":blue[Title:] :orange[{}]\r\r".format(
