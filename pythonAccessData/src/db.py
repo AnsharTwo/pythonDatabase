@@ -281,6 +281,15 @@ class DATA_SOURCE:
             pyodbc_state = ex.args[1]
             st.write(pyodbc_state)
 
+    def deleteAnnot(self, cursor, ant):
+        cursor.execute(self.dict_deletes.get("annots_del").format(str(ant[self.dict_annots_indx.get("book_no")]),
+                                                                        str(ant[self.dict_annots_indx.get("page_no")])))
+        try:
+            cursor.commit()
+        except pyodbc.Error as ex:
+            pyodbc_state = ex.args[1]
+            st.write(pyodbc_state)
+
     def __sql_bk_srch(self, isCountQuery, book):
         if isCountQuery:
             prefix_sqlStr = self.dict_queries.get("bk_add_edit_count")
@@ -496,7 +505,6 @@ class DATA_SOURCE:
         "bk_add_edit_date_frst_edtn_nm": " AND [First Edition Name] LIKE ('{}')",
         "bk_add_edit_date_frst_edtn_pb": " AND [First Edition Publisher] LIKE ('{}')",
         "bk_add_edit_order": " ORDER BY [Book No]"
-
     }
 
     dict_inserts = {
@@ -518,4 +526,8 @@ class DATA_SOURCE:
                                       Books.[First Edition Locale] = ('{}'), Books.[First Edition Name] = ('{}'),
                                       Books.[First Edition Publisher] = ('{}')
                                WHERE Books.[Book No] = ('{}')"""
+    }
+
+    dict_deletes = {
+        "annots_del": "DELETE FROM [Source Text] WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')"
     }
