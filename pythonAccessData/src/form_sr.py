@@ -16,8 +16,7 @@ class FORM:
     dict_list_wrkr_items = {
         "None": "none",
         "ants_edt_add": "Create update or delete annotation",
-        "bk_add_update_bk": "Add or update a book",
-        "bk_dlt": "Delete a book",
+        "bk_add_update_bk": "Create update or delete book",
     }
 
     def get_data_source(self):

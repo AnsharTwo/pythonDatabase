@@ -9,7 +9,8 @@ class EDIT_BOOK(form_sr.FORM):
     dict_flow_flags = {
         "bk_add_update_bk": "Add or update a book",
         "bk_add_edit_is_full_match": "Book search for exact title match",
-        "bk_add_edit_bk_write": "Book to database"
+        "bk_add_edit_bk_write": "Book to database",
+        "bk_del": "delete book"
     }
 
     dict_db_fld_validations = {
@@ -54,6 +55,12 @@ class EDIT_BOOK(form_sr.FORM):
             st.session_state["bk_add_from_part_match"] = False
         if "bk_res_multi_books_part_mtch_srch" not in st.session_state:
             st.session_state["bk_res_multi_books_part_mtch_srch"] = False
+        if "del_bk" not in st.session_state:
+            st.session_state["del_bk"] = ""
+        if "del_bk_yes" not in st.session_state:
+            st.session_state["del_bk_yes"] = ""
+        if "del_bk_no" not in st.session_state:
+            st.session_state["del_bk_no"] = ""
         if "srch_book_title" not in st.session_state:
             st.session_state["srch_book_title"] = ""
         if "bk_book_title" not in st.session_state:
@@ -316,72 +323,106 @@ class EDIT_BOOK(form_sr.FORM):
                     if sbmt_bk:
                         self.add_updt_bk_sbmttd()
                         st.rerun()
+
+                if st.session_state["bk_is_editing"]:
+                    btn_del_bk = st.form_submit_button("Delete book")
+                    if btn_del_bk:
+                        st.session_state["del_bk"] = True
+                        self.add_updt_bk_sbmttd()
+                        st.rerun()
+
         if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
-            book = []
-            if st.session_state["bk_is_editing"]:
-                book.append(self.format_sql_wrap(st.session_state["res1_bk_book_no"]))
-            else:
-                book.append("")
-            book.append(self.format_sql_wrap(st.session_state["bk_book_title"]))
-            book.append(self.format_sql_wrap(st.session_state["bk_author"]))
-            book.append(self.append_for_db_write(st.session_state["bk_publisher"]))
-            book.append(self.append_for_db_write(st.session_state["bk_date_pub"]))
-            book.append(self.append_for_db_write(st.session_state["bk_year_read"]))
-            book.append(self.append_for_db_write(st.session_state["bk_pub_location"]))
-            book.append(self.append_for_db_write(st.session_state["bk_edition"]))
-            book.append(self.append_for_db_write(st.session_state["bk_first_edition"]))
-            book.append(self.append_for_db_write(st.session_state["bk_first_edition_locale"]))
-            book.append(self.append_for_db_write(st.session_state["bk_first_edition_name"]))
-            book.append(self.append_for_db_write(st.session_state["bk_first_edition_publisher"]))
+
             with st.form("Book submission"):
-                if not st.session_state["bk_is_editing"]:
-                    if st.session_state["bk_add_from_part_match"]:
-                        bk_title = []
-                        bk_title.append(self.formatSQLSpecialChars(
-                            st.session_state["bk_book_title"]))  # i.e. without padding with % (need exact mtch)
-                        temp_bk_sum = self.db_records(
-                            self.dict_flow_flags.get("bk_add_edit_is_full_match"),
-                            bk_title, True)
-                        if temp_bk_sum == 0:
+
+                if not st.session_state["del_bk"]:
+
+                    book = []
+                    if st.session_state["bk_is_editing"]:
+                        book.append(self.format_sql_wrap(st.session_state["res1_bk_book_no"]))
+                    else:
+                        book.append("")
+                    book.append(self.format_sql_wrap(st.session_state["bk_book_title"]))
+                    book.append(self.format_sql_wrap(st.session_state["bk_author"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_publisher"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_date_pub"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_year_read"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_pub_location"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_edition"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_first_edition"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_first_edition_locale"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_first_edition_name"]))
+                    book.append(self.append_for_db_write(st.session_state["bk_first_edition_publisher"]))
+                    if not st.session_state["bk_is_editing"]:
+                        if st.session_state["bk_add_from_part_match"]:
+                            bk_title = []
+                            bk_title.append(self.formatSQLSpecialChars(
+                                st.session_state["bk_book_title"]))  # i.e. without padding with % (need exact mtch)
+                            temp_bk_sum = self.db_records(
+                                self.dict_flow_flags.get("bk_add_edit_is_full_match"),
+                                bk_title, True)
+                            if temp_bk_sum == 0:
+                                self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
+                                self.add_updt_bk_added()
+                                st.rerun()
+                            else:
+                                st.warning("Book title already exists.")
+                                btn_again_bk_add = st.form_submit_button("Return to book form")
+                                btn_abndn_bk_add = st.form_submit_button("Leave adding book")
+                                if btn_abndn_bk_add:
+                                    if st.session_state["bk_is_editing"]:
+                                        st.session_state["bk_is_editing"] = False
+                                    if st.session_state["bk_add_from_part_match"]:
+                                        st.session_state["bk_add_from_part_match"] = False
+                                    self.__clear_ss_bk_flds()
+                                    self.__clear_ss_res1_bk_flds()
+                                    self.add_updt_bk_srch()
+                                    st.rerun()
+                                if btn_again_bk_add:
+                                    st.session_state["res1_bk_book_title"] = self.conv_none_for_db(st.session_state["srch_book_title"])
+                                    st.session_state["res1_bk_author"] = self.conv_none_for_db(st.session_state["bk_author"])
+                                    st.session_state["res1_bk_publisher"] = self.conv_none_for_db(st.session_state["bk_publisher"])
+                                    st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(st.session_state["bk_date_pub"])
+                                    st.session_state["res1_bk_year_read"] = self.conv_none_for_db(st.session_state["bk_year_read"])
+                                    st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(st.session_state["bk_pub_location"])
+                                    st.session_state["res1_bk_edition"] = self.conv_none_for_db(st.session_state["bk_edition"])
+                                    st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(st.session_state["bk_first_edition"])
+                                    st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(st.session_state["bk_first_edition_locale"])
+                                    st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(st.session_state["bk_first_edition_name"])
+                                    st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(st.session_state["bk_first_edition_publisher"])
+                                    self.__clear_ss_bk_flds()
+                                    self.add_updt_bk_edit()
+                                    st.rerun()
+                        else:
                             self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
                             self.add_updt_bk_added()
                             st.rerun()
-                        else:
-                            st.warning("Book title already exists.")
-                            btn_again_bk_add = st.form_submit_button("Return to book form")
-                            btn_abndn_bk_add = st.form_submit_button("Leave adding book")
-                            if btn_abndn_bk_add:
-                                if st.session_state["bk_is_editing"]:
-                                    st.session_state["bk_is_editing"] = False
-                                if st.session_state["bk_add_from_part_match"]:
-                                    st.session_state["bk_add_from_part_match"] = False
-                                self.__clear_ss_bk_flds()
-                                self.__clear_ss_res1_bk_flds()
-                                self.add_updt_bk_srch()
-                                st.rerun()
-                            if btn_again_bk_add:
-                                st.session_state["res1_bk_book_title"] = self.conv_none_for_db(st.session_state["srch_book_title"])
-                                st.session_state["res1_bk_author"] = self.conv_none_for_db(st.session_state["bk_author"])
-                                st.session_state["res1_bk_publisher"] = self.conv_none_for_db(st.session_state["bk_publisher"])
-                                st.session_state["res1_bk_date_pub"] = self.conv_none_for_db(st.session_state["bk_date_pub"])
-                                st.session_state["res1_bk_year_read"] = self.conv_none_for_db(st.session_state["bk_year_read"])
-                                st.session_state["res1_bk_pub_location"] = self.conv_none_for_db(st.session_state["bk_pub_location"])
-                                st.session_state["res1_bk_edition"] = self.conv_none_for_db(st.session_state["bk_edition"])
-                                st.session_state["res1_bk_first_edition"] = self.conv_none_for_db(st.session_state["bk_first_edition"])
-                                st.session_state["res1_bk_first_edition_locale"] = self.conv_none_for_db(st.session_state["bk_first_edition_locale"])
-                                st.session_state["res1_bk_first_edition_name"] = self.conv_none_for_db(st.session_state["bk_first_edition_name"])
-                                st.session_state["res1_bk_first_edition_publisher"] = self.conv_none_for_db(st.session_state["bk_first_edition_publisher"])
-                                self.__clear_ss_bk_flds()
-                                self.add_updt_bk_edit()
-                                st.rerun()
                     else:
-                        self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
+                        self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, True)
                         self.add_updt_bk_added()
                         st.rerun()
+
                 else:
-                    self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, True)
-                    self.add_updt_bk_added()
-                    st.rerun()
+                    if not st.session_state["del_bk_yes"] and not st.session_state["del_bk_no"]:
+                        st.warning("Confirm deletion of this book?")
+                        cols_del_bk = st.columns(2, gap="small", vertical_alignment="center")
+                        if cols_del_bk[0].form_submit_button("Yes, delete"):
+                            st.session_state["del_bk_yes"] = True
+                            self.add_updt_bk_sbmttd()
+                            st.rerun()
+                        if cols_del_bk[1].form_submit_button("No, don't delete"):
+                            st.session_state["del_bk_no"] = True
+                            self.add_updt_bk_sbmttd()
+                            st.rerun()
+                    if st.session_state["del_bk_yes"]:
+                        del_book = []
+                        del_book.append(self.format_sql_wrap(st.session_state["res1_bk_book_no"]))
+                        self.db_records(self.dict_flow_flags.get("bk_del"),
+                                        del_book, False)
+                    elif st.session_state["del_bk_no"]:
+                        st.session_state["del_bk"] = False
+                        st.session_state["del_bk_no"] = False
+
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
                 if not st.session_state["bk_is_editing"]:
@@ -415,13 +456,17 @@ class EDIT_BOOK(form_sr.FORM):
                 return self.__add_update_book_exact_count(sourceData, conn, record)
             else:
                 return self.__add_update_book_exact(sourceData, conn, record)
-        if searchSelection == self.dict_flow_flags.get("bk_add_update_bk"):
+        elif searchSelection == self.dict_flow_flags.get("bk_add_update_bk"):
             if getResultsCount:
                 return self.__add_update_book_count(sourceData, conn, record)
             else:
                 return self.__add_update_book(sourceData, conn, record)
         elif searchSelection == self.dict_flow_flags.get("bk_add_edit_bk_write"):
            self.__add_update_book_new(sourceData, conn, record, getResultsCount)
+
+        elif searchSelection == self.dict_flow_flags.get("bk_del"):
+           self.__delete_book(sourceData, conn, record)
+
         conn.close()
 
     def __add_update_book_exact_count(self, sourceData, conn, book):
@@ -449,6 +494,9 @@ class EDIT_BOOK(form_sr.FORM):
         if not bk_exists:
             bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
+
+    def __delete_book(self, sourceData, conn, book):
+        sourceData.delete_bk(conn.cursor(), book)
 
     def __add_bk_to_s_state(self, bk):
         st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
@@ -494,7 +542,3 @@ class EDIT_BOOK(form_sr.FORM):
         st.session_state["res1_bk_first_edition_locale"] = ""
         st.session_state["res1_bk_first_edition_name"] = ""
         st.session_state["res1_bk_first_edition_publisher"] = ""
-
-class DEL_BOOK(form_sr.FORM):
-    def dlt_bk(self):
-        st.write("Page is under construction - delete book. Check back real soon.")

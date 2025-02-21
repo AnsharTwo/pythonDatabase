@@ -290,6 +290,14 @@ class DATA_SOURCE:
             pyodbc_state = ex.args[1]
             st.write(pyodbc_state)
 
+    def delete_bk(self, cursor, bk):
+        cursor.execute(self.dict_deletes.get("bk_del").format(str(bk[self.dict_books_indx.get("no")])))
+        try:
+            cursor.commit()
+        except pyodbc.Error as ex:
+            pyodbc_state = ex.args[1]
+            st.write(pyodbc_state)
+
     def __sql_bk_srch(self, isCountQuery, book):
         if isCountQuery:
             prefix_sqlStr = self.dict_queries.get("bk_add_edit_count")
@@ -529,5 +537,6 @@ class DATA_SOURCE:
     }
 
     dict_deletes = {
-        "annots_del": "DELETE FROM [Source Text] WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')"
+        "annots_del": "DELETE FROM [Source Text] WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')",
+        "bk_del": "DELETE FROM Books WHERE Books.[Book No] = ('{}')"
     }
