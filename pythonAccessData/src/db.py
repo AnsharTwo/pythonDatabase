@@ -51,6 +51,10 @@ class DATA_SOURCE:
         res = results.fetchone()
         return res[0]
 
+    def resExactAnnotsbyBook(self, cursor, book_title):
+        results = cursor.execute(self.dict_queries.get("annots_by_bk_exact_count").format(book_title))
+        res = results.fetchone()
+        return res[0]
 
     def selectAnnotsbyBook(self, cursor, book_title):
         annots = cursor.execute(self.dict_queries.get("annots_by_bk").format(book_title))
@@ -394,6 +398,11 @@ class DATA_SOURCE:
                                      INNER JOIN Books 
                                      ON [Source Text].[Book No] = Books.[Book No] 
                                      WHERE Books.[Book Title] LIKE ('{}')""",
+        "annots_by_bk_exact_count": """SELECT COUNT(*) 
+                                 FROM [Source Text] 
+                                 INNER JOIN Books 
+                                 ON [Source Text].[Book No] = Books.[Book No] 
+                                 WHERE Books.[Book Title] = ('{}')""",
         "annots_by_bk": """SELECT [Source Text].[Book No], [Source Text].[Page No], Books.[Book Title], Books.Author,
                                   [Source Text].[Source Text] 
                                FROM [Source Text] 

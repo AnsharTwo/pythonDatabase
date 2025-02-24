@@ -10,7 +10,12 @@ class EDIT_BOOK(form_sr.FORM):
         "bk_add_update_bk": "Add or update a book",
         "bk_add_edit_is_full_match": "Book search for exact title match",
         "bk_add_edit_bk_write": "Book to database",
-        "bk_del": "delete book"
+        "bk_del": "delete book",
+        "bk_del_Annots_count": "deleted book annot count"
+    }
+
+    dict_bk_rec_indx = {
+        "bk_no": 0
     }
 
     dict_db_fld_validations = {
@@ -56,11 +61,13 @@ class EDIT_BOOK(form_sr.FORM):
         if "bk_res_multi_books_part_mtch_srch" not in st.session_state:
             st.session_state["bk_res_multi_books_part_mtch_srch"] = False
         if "del_bk" not in st.session_state:
-            st.session_state["del_bk"] = ""
+            st.session_state["del_bk"] = False
         if "del_bk_yes" not in st.session_state:
-            st.session_state["del_bk_yes"] = ""
+            st.session_state["del_bk_yes"] = False
         if "del_bk_no" not in st.session_state:
-            st.session_state["del_bk_no"] = ""
+            st.session_state["del_bk_no"] = False
+        if "del_bk_has_annots" not in st.session_state:
+            st.session_state["del_bk_has_annots"] = 0
         if "srch_book_title" not in st.session_state:
             st.session_state["srch_book_title"] = ""
         if "bk_book_title" not in st.session_state:
@@ -404,6 +411,7 @@ class EDIT_BOOK(form_sr.FORM):
 
                 else:
                     if not st.session_state["del_bk_yes"] and not st.session_state["del_bk_no"]:
+                        # TODO query to see if book has annots and use st.session_state["del_bk_has_annots"] to if else warning below
                         st.warning("Confirm deletion of this book?")
                         cols_del_bk = st.columns(2, gap="small", vertical_alignment="center")
                         if cols_del_bk[0].form_submit_button("Yes, delete"):
@@ -416,25 +424,44 @@ class EDIT_BOOK(form_sr.FORM):
                             st.rerun()
                     if st.session_state["del_bk_yes"]:
                         del_book = []
-                        del_book.append(self.format_sql_wrap(st.session_state["res1_bk_book_no"]))
+                        del_book.append(st.session_state["res1_bk_book_no"].zfill(
+                                                    self.dict_bk_rec_indx.get("bk_no")))
                         self.db_records(self.dict_flow_flags.get("bk_del"),
                                         del_book, False)
+                        bk_annots_cnt = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
+                                        del_book, False)
+                        if bk_annots_cnt > 0:
+                            st.session_state["del_bk_has_annots"] = bk_annots_cnt
+                            # TODO - db records to delete assoc. annotations. (db.py code and sql not yet done)
+
+                        self.add_updt_bk_added()
+                        st.rerun()
                     elif st.session_state["del_bk_no"]:
                         st.session_state["del_bk"] = False
                         st.session_state["del_bk_no"] = False
+                        self.add_updt_bk_edit()
+                        st.rerun()
 
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
                 if not st.session_state["bk_is_editing"]:
                     st.success("New book added.")
                 else:
-                    st.success("Book updated.")
-                self.show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
-                                         st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
-                                         st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
-                                         st.session_state["bk_edition"], st.session_state["bk_first_edition"],
-                                         st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
-                                         st.session_state["bk_first_edition_publisher"])
+
+                    if st.session_state["del_bk"]:
+                        if st.session_state["del_bk_has_annots"] == 0:
+                            st.info("Book deleted.")
+                        else:
+                            st.info("""Book deleted (""" + str(st.session_state["del_bk_has_annots"]) + """ annotations 
+                                    associated with this book were also deleted)""")
+                    else:
+                        st.success("Book updated.")
+                        self.show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
+                                                 st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
+                                                 st.session_state["bk_year_read"], st.session_state["bk_pub_location"],
+                                                 st.session_state["bk_edition"], st.session_state["bk_first_edition"],
+                                                 st.session_state["bk_first_edition_locale"], st.session_state["bk_first_edition_name"],
+                                                 st.session_state["bk_first_edition_publisher"])
                 btn_book_done = st.form_submit_button("Leave book add/edits")
                 if btn_book_done:
                     if st.session_state["bk_is_editing"]:
@@ -443,6 +470,15 @@ class EDIT_BOOK(form_sr.FORM):
                         st.session_state["bk_add_from_part_match"] = False
                     if st.session_state["bk_res_multi_books_part_mtch_srch"]:
                         st.session_state["bk_res_multi_books_part_mtch_srch"] = False
+
+                    if st.session_state["del_bk"]:
+                        st.session_state["del_bk"] = False
+                    if st.session_state["del_bk_yes"]:
+                        st.session_state["del_bk_yes"] = False
+                    if st.session_state["del_bk_no"]:
+                        st.session_state["del_bk_no"] = False
+                    st.session_state["del_bk_has_annots"] = 0
+
                     self.__clear_ss_bk_flds()
                     self.__clear_ss_res1_bk_flds()
                     self.add_updt_bk_srch()
@@ -462,10 +498,12 @@ class EDIT_BOOK(form_sr.FORM):
             else:
                 return self.__add_update_book(sourceData, conn, record)
         elif searchSelection == self.dict_flow_flags.get("bk_add_edit_bk_write"):
-           self.__add_update_book_new(sourceData, conn, record, getResultsCount)
+            self.__add_update_book_new(sourceData, conn, record, getResultsCount)
 
         elif searchSelection == self.dict_flow_flags.get("bk_del"):
-           self.__delete_book(sourceData, conn, record)
+            self.__delete_book(sourceData, conn, record)
+        elif searchSelection == self.dict_flow_flags.get("bk_del_Annots_count"):
+            return self.__bk_has_annots_count(sourceData, conn, record)
 
         conn.close()
 
@@ -497,6 +535,9 @@ class EDIT_BOOK(form_sr.FORM):
 
     def __delete_book(self, sourceData, conn, book):
         sourceData.delete_bk(conn.cursor(), book)
+
+    def __bk_has_annots_count(self, sourceData, conn, book):
+        return sourceData.resExactAnnotsbyBook(conn.cursor(), book)
 
     def __add_bk_to_s_state(self, bk):
         st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')
