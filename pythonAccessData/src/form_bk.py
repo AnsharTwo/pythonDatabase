@@ -11,7 +11,8 @@ class EDIT_BOOK(form_sr.FORM):
         "bk_add_edit_is_full_match": "Book search for exact title match",
         "bk_add_edit_bk_write": "Book to database",
         "bk_del": "delete book",
-        "bk_del_Annots_count": "deleted book annot count"
+        "bk_del_Annots_count": "deleted book annot count",
+        "bk_del_Annots": "delete book assoc annotations"
     }
 
     dict_bk_rec_indx = {
@@ -330,20 +331,15 @@ class EDIT_BOOK(form_sr.FORM):
                     if sbmt_bk:
                         self.add_updt_bk_sbmttd()
                         st.rerun()
-
                 if st.session_state["bk_is_editing"]:
                     btn_del_bk = st.form_submit_button("Delete book")
                     if btn_del_bk:
                         st.session_state["del_bk"] = True
                         self.add_updt_bk_sbmttd()
                         st.rerun()
-
         if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
-
             with st.form("Book submission"):
-
                 if not st.session_state["del_bk"]:
-
                     book = []
                     if st.session_state["bk_is_editing"]:
                         book.append(self.format_sql_wrap(st.session_state["res1_bk_book_no"]))
@@ -408,11 +404,17 @@ class EDIT_BOOK(form_sr.FORM):
                         self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, True)
                         self.add_updt_bk_added()
                         st.rerun()
-
                 else:
+                    del_book = []
+                    del_book.append(st.session_state["res1_bk_book_no"].zfill(
+                        self.dict_bk_rec_indx.get("bk_no")))
                     if not st.session_state["del_bk_yes"] and not st.session_state["del_bk_no"]:
-                        # TODO query to see if book has annots and use st.session_state["del_bk_has_annots"] to if else warning below
-                        st.warning("Confirm deletion of this book?")
+                        bk_annots_warn = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
+                                                        del_book, False)
+                        if bk_annots_warn > 0:
+                            st.warning("WARNING: Book has " + str(bk_annots_warn) +  " annotations added. Confirm deletion of this book AND its annotations?")
+                        else:
+                            st.warning("Confirm deletion of this book?")
                         cols_del_bk = st.columns(2, gap="small", vertical_alignment="center")
                         if cols_del_bk[0].form_submit_button("Yes, delete"):
                             st.session_state["del_bk_yes"] = True
@@ -423,17 +425,13 @@ class EDIT_BOOK(form_sr.FORM):
                             self.add_updt_bk_sbmttd()
                             st.rerun()
                     if st.session_state["del_bk_yes"]:
-                        del_book = []
-                        del_book.append(st.session_state["res1_bk_book_no"].zfill(
-                                                    self.dict_bk_rec_indx.get("bk_no")))
                         self.db_records(self.dict_flow_flags.get("bk_del"),
                                         del_book, False)
                         bk_annots_cnt = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
                                         del_book, False)
                         if bk_annots_cnt > 0:
                             st.session_state["del_bk_has_annots"] = bk_annots_cnt
-                            # TODO - db records to delete assoc. annotations. (db.py code and sql not yet done)
-
+                            self.db_records(self.dict_flow_flags.get("bk_del_Annots"), del_book, False)
                         self.add_updt_bk_added()
                         st.rerun()
                     elif st.session_state["del_bk_no"]:
@@ -441,13 +439,11 @@ class EDIT_BOOK(form_sr.FORM):
                         st.session_state["del_bk_no"] = False
                         self.add_updt_bk_edit()
                         st.rerun()
-
         if st.session_state["form_flow_bk"] == "add_update_book_added":
             with st.form("Book added"):
                 if not st.session_state["bk_is_editing"]:
                     st.success("New book added.")
                 else:
-
                     if st.session_state["del_bk"]:
                         if st.session_state["del_bk_has_annots"] == 0:
                             st.info("Book deleted.")
@@ -470,7 +466,6 @@ class EDIT_BOOK(form_sr.FORM):
                         st.session_state["bk_add_from_part_match"] = False
                     if st.session_state["bk_res_multi_books_part_mtch_srch"]:
                         st.session_state["bk_res_multi_books_part_mtch_srch"] = False
-
                     if st.session_state["del_bk"]:
                         st.session_state["del_bk"] = False
                     if st.session_state["del_bk_yes"]:
@@ -478,7 +473,6 @@ class EDIT_BOOK(form_sr.FORM):
                     if st.session_state["del_bk_no"]:
                         st.session_state["del_bk_no"] = False
                     st.session_state["del_bk_has_annots"] = 0
-
                     self.__clear_ss_bk_flds()
                     self.__clear_ss_res1_bk_flds()
                     self.add_updt_bk_srch()
@@ -499,12 +493,12 @@ class EDIT_BOOK(form_sr.FORM):
                 return self.__add_update_book(sourceData, conn, record)
         elif searchSelection == self.dict_flow_flags.get("bk_add_edit_bk_write"):
             self.__add_update_book_new(sourceData, conn, record, getResultsCount)
-
         elif searchSelection == self.dict_flow_flags.get("bk_del"):
             self.__delete_book(sourceData, conn, record)
         elif searchSelection == self.dict_flow_flags.get("bk_del_Annots_count"):
             return self.__bk_has_annots_count(sourceData, conn, record)
-
+        elif searchSelection == self.dict_flow_flags.get("bk_del_Annots"):
+            return self.__bk_has_annots_delete(sourceData, conn, record)
         conn.close()
 
     def __add_update_book_exact_count(self, sourceData, conn, book):
@@ -538,6 +532,9 @@ class EDIT_BOOK(form_sr.FORM):
 
     def __bk_has_annots_count(self, sourceData, conn, book):
         return sourceData.resExactAnnotsbyBook(conn.cursor(), book)
+
+    def __bk_has_annots_delete(self, sourceData, conn, book):
+        sourceData.delExactAnnotsbyBook(conn.cursor(), book)
 
     def __add_bk_to_s_state(self, bk):
         st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')

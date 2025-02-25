@@ -29,6 +29,7 @@ class SIDEBAR (form_sr.FORM):
 
     def init_sidebars(self):
         db_viewer = form_view.DATA_FORM()
+        annt_worker_form = form_annt.EDIT_ANNOT()
         bk_worker_form = form_bk.EDIT_BOOK()
         sheetForm = form_sheet.SHEET_FORM()
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
