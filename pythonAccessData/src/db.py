@@ -32,6 +32,11 @@ class DATA_SOURCE:
         res = results.fetchone()
         return res[0]
 
+    def resBookLatest(self, cursor):
+        result = cursor.execute(self.dict_queries.get("books_max_key"))
+        res = result.fetchone()
+        return res[0]
+
     def selectBooksAll(self, cursor):
         books = cursor.execute(self.dict_queries.get("books_all"))
         return books
@@ -395,6 +400,7 @@ class DATA_SOURCE:
                             ORDER BY [Book No]""",
         "annots_all_count": """SELECT COUNT(*) 
                                    FROM [Source Text]""",
+        "books_max_key": "SELECT MAX([Book No]) FROM Books As Result",
         "annots_all": """SELECT Books.[Book Title], Books.Author, [Source Text].[Page No], [Source Text].[Source Text]  
                              FROM [Source Text]
                              INNER JOIN Books

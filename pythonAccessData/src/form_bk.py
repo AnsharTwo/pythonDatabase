@@ -524,7 +524,7 @@ class EDIT_BOOK(form_sr.FORM):
             book.pop(ctr)
             book.insert(ctr, self.rem_sql_wrap_chars(tmp_fld))
         if not bk_exists:
-            bk_sum = str(sourceData.resBooksAll(conn.cursor()) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
+            bk_sum = str(int(sourceData.resBookLatest(conn.cursor())) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
         sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
 
     def __delete_book(self, sourceData, conn, book):
