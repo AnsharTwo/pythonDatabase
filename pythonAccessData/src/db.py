@@ -32,6 +32,11 @@ class DATA_SOURCE:
         res = results.fetchone()
         return res[0]
 
+    def resBookLatest(self, cursor):
+        result = cursor.execute(self.dict_queries.get("books_max_key"))
+        res = result.fetchone()
+        return res[0]
+
     def selectBooksAll(self, cursor):
         books = cursor.execute(self.dict_queries.get("books_all"))
         return books
@@ -51,6 +56,10 @@ class DATA_SOURCE:
         res = results.fetchone()
         return res[0]
 
+    def resExactAnnotsbyBook(self, cursor, book):
+        results = cursor.execute(self.dict_queries.get("annots_by_bk_exact_count").format(book[self.dict_books_indx.get("no")]))
+        res = results.fetchone()
+        return res[0]
 
     def selectAnnotsbyBook(self, cursor, book_title):
         annots = cursor.execute(self.dict_queries.get("annots_by_bk").format(book_title))
@@ -118,7 +127,6 @@ class DATA_SOURCE:
         return res[0]
 
     def selectAnnotsbySrchStrAndBook(self, cursor, book, searchString):
-
         sqlStr = self.dict_queries.get("annots_by_schstr_and_bk")
         if len(searchString) == 1:
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
@@ -255,6 +263,14 @@ class DATA_SOURCE:
         annots = cursor.execute(sqlStr)
         return annots
 
+    def delExactAnnotsbyBook(self, cursor, book):
+        cursor.execute(self.dict_deletes.get("annots_by_bk_exact_del").format(book[self.dict_books_indx.get("no")]))
+        try:
+            cursor.commit()
+        except pyodbc.Error as ex:
+            pyodbc_state = ex.args[1]
+            st.write(pyodbc_state)
+
     def addNewAnnot_srch_page_no(self, cursor, record):
         annot = cursor.execute(self.dict_queries.get("new_annot_page_no_exists").format(
                                                      str(record[self.dict_annots_indx.get("book_no")]),
@@ -284,6 +300,14 @@ class DATA_SOURCE:
     def deleteAnnot(self, cursor, ant):
         cursor.execute(self.dict_deletes.get("annots_del").format(str(ant[self.dict_annots_indx.get("book_no")]),
                                                                         str(ant[self.dict_annots_indx.get("page_no")])))
+        try:
+            cursor.commit()
+        except pyodbc.Error as ex:
+            pyodbc_state = ex.args[1]
+            st.write(pyodbc_state)
+
+    def delete_bk(self, cursor, bk):
+        cursor.execute(self.dict_deletes.get("bk_del").format(str(bk[self.dict_books_indx.get("no")])))
         try:
             cursor.commit()
         except pyodbc.Error as ex:
@@ -376,6 +400,7 @@ class DATA_SOURCE:
                             ORDER BY [Book No]""",
         "annots_all_count": """SELECT COUNT(*) 
                                    FROM [Source Text]""",
+        "books_max_key": "SELECT MAX([Book No]) FROM Books As Result",
         "annots_all": """SELECT Books.[Book Title], Books.Author, [Source Text].[Page No], [Source Text].[Source Text]  
                              FROM [Source Text]
                              INNER JOIN Books
@@ -386,6 +411,8 @@ class DATA_SOURCE:
                                      INNER JOIN Books 
                                      ON [Source Text].[Book No] = Books.[Book No] 
                                      WHERE Books.[Book Title] LIKE ('{}')""",
+        "annots_by_bk_exact_count": """SELECT COUNT(*) 
+                                 FROM [Source Text] WHERE [Source Text].[Book No] = ('{}')""",
         "annots_by_bk": """SELECT [Source Text].[Book No], [Source Text].[Page No], Books.[Book Title], Books.Author,
                                   [Source Text].[Source Text] 
                                FROM [Source Text] 
@@ -529,5 +556,7 @@ class DATA_SOURCE:
     }
 
     dict_deletes = {
-        "annots_del": "DELETE FROM [Source Text] WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')"
+        "annots_del": "DELETE FROM [Source Text] WHERE [Source Text].[Book No] = ('{}') AND [Source Text].[Page No] = ('{}')",
+        "bk_del": "DELETE FROM Books WHERE Books.[Book No] = ('{}')",
+        "annots_by_bk_exact_del": "DELETE FROM [Source Text] WHERE [Source Text].[Book No] = ('{}')"
     }
