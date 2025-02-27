@@ -79,3 +79,8 @@ class SIDEBAR (form_sr.FORM):
         elif dropSelectDataApp == self.dict_edit_data_app.get("urlExcel"):
             with tabEditData:
                 editSheetForm.select_edit_form_sheet()
+        st.sidebar.divider()
+        cl = st.sidebar.columns(2,gap="small", vertical_alignment="center")
+        cl[0].write("Settings")
+        cl[1].link_button("", f"http://localhost:8501/Settings", icon=":material/settings:", type="secondary", use_container_width=True)
+        st.sidebar.divider()
