@@ -1,0 +1,13 @@
+{
+  "librotate_config":
+  {
+    "spellcheck":
+    {
+      "distance": 5
+    },
+    "widget_dims":
+    {
+      "textarea_annot_height": 250
+    }
+  }
+}

@@ -11,7 +11,7 @@ class LOGIN(form_sr.FORM):
         super().__init__()
 
     def create_auth_ojb(self):
-        with open('../auth/auths.YAML') as file:
+        with open('auth/auths.YAML') as file:
             ath_cnfg = yaml.load(file, Loader=SafeLoader)
             return ath_cnfg
 
