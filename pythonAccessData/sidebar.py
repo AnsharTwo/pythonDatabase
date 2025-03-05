@@ -47,6 +47,8 @@ class SIDEBAR (form_sr.FORM):
         elif dropSelectDataApp == self.dict_edit_data_app.get("urlExcel"):
             with tabEditData:
                 home.select_do_st()
+        with tabSettingsData:
+            home.select_sttngs()
         st.sidebar.divider()
         btn_view = st.sidebar.button("View", use_container_width=True)
         btn_do = st.sidebar.button("Do", use_container_width=True)

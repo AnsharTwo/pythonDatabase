@@ -1,10 +1,10 @@
-import streamlit as st
 import form_sr
 import form_view
 import form_sheet
 import form_bk
 import form_annt
 import form_sheet_edit
+import form_settings
 
 class HOME_FORM (form_sr.FORM):
 
@@ -54,3 +54,7 @@ class HOME_FORM (form_sr.FORM):
     def select_do_st(self):
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
         editSheetForm.select_edit_form_sheet()
+
+    def select_sttngs(self):
+        configForm = form_settings.CONFIG_FORM()
+        configForm.edt_sttngs()
