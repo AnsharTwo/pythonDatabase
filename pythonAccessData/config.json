@@ -1,15 +1,12 @@
 {
-  "librotate_config":
-  {
-    "spellcheck":
-    {
+  "librotate_config": {
+    "spellcheck": {
       "distance": 5,
       "distance_default": 5
     },
-    "widget_dims":
-    {
-      "textarea_annot_height": 250,
-      "textarea_annot_height_default": 250
+    "widget_dims": {
+      "textarea_annot_height": "250",
+      "textarea_annot_height_default": "250"
     }
   }
 }
