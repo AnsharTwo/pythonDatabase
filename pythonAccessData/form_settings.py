@@ -2,6 +2,7 @@ import streamlit as st
 import form_sr
 import json
 import os
+import shutil
 
 class CONFIG_FORM (form_sr.FORM):
 
@@ -10,6 +11,7 @@ class CONFIG_FORM (form_sr.FORM):
 
     dict_config = {
         "json_config": "config.json",
+        "json_config_def": "config_def.json",
         "wdgt_specs": {
             "inpt_ant_edt_hght": 3,
             "inpt_ant_edt_hght_minval": 68
@@ -29,13 +31,14 @@ class CONFIG_FORM (form_sr.FORM):
         self.set_config_flow()
         if st.session_state.form_config_flow == "config settings":
             config_data = self.__load_json_config()
-            st.session_state.val_ant_edt_hght = config_data['librotate_config']['widget_dims']['textarea_annot_height']
+            if st.session_state.val_ant_edt_hght == "":
+                st.session_state.val_ant_edt_hght = config_data['librotate_config']['widget_dims']['textarea_annot_height']
             st.header("Manage Settings")
             with st.form("config_settings"):
                 st.markdown(f"**Workspace sizes**")
                 cols_wrkspc_sz = st.columns(4, gap="small", vertical_alignment="center")
                 st.session_state.inpt_ant_edt_hght = cols_wrkspc_sz[0].text_input("Annotations editor height (pixels)",
-                                                                                  value=st.session_state.val_ant_edt_hght,
+                                                                                  value=int(st.session_state.val_ant_edt_hght),
                                                                                   max_chars=self.dict_config.get("wdgt_specs").get("inpt_ant_edt_hght"),
                                                                                   help="""must be at least """ +
                                                                                        str(self.dict_config.get("wdgt_specs").get("inpt_ant_edt_hght_minval")) +
@@ -52,12 +55,16 @@ class CONFIG_FORM (form_sr.FORM):
                     if can_save:
                         st.session_state.val_ant_edt_hght = st.session_state.inpt_ant_edt_hght
                         config_data['librotate_config']['widget_dims']['textarea_annot_height'] = st.session_state.inpt_ant_edt_hght
+                        if st.session_state.val_ant_edt_hght != st.session_state.inpt_ant_edt_hght:
+                            st.session_state.val_ant_edt_hght = st.session_state.inpt_ant_edt_hght
                         self.__write_json_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset to defaults"):
-                    config_data['librotate_config']['widget_dims']['textarea_annot_height'] = \
-                    config_data['librotate_config']['widget_dims']['textarea_annot_height_default']
-                    self.__write_json_config(config_data)
+                if cols_config[1].form_submit_button("Reset"):
+                    os.remove(self.dict_config.get("json_config"))
+                    shutil.copy(self.dict_config.get("json_config_def"), self.dict_config.get("json_config"))
+                    config_def_data = self.__load_json_config()
+                    st.session_state.val_ant_edt_hght = config_def_data['librotate_config']['widget_dims'][
+                        'textarea_annot_height']
                     st.rerun()
 
     # TODO - move these to SR form
