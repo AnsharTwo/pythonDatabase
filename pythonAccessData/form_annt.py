@@ -1,5 +1,6 @@
 import streamlit as st
 from spellchecker import SpellChecker
+import configparser
 import form_sr
 
 class EDIT_ANNOT(form_sr.FORM):
@@ -104,6 +105,8 @@ class EDIT_ANNOT(form_sr.FORM):
             st.session_state["del_annot_no"] = False
         if "annot_changes_done" not in st.session_state:
             st.session_state["annot_changes_done"] = False
+        if "wdgt_ant_edt_hght" not in st.session_state:
+            st.session_state["wdgt_ant_edt_hght"] = ""
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -234,6 +237,8 @@ class EDIT_ANNOT(form_sr.FORM):
                         self.annot_do_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "action_the_new_annotation":
+            config_data = self.load_ini_config()
+            st.session_state.wdgt_ant_edt_hght = int(config_data.get('widget_dims', 'textarea_annot_height'))
             with st.form("New annotation"):
                 st.markdown(":green[{}]".format(st.session_state["book_title"]))
                 st.markdown(":rainbow[{}]\r\r".format(st.session_state["author"]))
@@ -251,7 +256,8 @@ class EDIT_ANNOT(form_sr.FORM):
                     if not st.session_state["visited_spell_check"]:
                         st.session_state["has_annot"] = True
                         st.markdown(":orange[(Page already has an annotation entered.)]")
-                st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"], height=250)
+                st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"],
+                                                                  height=st.session_state.wdgt_ant_edt_hght)
                 btn_spell_check = st.form_submit_button("Check spelling")
                 if btn_spell_check:
                     illegal_txt = ["( ", " )", "[ ", " ]", "{ ", " }", "< ",
