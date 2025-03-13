@@ -59,7 +59,6 @@ class EDIT_ANNOT(form_sr.FORM):
         bkSum = -1
         bk_no = ""
         annot_page_no = ""
-        spell = SpellChecker("en", None, 4, None, False)
         spell_no_suggest = "no suggestions"
         if "form_flow" not in st.session_state:
             st.session_state["form_flow"] = "search_for_book_to_annotate"
@@ -107,6 +106,8 @@ class EDIT_ANNOT(form_sr.FORM):
             st.session_state["annot_changes_done"] = False
         if "wdgt_ant_edt_hght" not in st.session_state:
             st.session_state["wdgt_ant_edt_hght"] = ""
+        if "ant_spllchck_dstnc" not in st.session_state:
+            st.session_state["ant_spllchck_dstnc"] = ""
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
@@ -322,6 +323,9 @@ class EDIT_ANNOT(form_sr.FORM):
                         self.annot_success_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "spell_check_Annotation":
+            config_data = self.load_ini_config()
+            st.session_state.ant_spllchck_dstnc = int(config_data.get('spellcheck', 'distance'))
+            spell = SpellChecker("en", None, st.session_state.ant_spllchck_dstnc, None, False)
             if not st.session_state["visited_spell_check"]:
                 st.session_state["visited_spell_check"] = True
             with st.form("Spell check annotation"):
