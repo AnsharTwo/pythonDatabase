@@ -1,0 +1,10 @@
+[client]
+showsidebarnavigation = false
+
+[browser]
+serveraddress = "localhost"
+
+[theme]
+base = "dark"
+font = "sans serif"
+

@@ -1,12 +1,20 @@
 import sys
 from datetime import datetime
 import streamlit as st
+import configparser
 import db
 
 class FORM:
 
     def __init__(self):
         self.connStr = r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s;'
+
+    dict_config = {
+        "ini_config": "config.ini",
+        "ini_config_def": "config_def.ini",
+        "toml_config": ".streamlit/config.toml",
+        "toml_config_def": "config_toml.ini"
+    }
 
     dict_list_annt_wrkr = {
         "header": "Edit annotations data",
@@ -30,12 +38,31 @@ class FORM:
         source_data.report_tables(conn.cursor())
         return conn
 
+    def load_toml_config(self):
+        config = configparser.ConfigParser()
+        config.read(self.dict_config.get("toml_config"))
+        return config
+
+    def write_toml_config(self, config_data):
+        with open(self.dict_config.get("toml_config"), 'w') as configfile:
+            config_data.write(configfile)
+
+    def load_ini_config(self):
+        config = configparser.ConfigParser()
+        config.read(self.dict_config.get("ini_config"))
+        return config
+
+    def write_ini_config(self, config_data):
+        with open(self.dict_config.get("ini_config"), 'w') as configfile:
+            config_data.write(configfile)
+
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
         sel_opt = 'selectbox_option_' + listTitle
         if sel_opt not in st.session_state:
             st.session_state[sel_opt] = 0
-        st.header(listHeader)
+        if listHeader != "":
+            st.header(listHeader)
         edt_selection = st.selectbox(listTitle,
             [
                 value
