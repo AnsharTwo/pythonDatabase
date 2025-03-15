@@ -6,4 +6,5 @@ serveraddress = "localhost"
 
 [theme]
 base = "dark"
+font = "sans serif"
 
