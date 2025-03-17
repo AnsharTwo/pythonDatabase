@@ -2,18 +2,11 @@ import streamlit as st
 import streamlit_authenticator as stauth
 import form_sr
 import sidebar
-import yaml
-from yaml.loader import SafeLoader
 
 class LOGIN(form_sr.FORM):
 
     def __init__(self):
         super().__init__()
-
-    def create_auth_ojb(self):
-        with open('auth/auths.YAML') as file:
-            ath_cnfg = yaml.load(file, Loader=SafeLoader)
-            return ath_cnfg
 
     def create_authenticator(self, auth_config):
         authent = stauth.Authenticate(

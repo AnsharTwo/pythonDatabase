@@ -60,6 +60,7 @@ class CONFIG_FORM (form_sr.FORM):
             st.header("Manage Settings")
             with (st.form("config_settings")):
                 st.markdown(f"**Theme**")
+                st.markdown(":orange[(Current: ]" + str(config_toml_data["theme"]["base"]).title() + ":orange[)]  ")
                 cols_wrkspc_sz = st.columns(4, gap="small", vertical_alignment="center")
                 sel_opt_bscol = 'selectbox_option_' + "base_colour_itms"
                 if sel_opt_bscol not in st.session_state:
@@ -75,8 +76,8 @@ class CONFIG_FORM (form_sr.FORM):
                 if values_list_bscol.index(st.session_state.sel_thm_bs_clr) != st.session_state[sel_opt_bscol]:
                     st.session_state[sel_opt_bscol] = values_list_bscol.index(st.session_state.sel_thm_bs_clr)
                 st.divider()
-
                 st.markdown(f"**Font**")
+                st.markdown(":orange[(Current: ]" + str(config_toml_data["theme"]["font"]).title() + ":orange[)]  ")
                 cols_wrkspc_sz = st.columns(4, gap="small", vertical_alignment="center")
                 sel_opt_fnt = 'selectbox_option_' + "font"
                 if sel_opt_fnt not in st.session_state:
@@ -95,6 +96,7 @@ class CONFIG_FORM (form_sr.FORM):
 
 
                 st.markdown(f"**Workspace sizes**")
+                st.markdown(":orange[(Current: ]" + str(config_data["widget_dims"]["textarea_annot_height"]).title() + ":orange[)]  ")
                 cols_wrkspc_sz = st.columns(4, gap="small", vertical_alignment="center")
                 st.session_state.inpt_ant_edt_hght = cols_wrkspc_sz[0].text_input("Annotations editor height (pixels)",
                                                                                   value=int(st.session_state.val_ant_edt_hght),
@@ -104,6 +106,8 @@ class CONFIG_FORM (form_sr.FORM):
                                                                                        """ pixels""")
                 st.divider()
                 st.markdown(f"**Spell checker**")
+                st.markdown(":orange[(Current: ]" + str(
+                config_data["spellcheck"]["distance"]).title() + ":orange[)]  ")
                 cols_spll_chck_sz = st.columns(4, gap="small", vertical_alignment="center")
                 st.session_state.inpt_spllchck_dstnc = cols_spll_chck_sz[0].text_input("Distance",
                                                                                   value=int(st.session_state.val_spllchck_dstnc),

@@ -22,14 +22,16 @@ class SIDEBAR (form_sr.FORM):
     dict_tabh_drs = {
         "Read": "View",
         "Edit": "Do",
-        "Config": "Settings"
+        "Config": "Settings",
+        "Prof": "Profile"
     }
 
     def init_sidebars(self):
         home = form_home.HOME_FORM()
-        tabViewData, tabEditData, tabSettingsData = st.tabs([self.dict_tabh_drs.get("Read"),
+        tabViewData, tabEditData, tabSettingsData, tabProfileData = st.tabs([self.dict_tabh_drs.get("Read"),
                                                              self.dict_tabh_drs.get("Edit"),
-                                                             self.dict_tabh_drs.get("Config")])
+                                                             self.dict_tabh_drs.get("Config"),
+                                                             self.dict_tabh_drs.get("Prof")])
         st.sidebar.write(":green[Welcome, {}!]".format(self.user))
         dropSelectApp = st.sidebar.selectbox("Select what to view", [self.dict_data_app.get("annotDb"),
                                                                 self.dict_data_app.get("urlExcel"), "None"])
@@ -49,17 +51,21 @@ class SIDEBAR (form_sr.FORM):
                 home.select_do_st()
         with tabSettingsData:
             home.select_sttngs()
+        with tabProfileData:
+            home.select_prfl()
         st.sidebar.divider()
         btn_view = st.sidebar.button("View", use_container_width=True)
         btn_do = st.sidebar.button("Do", use_container_width=True)
-        st.sidebar.divider()
-        btn_sttngs = st.sidebar.button("Settings", icon=":material/settings:")
         if btn_view:
             self.button_tab_switch("View", "View")
         if btn_do:
             self.button_tab_switch("Do", "Do")
-        if btn_sttngs:
+        st.sidebar.divider()
+        cols_config_prof = st.sidebar.columns(2, gap="small", vertical_alignment="center")
+        if cols_config_prof[0].button("Settings", icon=":material/settings:"):
             self.button_tab_switch("Settings", "Settings")
+        if cols_config_prof[1].button("Profile", icon=":material/person:"):
+            self.button_tab_switch("Profile", "Profile")
         st.sidebar.divider()
 
     def button_tab_switch(self, button_text, tab_text):

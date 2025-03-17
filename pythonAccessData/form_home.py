@@ -5,6 +5,7 @@ import form_bk
 import form_annt
 import form_sheet_edit
 import form_settings
+import form_profile
 
 class HOME_FORM (form_sr.FORM):
 
@@ -58,3 +59,7 @@ class HOME_FORM (form_sr.FORM):
     def select_sttngs(self):
         configForm = form_settings.CONFIG_FORM()
         configForm.edt_sttngs()
+
+    def select_prfl(self):
+        profForm = form_profile.PROF_FORM()
+        profForm.edt_prfl()
