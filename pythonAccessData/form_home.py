@@ -9,8 +9,9 @@ import form_profile
 
 class HOME_FORM (form_sr.FORM):
 
-    def __init__(self):
+    def __init__(self, authenticator):
         super().__init__()
+        self.auth = authenticator
 
     def select_view_ant(self):
         db_viewer = form_view.DATA_FORM()
@@ -61,5 +62,5 @@ class HOME_FORM (form_sr.FORM):
         configForm.edt_sttngs()
 
     def select_prfl(self):
-        profForm = form_profile.PROF_FORM()
+        profForm = form_profile.PROF_FORM(self.auth)
         profForm.edt_prfl()

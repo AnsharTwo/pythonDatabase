@@ -1,5 +1,7 @@
 import streamlit as st
 import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 import form_sr
 import sidebar
 
@@ -7,6 +9,15 @@ class LOGIN(form_sr.FORM):
 
     def __init__(self):
         super().__init__()
+
+    dict_auth = {
+        "auth_path": "auth/auths.YAML"
+    }
+
+    def create_auth_ojb(self):
+        with open(self.dict_auth.get("auth_path")) as file:
+            ath_cnfg = yaml.load(file, Loader=SafeLoader)
+            return ath_cnfg
 
     def create_authenticator(self, auth_config):
         authent = stauth.Authenticate(
@@ -24,7 +35,7 @@ class LOGIN(form_sr.FORM):
         authenticator.login(location='main', max_concurrent_users=100, captcha=False, single_session=False, clear_on_submit=False,
                             key="lbrtt_auth_01")
         if st.session_state["authentication_status"]:
-            sbar = sidebar.SIDEBAR(st.session_state.name)
+            sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
             sbar.init_sidebars()
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:

@@ -5,9 +5,10 @@ import form_home
 
 class SIDEBAR (form_sr.FORM):
 
-    def __init__(self, name_of_user):
+    def __init__(self, name_of_user, authenticator):
         super().__init__()
         self.user = name_of_user
+        self.authenticator = authenticator
 
     dict_data_app = {
         "annotDb": "Annotations database",
@@ -27,7 +28,7 @@ class SIDEBAR (form_sr.FORM):
     }
 
     def init_sidebars(self):
-        home = form_home.HOME_FORM()
+        home = form_home.HOME_FORM(self.authenticator)
         tabViewData, tabEditData, tabSettingsData, tabProfileData = st.tabs([self.dict_tabh_drs.get("Read"),
                                                              self.dict_tabh_drs.get("Edit"),
                                                              self.dict_tabh_drs.get("Config"),

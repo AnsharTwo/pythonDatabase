@@ -2,8 +2,6 @@ import sys
 from datetime import datetime
 import streamlit as st
 import configparser
-import yaml
-from yaml.loader import SafeLoader
 import db
 
 class FORM:
@@ -16,10 +14,6 @@ class FORM:
         "ini_config_def": "config_def.ini",
         "toml_config": ".streamlit/config.toml",
         "toml_config_def": "config_toml.ini"
-    }
-
-    dict_auth = {
-        "auth_path": "auth/auths.YAML"
     }
 
     dict_list_annt_wrkr = {
@@ -61,11 +55,6 @@ class FORM:
     def write_ini_config(self, config_data):
         with open(self.dict_config.get("ini_config"), 'w') as configfile:
             config_data.write(configfile)
-
-    def create_auth_ojb(self):
-        with open(self.dict_auth.get("auth_path")) as file:
-            ath_cnfg = yaml.load(file, Loader=SafeLoader)
-            return ath_cnfg
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
