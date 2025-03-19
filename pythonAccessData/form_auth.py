@@ -19,6 +19,10 @@ class LOGIN(form_sr.FORM):
             ath_cnfg = yaml.load(file, Loader=SafeLoader)
             return ath_cnfg
 
+    def write_auth_obj(self, ath_config):
+        with open(self.dict_auth.get("auth_path"), 'w') as file:
+            yaml.dump(ath_config, file, default_flow_style=False)
+
     def create_authenticator(self, auth_config):
         authent = stauth.Authenticate(
             auth_config['credentials'],
