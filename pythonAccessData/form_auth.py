@@ -21,7 +21,7 @@ class LOGIN(form_sr.FORM):
 
     def write_auth_obj(self, ath_config):
         with open(self.dict_auth.get("auth_path"), 'w') as file:
-            yaml.dump(ath_config, file, default_flow_style=False)
+            yaml.dump(ath_config, file, default_flow_style=False, indent=4)
 
     def create_authenticator(self, auth_config):
         authent = stauth.Authenticate(
