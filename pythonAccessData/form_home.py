@@ -38,7 +38,7 @@ class HOME_FORM (form_sr.FORM):
             db_viewer.ants_all()
         elif itm_slctd == db_viewer.dict_searches.get("ants_yr_read"):
             db_viewer.ants_yr_read()
-    def select_view_st(selfself):
+    def select_view_st(self):
         sheetForm = form_sheet.SHEET_FORM()
         sheetForm.select_url_search()
 
@@ -55,7 +55,15 @@ class HOME_FORM (form_sr.FORM):
 
     def select_do_st(self):
         editSheetForm = form_sheet_edit.EDIT_SHEET_FORM()
-        editSheetForm.select_edit_form_sheet()
+        itm_slctd = self.select_edit_form(editSheetForm.dict_edit_sheet_do.get("header"),
+                                          editSheetForm.dict_edit_sheet_do.get("title"),
+                                          editSheetForm.dict_book_sheets_edt)
+        if itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_web_pages"):
+            editSheetForm.select_edt_sht_webpages()
+        if itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_videos"):
+            editSheetForm.select_edt_sht_videos()
+        if itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_sites"):
+            editSheetForm.select_edt_sht_sites()
 
     def select_sttngs(self):
         configForm = form_settings.CONFIG_FORM()

@@ -2,6 +2,8 @@ import sys
 from datetime import datetime
 import streamlit as st
 import configparser
+import pandas as pd
+import sys
 import db
 
 class FORM:
@@ -25,6 +27,12 @@ class FORM:
         "None": "none",
         "ants_edt_add": "Create update or delete annotation",
         "bk_add_update_bk": "Create update or delete book",
+    }
+
+    dict_book_sheets = {
+        "web_pages": "Pages",
+        "videos": "Videos",
+        "sites": "Sites"
     }
 
     def get_data_source(self):
@@ -55,6 +63,12 @@ class FORM:
     def write_ini_config(self, config_data):
         with open(self.dict_config.get("ini_config"), 'w') as configfile:
             config_data.write(configfile)
+
+    def load_book_sheet(self, sheet):
+        sheetbook_path = sys.argv[1] + sys.argv[3]
+        dict_sheets = pd.read_excel(sheetbook_path, engine="openpyxl", sheet_name=None)
+        sheet_web_pages = dict_sheets[sheet]
+        return sheet_web_pages
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
