@@ -18,13 +18,6 @@ class EDIT_SHEET_FORM(form_sr.FORM):
         "do_sites": "Create, edit or delete a website entry"
     }
 
-    dict_book_sheets_spec = {
-        "web_pages":
-            {
-                "url": "URL"
-            }
-    }
-
     def webpages_do_new_entry(self):
         st.session_state.do_webpages_form_flow = "do_webpages"
 
@@ -33,16 +26,27 @@ class EDIT_SHEET_FORM(form_sr.FORM):
             st.session_state.do_webpages_form_flow = "do_webpages"
         self.webpages_do_new_entry()
         if st.session_state.do_webpages_form_flow == "do_webpages":
-            sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-            edit_sheet_wbpgs = st.data_editor(sheet_web_pages, num_rows="dynamic",
-                                              column_config={
-                                                "URL": st.column_config.LinkColumn(self.dict_book_sheets_spec.get("web_pages").get("url"))
-                                              })
-            # TODO - edit_sheet_wbpgs write to file, use button in form likely bett than on_change AMMD USE small data xls
+            with st.form("Edit web pages"):
+                # TODO load as single book then refer to individusl sheet with <book name>[<sheet name>]
+                sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
+                sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
+                edit_sheet_wbpgs = st.data_editor(sheet_web_pages, hide_index=None, num_rows="dynamic",
+                                                  column_order=(self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                                self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                                self.dict_book_sheets_spec.get("web_pages").get("url")),
+                                                  column_config={
+                                                    "URL": st.column_config.LinkColumn(self.dict_book_sheets_spec.get("web_pages").get("url"))
+                                                  })
+                btn_apply_webpages = st.form_submit_button("Apply web pages")
+                if btn_apply_webpages:
+                    # TODO before writing, add index val to new row else will not write
+                    self.write_book_sheet(edit_sheet_wbpgs, sheet_videos, sheet_sites)
+                    st.rerun()
 
     def select_edt_sht_videos(self):
-        sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
-
+        #sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
+        st.write("WIP")
     def select_edt_sht_sites(self):
-        sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-        st.write("Contents of 'pages':\n", sheet_sites)
+        #sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
+        st.write("WIP")

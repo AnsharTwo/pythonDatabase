@@ -35,6 +35,15 @@ class FORM:
         "sites": "Sites"
     }
 
+    dict_book_sheets_spec = {
+        "web_pages":
+            {
+                "desc": "Description",
+                "read":  "Read",
+                "url": "URL"
+            }
+    }
+
     def get_data_source(self):
         dbPath = sys.argv[1] + sys.argv[2]
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)
@@ -66,9 +75,16 @@ class FORM:
 
     def load_book_sheet(self, sheet):
         sheetbook_path = sys.argv[1] + sys.argv[3]
-        dict_sheets = pd.read_excel(sheetbook_path, engine="openpyxl", sheet_name=None)
-        sheet_web_pages = dict_sheets[sheet]
-        return sheet_web_pages
+        dict_sheets = pd.read_excel(sheetbook_path, index_col=0, engine="openpyxl", sheet_name=None)
+        sheet_loaded = dict_sheets[sheet]
+        return sheet_loaded
+
+    def write_book_sheet(self, sheet_web_pages, sheet_videos, sheet_sites):
+        sheetbook_path = sys.argv[1] + sys.argv[3]
+        with pd.ExcelWriter(sheetbook_path) as writer:
+            sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"))
+            sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"))
+            sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"))
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
