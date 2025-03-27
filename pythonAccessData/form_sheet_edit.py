@@ -27,18 +27,18 @@ class EDIT_SHEET_FORM(form_sr.FORM):
         self.webpages_do_new_entry()
         if st.session_state.do_webpages_form_flow == "do_webpages":
             with st.form("Edit web pages"):
-                # TODO load as single book then refer to individusl sheet with <book name>[<sheet name>]
                 sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
                 sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
                 sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-                edit_sheet_wbpgs = st.data_editor(sheet_web_pages, hide_index=None, num_rows="dynamic",
+                edit_sheet_wbpgs = st.data_editor(sheet_web_pages, hide_index=True, num_rows="dynamic",
                                                   column_order=(self.dict_book_sheets_spec.get("web_pages").get("desc"),
                                                                 self.dict_book_sheets_spec.get("web_pages").get("read"),
                                                                 self.dict_book_sheets_spec.get("web_pages").get("url")),
                                                   column_config={
-                                                    "URL": st.column_config.LinkColumn(self.dict_book_sheets_spec.get("web_pages").get("url"))
+                                                    "URL": st.column_config.LinkColumn(self.dict_book_sheets_spec.get("web_pages").get("url")),
                                                   })
                 btn_apply_webpages = st.form_submit_button("Apply web pages")
+                st.info("NOTE: enter the left-hand new index (above number + 1) of any new rows in order to SAVE them.")
                 if btn_apply_webpages:
                     # TODO before writing, add index val to new row else will not write
                     self.write_book_sheet(edit_sheet_wbpgs, sheet_videos, sheet_sites)
