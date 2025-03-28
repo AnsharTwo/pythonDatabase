@@ -36,11 +36,16 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                                                                 self.dict_book_sheets_spec.get("web_pages").get("url")),
                                                   column_config={
                                                     "URL": st.column_config.LinkColumn(self.dict_book_sheets_spec.get("web_pages").get("url")),
+                                                    "Read": st.column_config.SelectboxColumn(default="\U0001F7E5	", # orange (unread)
+                                                                                             options=["\U0001F7E9", # green (read)
+                                                                                                      "\U0001F7E5",],  # orange (unread)
+                                                                                             required=True)
                                                   })
-                btn_apply_webpages = st.form_submit_button("Apply web pages")
+                btn_apply_webpages = st.form_submit_button("Apply web pages",
+                                                           help="""index left-hand cell - add the next number for this column,
+                                                                to save your new row.""")
                 st.info("NOTE: enter the left-hand new index (above number + 1) of any new rows in order to SAVE them.")
                 if btn_apply_webpages:
-                    # TODO before writing, add index val to new row else will not write
                     self.write_book_sheet(edit_sheet_wbpgs, sheet_videos, sheet_sites)
                     st.rerun()
 
