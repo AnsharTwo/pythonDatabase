@@ -41,7 +41,25 @@ class FORM:
                 "desc": "Description",
                 "read":  "Read",
                 "url": "URL"
+            },
+        "videos":
+            {
+                "desc": "Description",
+                "read": "Read",
+                "url": "URL"
+            },
+        "sites":
+            {
+                "desc": "Description",
+                "url": "URL"
             }
+    }
+
+    dict_sheets_cll_clr = {
+        "is_read": {
+            "cll_read": "\U0001F7E5",
+            "cll_unread": "\U0001F7E9"
+        }
     }
 
     def get_data_source(self):
