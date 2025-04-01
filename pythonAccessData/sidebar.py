@@ -42,8 +42,22 @@ class SIDEBAR (form_sr.FORM):
         elif dropSelectApp == self.dict_data_app.get("urlExcel"):
             with tabViewData:
                 home.select_view_st()
+
+        if "ant_sht_do_idx" not in st.session_state:
+            st.session_state.ant_sht_do_idx = 0
+        do_values_list = list(self.dict_edit_data_app.values())
+
         dropSelectDataApp = st.sidebar.selectbox("Select what to do", [self.dict_edit_data_app.get("annotDb"),
-                                                                  self.dict_edit_data_app.get("urlExcel"),"None"])
+                                                                       self.dict_edit_data_app.get("urlExcel")],
+
+                                                 index= st.session_state.ant_sht_do_idx
+
+                                                 )
+
+        if do_values_list.index(dropSelectDataApp) != st.session_state.ant_sht_do_idx:
+            st.session_state.ant_sht_do_idx = do_values_list.index(dropSelectDataApp)
+            st.rerun()
+
         if dropSelectDataApp == self.dict_edit_data_app.get("annotDb"):
             with (tabEditData):
                 home.select_do_ant()

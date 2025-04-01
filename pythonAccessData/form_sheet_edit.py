@@ -8,7 +8,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
 
     dict_edit_sheet_do = {
         "header": "Select sheet search",
-        "title": "Select search type"
+        "title": "Select sheet search type"
     }
 
     dict_book_sheets_edt = {
