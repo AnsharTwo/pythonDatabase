@@ -59,8 +59,8 @@ class FORM:
 
     dict_sheets_cll_clr = {
         "is_read": {
-            "cll_read": "\U0001F7E5",
-            "cll_unread": "\U0001F7E9"
+            "cll_unread": "\U0001F7E5",
+            "cll_read": "\U0001F7E9"
         }
     }
 
@@ -109,28 +109,20 @@ class FORM:
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
         sel_opt = 'selectbox_option_' + listTitle
+        sel_itms = 'selectbox_items_' + listTitle
         if sel_opt not in st.session_state:
             st.session_state[sel_opt] = 0
-
-        sel_itms = 'selectbox_items_' + listTitle
         if sel_itms not in st.session_state:
             st.session_state[sel_itms] = selectListDict
-        print("list items " + str(values_list))
-        print("list title " + sel_opt)
-        print("index " + str(st.session_state[sel_opt]))
-
         if listHeader != "":
             st.header(listHeader)
         edt_selection = st.selectbox(listTitle,
             [
                 value
-                #for value in selectListDict.values()
-
                 for value in st.session_state[sel_itms].values()
-
             ],
             index=st.session_state[sel_opt],
-                                     key=listTitle
+            key=listTitle
         )
         if values_list.index(edt_selection) != st.session_state[sel_opt]:
             st.session_state[sel_opt] = values_list.index(edt_selection)
