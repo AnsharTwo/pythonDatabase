@@ -42,13 +42,15 @@ class FORM:
             {
                 "desc": "Description",
                 "read":  "Read",
-                "url": "URL"
+                "url": "URL",
+                "note": "Note"
             },
         "videos":
             {
                 "desc": "Description",
                 "read": "Read",
-                "url": "URL"
+                "url": "URL",
+                "note": "Note"
             },
         "sites":
             {
