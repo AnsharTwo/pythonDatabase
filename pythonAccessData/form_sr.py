@@ -2,7 +2,11 @@ import sys
 from datetime import datetime
 import streamlit as st
 import configparser
+import pandas as pd
+import sys
 import db
+
+import random
 
 class FORM:
 
@@ -25,6 +29,41 @@ class FORM:
         "None": "none",
         "ants_edt_add": "Create update or delete annotation",
         "bk_add_update_bk": "Create update or delete book",
+    }
+
+    dict_book_sheets = {
+        "web_pages": "Pages",
+        "videos": "Videos",
+        "sites": "Sites"
+    }
+
+    dict_book_sheets_spec = {
+        "web_pages":
+            {
+                "desc": "Description",
+                "read":  "Read",
+                "url": "URL",
+                "note": "Note"
+            },
+        "videos":
+            {
+                "desc": "Description",
+                "read": "Read",
+                "url": "URL",
+                "note": "Note"
+            },
+        "sites":
+            {
+                "desc": "Description",
+                "url": "URL"
+            }
+    }
+
+    dict_sheets_cll_clr = {
+        "is_read": {
+            "cll_unread": "\U0001F7E5",
+            "cll_read": "\U0001F7E9"
+        }
     }
 
     def get_data_source(self):
@@ -56,19 +95,36 @@ class FORM:
         with open(self.dict_config.get("ini_config"), 'w') as configfile:
             config_data.write(configfile)
 
+    def load_book_sheet(self, sheet):
+        sheetbook_path = sys.argv[1] + sys.argv[3]
+        dict_sheets = pd.read_excel(sheetbook_path, index_col=0, engine="openpyxl", sheet_name=None)
+        sheet_loaded = dict_sheets[sheet]
+        return sheet_loaded
+
+    def write_book_sheet(self, sheet_web_pages, sheet_videos, sheet_sites):
+        sheetbook_path = sys.argv[1] + sys.argv[3]
+        with pd.ExcelWriter(sheetbook_path) as writer:
+            sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"))
+            sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"))
+            sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"))
+
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
         sel_opt = 'selectbox_option_' + listTitle
+        sel_itms = 'selectbox_items_' + listTitle
         if sel_opt not in st.session_state:
             st.session_state[sel_opt] = 0
+        if sel_itms not in st.session_state:
+            st.session_state[sel_itms] = selectListDict
         if listHeader != "":
             st.header(listHeader)
         edt_selection = st.selectbox(listTitle,
             [
                 value
-                for value in selectListDict.values()
+                for value in st.session_state[sel_itms].values()
             ],
-            index=st.session_state[sel_opt]
+            index=st.session_state[sel_opt],
+            key=listTitle
         )
         if values_list.index(edt_selection) != st.session_state[sel_opt]:
             st.session_state[sel_opt] = values_list.index(edt_selection)
