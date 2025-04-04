@@ -89,12 +89,6 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                                                   })
                 btn_apply_webpages = st.form_submit_button("Apply videos", help=self.dict_wdgt_msgs.get("submit_help"))
                 st.info(self.dict_wdgt_msgs.get("submit_info"))
-
-                #######################
-                for i in range(40,101):
-                    print(i)
-                #######################
-
                 if btn_apply_webpages:
                     self.write_book_sheet(sheet_web_pages, edit_sheet_vds, sheet_sites)
                     st.rerun()
