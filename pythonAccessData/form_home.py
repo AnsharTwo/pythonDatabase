@@ -49,6 +49,12 @@ class HOME_FORM (form_sr.FORM):
             sheetForm.select_vw_sht_videos()
         if itm_slctd == sheetForm.dict_book_sheets_view.get("view_sites"):
             sheetForm.select_vw_sht_sites()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_pages"):
+            sheetForm.select_srch_webpages()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_videos"):
+            sheetForm.select_srch_videos()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_sites"):
+            sheetForm.select_srch_sites()
 
     def select_do_ant(self):
         annt_worker_form = form_annt.EDIT_ANNOT()
