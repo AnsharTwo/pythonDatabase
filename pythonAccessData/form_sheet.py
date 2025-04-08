@@ -95,7 +95,8 @@ class SHEET_FORM(form_sr.FORM):
             with st.form("Search webpages sheet"):
                 st.session_state.webpages_st_srch_str = st.text_area("Text to search for (separate multiple with comma)",
                                                                      value=st.session_state.webpages_st_srch_str)
-                st.session_state.webpages_st_srch_inc_url = st.checkbox("Search in URLs as well", key="xcel_vw_srch+wbpgs")
+                st.session_state.webpages_st_srch_inc_url = st.checkbox("Search in URLs as well", key="xcel_vw_srch+wbpgs",
+                                                                        value=st.session_state.webpages_st_srch_inc_url)
                 btn_webpages_srch_submit = st.form_submit_button("Submit")
                 if btn_webpages_srch_submit:
                     st.session_state.go_srch_st_webpages = True
@@ -104,8 +105,28 @@ class SHEET_FORM(form_sr.FORM):
                     if st.session_state.webpages_st_srch_str == "":
                         st.markdown(":red[no search text given.]")
                     else:
-                        self.sheet_records(self.dict_book_sheets_view.get("view_srch_pages"),
-                                           st.session_state.webpages_st_srch_str, st.session_state.webpages_st_srch_inc_url)
+                        sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                        if not st.session_state.webpages_st_srch_inc_url:
+                            df_srch = sqldf(self.dict_sql_df.get("web_pages").format(
+                                                                self.format_sql_wrap(st.session_state.webpages_st_srch_str)),
+                                            env=None)
+                        else:
+                            df_srch = sqldf(
+                                self.dict_sql_df.get("web_pages_and_url").format(self.format_sql_wrap(
+                                                                            st.session_state.webpages_st_srch_str),
+                                                                                       self.format_sql_wrap(
+                                                                            st.session_state.webpages_st_srch_str)),
+                                env=None)
+                        st.header("Sheet rows")
+                        st.dataframe(df_srch, hide_index=True,
+                                     column_order=(self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                   self.dict_book_sheets_spec.get("videos").get("read"),
+                                                   self.dict_book_sheets_spec.get("videos").get("url"),
+                                                   self.dict_book_sheets_spec.get("videos").get("note")),
+                                     column_config={
+                                         "URL": st.column_config.LinkColumn(
+                                             self.dict_book_sheets_spec.get("videos").get("url")),
+                                     })
 
     def select_srch_videos(self):
         st.write("Under construction - videos")
@@ -113,16 +134,7 @@ class SHEET_FORM(form_sr.FORM):
     def select_srch_sites(self):
         st.write("Under construction - sites")
 
-    def sheet_records(self, searchSelection, searchText, includeURL):
-        #sourceData = self.get_data_source()
-        #conn = self.get_connection(sourceData)
-        st.header("Sheet rows")
-        if searchSelection == self.dict_book_sheets_view.get("view_srch_pages"):
-            st.write("At web pages sheet rows")
-            #self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
-        if searchSelection == self.dict_book_sheets_view.get("view_srch_videos"):
-            st.write("At videos sheet rows")
-            #self.__show_srch_ants_auth_srch_txt(sourceData, conn, auth, searchText)
-        if searchSelection == self.dict_book_sheets_view.get("view_srch_sites"):
-            st.write("At sites sheet rows")
-            #self.__show_srch_ants_bk_srch_txt(sourceData, conn, bk, searchText)
+    dict_sql_df = {
+        "web_pages": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}')''',
+        "web_pages_and_url": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}') OR URL LIKE ('{}')'''
+    }
