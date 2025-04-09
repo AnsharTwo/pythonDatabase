@@ -277,16 +277,15 @@ class DATA_FORM(form_sr.FORM):
         conn.close()
 
     def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):
-        searchTxtArr = self.__formatSearchText(searchText)
+        searchTxtArr = self.formatSearchText(searchText)
         resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchTxtArr)
         annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchTxtArr)
-
         st.write("Found {} results.".format(resCountSearchString))
         for ant in annots:
             self.__markdown_srch_res(ant,searchTxtArr)
 
     def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
-        searchTxtArr = self.__formatSearchText(searchText)
+        searchTxtArr = self.formatSearchText(searchText)
         resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
                                                                           self.format_sql_wrap(auth),
                                                                           searchTxtArr)
@@ -297,7 +296,7 @@ class DATA_FORM(form_sr.FORM):
             self.__markdown_srch_res(ant,searchTxtArr)
 
     def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
-        searchTxtArr = self.__formatSearchText(searchText)
+        searchTxtArr = self.formatSearchText(searchText)
         resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.format_sql_wrap(bk),
                                                                                      searchTxtArr)
         annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.format_sql_wrap(bk),
@@ -480,13 +479,3 @@ class DATA_FORM(form_sr.FORM):
                 date=ant.Dat
             )
         )
-
-    def __formatSearchText(self, searchText):
-        searchArr = []
-        if searchText.find(",") == -1:
-            searchArr.append(self.format_sql_wrap(searchText))
-        else:
-            searchTxt = searchText.split(",")
-            for txt in searchTxt:
-                searchArr.append(self.format_sql_wrap(txt))
-        return searchArr

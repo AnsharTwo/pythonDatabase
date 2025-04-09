@@ -106,21 +106,54 @@ class SHEET_FORM(form_sr.FORM):
                         st.markdown(":red[no search text given.]")
                     else:
                         sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+
+                        ######
+                        srch_txt_lst = self.formatSearchText(st.session_state.webpages_st_srch_str)
+                        ######
+                        
                         if not st.session_state.webpages_st_srch_inc_url:
-                            df_srch = sqldf(self.dict_sql_df.get("web_pages").format(
+
+                            # sqlStr = self.dict_queries.get("annots_by_sch_str")
+                            # if len(searchString) == 1:
+                            #     sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
+                            #     annots = cursor.execute(sqlStr.format(str(searchString[0])))
+                            # else:
+                            #     sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
+                            #     for srchStrs in range(1, len(searchString)):
+                            #         sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(
+                            #             str(searchString[srchStrs]))
+                            #     sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
+                            #     annots = cursor.execute(sqlStr)
+                            # return annots
+
+                            df_srch = sqldf(self.dict_sql_df.get("web_pages_sheet").get("web_pages").format(
                                                                 self.format_sql_wrap(st.session_state.webpages_st_srch_str)),
                                             env=None)
-                            row_sum = sqldf(self.dict_sql_df.get("web_pages_count").format(
+
+                            # sqlStr = self.dict_queries.get("annots_by_sch_str_count")
+                            # if len(searchString) == 1:
+                            #     results = cursor.execute(sqlStr.format(str(searchString[0])))
+                            # else:
+                            #     sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
+                            #     for srchStrs in range(1, len(searchString)):
+                            #         sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(
+                            #             str(searchString[srchStrs]))
+                            #     results = cursor.execute(sqlStr)
+                            # res = results.fetchone()
+                            # return res[0]
+
+                            row_sum = sqldf(self.dict_sql_df.get("web_pages_sheet").get("web_pages_count").format(
                                                                 self.format_sql_wrap(st.session_state.webpages_st_srch_str)),
                                             env=None)
                         else:
                             df_srch = sqldf(
-                                self.dict_sql_df.get("web_pages_and_url").format(self.format_sql_wrap(
+                                self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url").format(self.format_sql_wrap(
                                                                             st.session_state.webpages_st_srch_str),
                                                                                        self.format_sql_wrap(
                                                                             st.session_state.webpages_st_srch_str)),
                                 env=None)
-                            row_sum = sqldf(self.dict_sql_df.get("web_pages_and_url_count").format(self.format_sql_wrap(
+                            row_sum = sqldf(self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url_count").format(
+                                                                                 self.format_sql_wrap(
                                                                             st.session_state.webpages_st_srch_str),
                                                                                        self.format_sql_wrap(
                                                                             st.session_state.webpages_st_srch_str)),
@@ -153,8 +186,12 @@ class SHEET_FORM(form_sr.FORM):
         return rsum[0]
 
     dict_sql_df = {
-        "web_pages": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}')''',
-        "web_pages_count": '''SELECT COUNT(*) FROM sheet_web_pages WHERE Description LIKE ('{}')''',
-        "web_pages_and_url": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
-        "web_pages_and_url_count": '''SELECT COUNT(*) FROM sheet_web_pages WHERE Description LIKE ('{}') OR URL LIKE ('{}')'''
+        "web_pages_sheet": {
+            "web_pages": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}')''',
+            "web_pages_count": '''SELECT COUNT(*) FROM sheet_web_pages WHERE Description LIKE ('{}')''',
+            "web_pages_and_url": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
+            "web_pages_and_url_count": '''SELECT COUNT(*) FROM sheet_web_pages WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
+            "append_web_pages": ''' OR Description LIKE ('{}')''',
+            "append_web_pages_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
+        }
     }
