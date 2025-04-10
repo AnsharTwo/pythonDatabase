@@ -34,6 +34,9 @@ class SHEET_FORM(form_sr.FORM):
     def webpages_sheet_srch(self):
         st.session_state.webpages_st_srch = "vw_sch_webpages"
 
+    def videos_sheet_srch(self):
+        st.session_state.videos_st_srch = "vw_sch_videos"
+
     def select_vw_sht_webpages(self):
         if "vw_webpages_form_flow" not in st.session_state:
             st.session_state.vw_webpages_form_flow = "vw_webpages"
@@ -106,58 +109,63 @@ class SHEET_FORM(form_sr.FORM):
                         st.markdown(":red[no search text given.]")
                     else:
                         sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-
-                        ######
-                        srch_txt_lst = self.formatSearchText(st.session_state.webpages_st_srch_str)
-                        ######
-                        
                         if not st.session_state.webpages_st_srch_inc_url:
-
-                            # sqlStr = self.dict_queries.get("annots_by_sch_str")
-                            # if len(searchString) == 1:
-                            #     sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-                            #     annots = cursor.execute(sqlStr.format(str(searchString[0])))
-                            # else:
-                            #     sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
-                            #     for srchStrs in range(1, len(searchString)):
-                            #         sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(
-                            #             str(searchString[srchStrs]))
-                            #     sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-                            #     annots = cursor.execute(sqlStr)
-                            # return annots
-
-                            df_srch = sqldf(self.dict_sql_df.get("web_pages_sheet").get("web_pages").format(
-                                                                self.format_sql_wrap(st.session_state.webpages_st_srch_str)),
-                                            env=None)
-
-                            # sqlStr = self.dict_queries.get("annots_by_sch_str_count")
-                            # if len(searchString) == 1:
-                            #     results = cursor.execute(sqlStr.format(str(searchString[0])))
-                            # else:
-                            #     sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
-                            #     for srchStrs in range(1, len(searchString)):
-                            #         sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(
-                            #             str(searchString[srchStrs]))
-                            #     results = cursor.execute(sqlStr)
-                            # res = results.fetchone()
-                            # return res[0]
-
-                            row_sum = sqldf(self.dict_sql_df.get("web_pages_sheet").get("web_pages_count").format(
-                                                                self.format_sql_wrap(st.session_state.webpages_st_srch_str)),
-                                            env=None)
+                            df_srch = sqldf(self.sql_web_pages(st.session_state.webpages_st_srch_str,
+                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages")), env=None)
+                            row_sum = sqldf(self.sql_web_pages(st.session_state.webpages_st_srch_str,
+                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages_count")), env=None)
                         else:
-                            df_srch = sqldf(
-                                self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url").format(self.format_sql_wrap(
-                                                                            st.session_state.webpages_st_srch_str),
-                                                                                       self.format_sql_wrap(
-                                                                            st.session_state.webpages_st_srch_str)),
-                                env=None)
-                            row_sum = sqldf(self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url_count").format(
-                                                                                 self.format_sql_wrap(
-                                                                            st.session_state.webpages_st_srch_str),
-                                                                                       self.format_sql_wrap(
-                                                                            st.session_state.webpages_st_srch_str)),
-                                env=None)
+                            df_srch = sqldf(self.sql_web_pages_url(st.session_state.webpages_st_srch_str,
+                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url")), env=None)
+                            row_sum = sqldf(self.sql_web_pages_url(st.session_state.webpages_st_srch_str,
+                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url_count")), env=None)
+                        if self.write_srch_row_sum(row_sum) != "0":
+                            st.header("Sheet rows")
+                            st.dataframe(df_srch, hide_index=True,
+                                         column_order=(self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                       self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                       self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                                       self.dict_book_sheets_spec.get("web_pages").get("note")),
+                                         column_config={
+                                             "URL": st.column_config.LinkColumn(
+                                                 self.dict_book_sheets_spec.get("web_pages").get("url")),
+                                         })
+
+    def select_srch_videos(self):
+        if "videos_st_srch" not in st.session_state:
+            st.session_state.videos_st_srch = "vw_sch_videos"
+        if "go_srch_st_videos" not in st.session_state:
+            st.session_state.go_srch_st_videos = False
+        if "videos_st_srch_str" not in st.session_state:
+            st.session_state.videos_st_srch_str = ""
+        if "videos_st_srch_inc_url" not in st.session_state:
+            st.session_state.videos_st_srch_inc_url = False
+        self.videos_sheet_srch()
+        if st.session_state.videos_st_srch == "vw_sch_videos":
+            with st.form("Search videos sheet"):
+                st.session_state.videos_st_srch_str = st.text_area("Text to search for (separate multiple with comma)",
+                                                                     value=st.session_state.videos_st_srch_str)
+                st.session_state.videos_st_srch_inc_url = st.checkbox("Search in URLs as well", key="xcel_vw_srch+vds",
+                                                                        value=st.session_state.videos_st_srch_inc_url)
+                btn_videos_srch_submit = st.form_submit_button("Submit")
+                if btn_videos_srch_submit:
+                    st.session_state.go_srch_st_videos = True
+                    st.rerun()
+                elif st.session_state.go_srch_st_videos:
+                    if st.session_state.videos_st_srch_str == "":
+                        st.markdown(":red[no search text given.]")
+                    else:
+                        sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
+                        if not st.session_state.videos_st_srch_inc_url:
+                            df_srch = sqldf(self.sql_videos(st.session_state.videos_st_srch_str,
+                                            self.dict_sql_df.get("videos_sheet").get("videos")), env=None)
+                            row_sum = sqldf(self.sql_videos(st.session_state.videos_st_srch_str,
+                                            self.dict_sql_df.get("videos_sheet").get("videos_count")), env=None)
+                        else:
+                            df_srch = sqldf(self.sql_videos_url(st.session_state.videos_st_srch_str,
+                                            self.dict_sql_df.get("videos_sheet").get("videos_and_url")), env=None)
+                            row_sum = sqldf(self.sql_videos_url(st.session_state.videos_st_srch_str,
+                                            self.dict_sql_df.get("videos_sheet").get("videos_and_url_count")), env=None)
                         if self.write_srch_row_sum(row_sum) != "0":
                             st.header("Sheet rows")
                             st.dataframe(df_srch, hide_index=True,
@@ -169,9 +177,6 @@ class SHEET_FORM(form_sr.FORM):
                                              "URL": st.column_config.LinkColumn(
                                                  self.dict_book_sheets_spec.get("videos").get("url")),
                                          })
-
-    def select_srch_videos(self):
-        st.write("Under construction - videos")
 
     def select_srch_sites(self):
         st.write("Under construction - sites")
@@ -185,6 +190,46 @@ class SHEET_FORM(form_sr.FORM):
             st.write(":red[Found " + rsum[0] + " rows.]")
         return rsum[0]
 
+    def sql_web_pages(self, search_string, sql_web_pages):
+        srch_txt_lst = self.formatSearchText(search_string)
+        sql = sql_web_pages
+        sql = sql.replace("('{}')", "('{}')".format(str(srch_txt_lst[0])))
+        if len(srch_txt_lst) > 1:
+            for srchStrs in range(1, len(srch_txt_lst)):
+                sql = sql + self.dict_sql_df.get("web_pages_sheet").get(
+                    "append_web_pages").format(str(srch_txt_lst[srchStrs]))
+        return sql
+
+    def sql_web_pages_url(self, search_string, sql_web_pages):
+        srch_txt_lst = self.formatSearchText(search_string)
+        sql = sql_web_pages
+        sql = sql.replace("('{}')", "('{}')".format(str(srch_txt_lst[0]), str(srch_txt_lst[0])))
+        if len(srch_txt_lst) > 1:
+            for srchStrs in range(1, len(srch_txt_lst)):
+                sql = sql + self.dict_sql_df.get("web_pages_sheet").get(
+                    "append_web_pages_and_url").format(str(srch_txt_lst[srchStrs]), str(srch_txt_lst[srchStrs]))
+        return sql
+
+    def sql_videos(self, search_string, sql_videos):
+        srch_txt_lst = self.formatSearchText(search_string)
+        sql = sql_videos
+        sql = sql.replace("('{}')", "('{}')".format(str(srch_txt_lst[0])))
+        if len(srch_txt_lst) > 1:
+            for srchStrs in range(1, len(srch_txt_lst)):
+                sql = sql + self.dict_sql_df.get("videos_sheet").get(
+                    "append_videos").format(str(srch_txt_lst[srchStrs]))
+        return sql
+
+    def sql_videos_url(self, search_string, sql_videos):
+        srch_txt_lst = self.formatSearchText(search_string)
+        sql = sql_videos
+        sql = sql.replace("('{}')", "('{}')".format(str(srch_txt_lst[0]), str(srch_txt_lst[0])))
+        if len(srch_txt_lst) > 1:
+            for srchStrs in range(1, len(srch_txt_lst)):
+                sql = sql + self.dict_sql_df.get("videos_sheet").get(
+                    "append_videos_and_url").format(str(srch_txt_lst[srchStrs]), str(srch_txt_lst[srchStrs]))
+        return sql
+
     dict_sql_df = {
         "web_pages_sheet": {
             "web_pages": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}')''',
@@ -193,5 +238,13 @@ class SHEET_FORM(form_sr.FORM):
             "web_pages_and_url_count": '''SELECT COUNT(*) FROM sheet_web_pages WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
             "append_web_pages": ''' OR Description LIKE ('{}')''',
             "append_web_pages_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
+        },
+        "videos_sheet": {
+            "videos": '''SELECT * FROM sheet_videos WHERE Description LIKE ('{}')''',
+            "videos_count": '''SELECT COUNT(*) FROM sheet_videos WHERE Description LIKE ('{}')''',
+            "videos_and_url": '''SELECT * FROM sheet_videos WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
+            "videos_and_url_count": '''SELECT COUNT(*) FROM sheet_videos WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
+            "append_videos": ''' OR Description LIKE ('{}')''',
+            "append_videos_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
         }
     }
