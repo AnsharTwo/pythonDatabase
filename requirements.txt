@@ -4,3 +4,4 @@ pandas
 spellchecker
 streamlit-authenticator
 openpyxl
+pandasql

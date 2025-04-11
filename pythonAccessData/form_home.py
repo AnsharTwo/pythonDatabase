@@ -40,7 +40,21 @@ class HOME_FORM (form_sr.FORM):
             db_viewer.ants_yr_read()
     def select_view_st(self):
         sheetForm = form_sheet.SHEET_FORM()
-        sheetForm.select_url_search()
+        itm_slctd = self.select_edit_form(sheetForm.dict_view_sheet.get("header"),
+                                          sheetForm.dict_view_sheet.get("title"),
+                                          sheetForm.dict_book_sheets_view)
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_web_pages"):
+            sheetForm.select_vw_sht_webpages()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_videos"):
+            sheetForm.select_vw_sht_videos()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_sites"):
+            sheetForm.select_vw_sht_sites()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_pages"):
+            sheetForm.select_srch_webpages()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_videos"):
+            sheetForm.select_srch_videos()
+        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_sites"):
+            sheetForm.select_srch_sites()
 
     def select_do_ant(self):
         annt_worker_form = form_annt.EDIT_ANNOT()
