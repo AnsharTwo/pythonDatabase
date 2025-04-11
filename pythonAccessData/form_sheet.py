@@ -37,6 +37,9 @@ class SHEET_FORM(form_sr.FORM):
     def videos_sheet_srch(self):
         st.session_state.videos_st_srch = "vw_sch_videos"
 
+    def sites_sheet_srch(self):
+        st.session_state.sites_st_srch = "vw_sch_sites"
+
     def select_vw_sht_webpages(self):
         if "vw_webpages_form_flow" not in st.session_state:
             st.session_state.vw_webpages_form_flow = "vw_webpages"
@@ -179,7 +182,49 @@ class SHEET_FORM(form_sr.FORM):
                                          })
 
     def select_srch_sites(self):
-        st.write("Under construction - sites")
+        if "sites_st_srch" not in st.session_state:
+            st.session_state.sites_st_srch = "vw_sch_sites"
+        if "go_srch_st_sites" not in st.session_state:
+            st.session_state.go_srch_st_sites = False
+        if "sites_st_srch_str" not in st.session_state:
+            st.session_state.sites_st_srch_str = ""
+        if "sites_st_srch_inc_url" not in st.session_state:
+            st.session_state.sites_st_srch_inc_url = False
+        self.sites_sheet_srch()
+        if st.session_state.sites_st_srch == "vw_sch_sites":
+            with st.form("Search sites sheet"):
+                st.session_state.sites_st_srch_str = st.text_area("Text to search for (separate multiple with comma)",
+                                                                     value=st.session_state.sites_st_srch_str)
+                st.session_state.sites_st_srch_inc_url = st.checkbox("Search in URLs as well", key="xcel_vw_srch+sts",
+                                                                        value=st.session_state.sites_st_srch_inc_url)
+                btn_sites_srch_submit = st.form_submit_button("Submit")
+                if btn_sites_srch_submit:
+                    st.session_state.go_srch_st_sites = True
+                    st.rerun()
+                elif st.session_state.go_srch_st_sites:
+                    if st.session_state.sites_st_srch_str == "":
+                        st.markdown(":red[no search text given.]")
+                    else:
+                        sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
+                        if not st.session_state.sites_st_srch_inc_url:
+                            df_srch = sqldf(self.sql_sites(st.session_state.sites_st_srch_str,
+                                            self.dict_sql_df.get("sites_sheet").get("sites")), env=None)
+                            row_sum = sqldf(self.sql_sites(st.session_state.sites_st_srch_str,
+                                            self.dict_sql_df.get("sites_sheet").get("sites_count")), env=None)
+                        else:
+                            df_srch = sqldf(self.sql_sites_url(st.session_state.sites_st_srch_str,
+                                            self.dict_sql_df.get("sites_sheet").get("sites_and_url")), env=None)
+                            row_sum = sqldf(self.sql_sites_url(st.session_state.sites_st_srch_str,
+                                            self.dict_sql_df.get("sites_sheet").get("sites_and_url_count")), env=None)
+                        if self.write_srch_row_sum(row_sum) != "0":
+                            st.header("Sheet rows")
+                            st.dataframe(df_srch, hide_index=True,
+                                         column_order=(self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                       self.dict_book_sheets_spec.get("sites").get("url"),),
+                                         column_config={
+                                             "URL": st.column_config.LinkColumn(
+                                                 self.dict_book_sheets_spec.get("sites").get("url")),
+                                         })
 
     def write_srch_row_sum(self, row_sum):
         rsum = str(row_sum).split(" ")
@@ -230,6 +275,26 @@ class SHEET_FORM(form_sr.FORM):
                     "append_videos_and_url").format(str(srch_txt_lst[srchStrs]), str(srch_txt_lst[srchStrs]))
         return sql
 
+    def sql_sites(self, search_string, sql_sites):
+        srch_txt_lst = self.formatSearchText(search_string)
+        sql = sql_sites
+        sql = sql.replace("('{}')", "('{}')".format(str(srch_txt_lst[0])))
+        if len(srch_txt_lst) > 1:
+            for srchStrs in range(1, len(srch_txt_lst)):
+                sql = sql + self.dict_sql_df.get("sites_sheet").get(
+                    "append_sites").format(str(srch_txt_lst[srchStrs]))
+        return sql
+
+    def sql_sites_url(self, search_string, sql_sites):
+        srch_txt_lst = self.formatSearchText(search_string)
+        sql = sql_sites
+        sql = sql.replace("('{}')", "('{}')".format(str(srch_txt_lst[0]), str(srch_txt_lst[0])))
+        if len(srch_txt_lst) > 1:
+            for srchStrs in range(1, len(srch_txt_lst)):
+                sql = sql + self.dict_sql_df.get("sites_sheet").get(
+                    "append_sites_and_url").format(str(srch_txt_lst[srchStrs]), str(srch_txt_lst[srchStrs]))
+        return sql
+
     dict_sql_df = {
         "web_pages_sheet": {
             "web_pages": '''SELECT * FROM sheet_web_pages WHERE Description LIKE ('{}')''',
@@ -246,5 +311,13 @@ class SHEET_FORM(form_sr.FORM):
             "videos_and_url_count": '''SELECT COUNT(*) FROM sheet_videos WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
             "append_videos": ''' OR Description LIKE ('{}')''',
             "append_videos_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
+        },
+        "sites_sheet": {
+            "sites": '''SELECT * FROM sheet_sites WHERE Description LIKE ('{}')''',
+            "sites_count": '''SELECT COUNT(*) FROM sheet_sites WHERE Description LIKE ('{}')''',
+            "sites_and_url": '''SELECT * FROM sheet_sites WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
+            "sites_and_url_count": '''SELECT COUNT(*) FROM sheet_sites WHERE Description LIKE ('{}') OR URL LIKE ('{}')''',
+            "append_sites": ''' OR Description LIKE ('{}')''',
+            "append_sites_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
         }
     }
