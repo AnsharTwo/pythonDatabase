@@ -262,7 +262,7 @@ class SHEET_FORM(form_sr.FORM):
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_pages":
             with st.form("Dredge internet pages saved - select pages"):
                 st.session_state.web_drdg_srch_exclsv_in_row = st.checkbox("Only search in URLs containing the search text",
-                                                                           key="xcel_vw_srch+sts",
+                                                                           key="xcel_vw_drdg+pgs",
                                                                            value=st.session_state.web_drdg_srch_exclsv_in_row_value)
                 st.write("Select web pages to search for :blue[ " + st.session_state.web_drdg_srch_str + "]")
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
