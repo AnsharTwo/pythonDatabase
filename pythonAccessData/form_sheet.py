@@ -247,6 +247,12 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.web_drdg_srch_exclsv_in_row = False
         if "web_drdg_srch_exclsv_in_row_value" not in st.session_state:
             st.session_state.web_drdg_srch_exclsv_in_row_value = False
+        if "rows_selected_dredge" not in st.session_state:
+            st.session_state.rows_selected_dredge = None
+        if "drdg_sheet_web_pages" not in st.session_state:
+            st.session_state.drdg_sheet_web_pages = None
+        if "drdg_rows" not in st.session_state:
+            st.session_state.drdg_rows = None
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
                 st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
@@ -265,6 +271,10 @@ class SHEET_FORM(form_sr.FORM):
                                                                            key="xcel_vw_drdg+pgs",
                                                                            value=st.session_state.web_drdg_srch_exclsv_in_row_value)
                 st.write("Select web pages to search for :blue[ " + st.session_state.web_drdg_srch_str + "]")
+                st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                st.session_state.rows_selected_dredge = st.dataframe(st.session_state.drdg_sheet_web_pages,
+                                                                     on_select="rerun", selection_mode="multi-row")
+                st.session_state.drdg_rows = st.session_state.rows_selected_dredge.selection.rows
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Start dredge search"):
                     st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
@@ -277,12 +287,23 @@ class SHEET_FORM(form_sr.FORM):
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_results":
             with st.form("Dredge internet pages saved - result"):
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
+
+                # TODO - filter out rows where descr is not containing search text IF checkbox is ticked
+                # TODO - also check for empty URL (nan)
+                for r in st.session_state.drdg_rows:
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,0])
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r, 1])
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r, 2])
+                st.write(st.session_state.rows_selected_dredge)
+
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Done"):
                     st.session_state.web_drdg_srch_str_value = ""
                     st.session_state.web_drdg_srch_str = ""
                     st.session_state.web_drdg_srch_exclsv_in_row = False
                     st.session_state.web_drdg_srch_exclsv_in_row_value = False
+                    st.session_state.rows_selected_dredge = None
+                    st.session_state.drdg_rows = None
                     self.webpages_web_dredge()
                     st.rerun()
                 if cols_pages_btns[1].form_submit_button("Back to select web pages"):
