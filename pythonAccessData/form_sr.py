@@ -43,7 +43,13 @@ class FORM:
                 "desc": "Description",
                 "read":  "Read",
                 "url": "URL",
-                "note": "Note"
+                "note": "Note",
+                "index":
+                    {
+                        "desc": 0,
+                        "read": 1,
+                        "url": 2,
+                    }
             },
         "videos":
             {

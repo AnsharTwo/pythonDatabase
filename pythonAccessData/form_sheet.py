@@ -1,5 +1,7 @@
 import streamlit as st
 from pandasql import sqldf
+from bs4 import BeautifulSoup
+import requests
 import form_sr
 
 class SHEET_FORM(form_sr.FORM):
@@ -251,8 +253,6 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.rows_selected_dredge = None
         if "drdg_sheet_web_pages" not in st.session_state:
             st.session_state.drdg_sheet_web_pages = None
-        if "drdg_rows" not in st.session_state:
-            st.session_state.drdg_rows = None
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
                 st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
@@ -274,7 +274,6 @@ class SHEET_FORM(form_sr.FORM):
                 st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
                 st.session_state.rows_selected_dredge = st.dataframe(st.session_state.drdg_sheet_web_pages,
                                                                      on_select="rerun", selection_mode="multi-row")
-                st.session_state.drdg_rows = st.session_state.rows_selected_dredge.selection.rows
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Start dredge search"):
                     st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
@@ -285,16 +284,24 @@ class SHEET_FORM(form_sr.FORM):
                     self.webpages_web_dredge()
                     st.rerun()
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_results":
-            with st.form("Dredge internet pages saved - result"):
+            with (st.form("Dredge internet pages saved - result")):
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
+                for r in st.session_state.rows_selected_dredge.selection.rows:
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")])
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("read")])
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("url")])
+                    html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("url")])
+                    wbpg_text = BeautifulSoup(html_page.text, 'lxml')
+                    text = wbpg_text.get_text()
+                    st.write(text)
 
-                # TODO - filter out rows where descr is not containing search text IF checkbox is ticked
-                # TODO - also check for empty URL (nan)
-                for r in st.session_state.drdg_rows:
-                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,0])
-                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r, 1])
-                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r, 2])
+                ###
                 st.write(st.session_state.rows_selected_dredge)
+                ###
 
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Done"):
