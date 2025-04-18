@@ -277,52 +277,69 @@ class SHEET_FORM(form_sr.FORM):
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Start dredge search"):
                     st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
-                    self.webpages_web_dredge_sel_results()
-                    st.rerun()
+                    if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
+                        st.markdown(":red[Select at least one row to continue.]")
+                    else:
+                        self.webpages_web_dredge_sel_results()
+                        st.rerun()
                 if cols_pages_btns[1].form_submit_button("Back to add search text"):
                     st.session_state.web_drdg_srch_exclsv_in_row_value = ""
                     self.webpages_web_dredge()
                     st.rerun()
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_results":
             with (st.form("Dredge internet pages saved - result")):
+                cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
+                req_wait = 30  # TODO add to settings and config.ini
                 for r in st.session_state.rows_selected_dredge.selection.rows:
                     st.divider()
                     st.write(":orange[" + st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")] + "]")
                     st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("read")])
-                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
+                    if str(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                             self.dict_book_sheets_spec.get("web_pages").get("index").get("url")]) \
+                                                                == "nan":
+                        st.markdown(":red[No URL had been given for this web page (row " + str(r) + ".)]")
+                    else:
+                        st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("url")])
-                    html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
-                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("url")])
-                    text = BeautifulSoup(html_page.text, 'lxml').get_text()
-                    found_all = 0
-                    wrap_dist = 250 # TODO add to settings and config.ini
-                    txt_bkmrk = 0
-                    drdg_txt = ""
-                    res_ctr = 0
-                    while found_all != -1:
-                        srch_indx = text.find(st.session_state.web_drdg_srch_str, txt_bkmrk)
-                        if srch_indx != -1:
-                            if srch_indx < wrap_dist:
-                                start = 0
-                            else:
-                                start = srch_indx - wrap_dist
-                            drdg_txt = text[start:srch_indx + len(st.session_state.web_drdg_srch_str) + wrap_dist] # no excptn if over end
-                            if (srch_indx + len(st.session_state.web_drdg_srch_str)) <= (len(text) - 1):
-                                txt_bkmrk  = srch_indx + len(st.session_state.web_drdg_srch_str)
-                            else:
-                                found_all = srch_indx
+
+                        html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                    self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
+                                                 timeout=req_wait)
+                        if str(html_page).find("404") != -1:
+                            st.markdown(":red[the web page could not be found. Error code was:] :grey[" + str(html_page) + "]")
                         else:
-                            found_all = srch_indx
-                        if drdg_txt == "":
-                            st.write(":red[Search text '" + st.session_state.web_drdg_srch_str + "' was not found at this URL.]")
-                        else:
-                            res_ctr += 1
-                            st.write(":green[Search result " + str(res_ctr) + "]")
-                            st.write("..." + drdg_txt + "...")
-                cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
+                            if str(html_page).find("403") != -1:
+                                st.markdown(":violet[NOTE the web page requires authorisation. Response code was:] :grey[" + str(
+                                    html_page) + "]")
+                            text = BeautifulSoup(html_page.text, 'lxml').get_text()
+                            found_all = 0
+                            wrap_dist = 250 # TODO add to settings and config.ini
+                            txt_bkmrk = 0
+                            drdg_txt = ""
+                            res_ctr = 0
+                            while found_all != -1:
+                                srch_indx = text.find(st.session_state.web_drdg_srch_str, txt_bkmrk)
+                                if srch_indx != -1:
+                                    if srch_indx < wrap_dist:
+                                        start = 0
+                                    else:
+                                        start = srch_indx - wrap_dist
+                                    drdg_txt = text[start:srch_indx + len(st.session_state.web_drdg_srch_str) + wrap_dist] # no excptn if over end
+                                    if (srch_indx + len(st.session_state.web_drdg_srch_str)) <= (len(text) - 1):
+                                        txt_bkmrk  = srch_indx + len(st.session_state.web_drdg_srch_str)
+                                    else:
+                                        found_all = srch_indx
+                                else:
+                                    found_all = srch_indx
+                                if drdg_txt == "":
+                                    st.write(":red[Search text '" + st.session_state.web_drdg_srch_str + "' was not found at this URL.]")
+                                else:
+                                    res_ctr += 1
+                                    st.write(":green[Search result " + str(res_ctr) + "]")
+                                    st.write("..." + drdg_txt + "...")
                 if cols_pages_btns[0].form_submit_button("Done"):
                     st.session_state.web_drdg_srch_str_value = ""
                     st.session_state.web_drdg_srch_str = ""
