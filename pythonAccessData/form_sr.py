@@ -72,6 +72,13 @@ class FORM:
         }
     }
 
+    dict_hlght_cases = {
+        "cap": "capitalise",
+        "cap_all": "capitaliseAll",
+        "lwr": "lower",
+        "upr": "upper"
+    }
+
     def get_data_source(self):
         dbPath = sys.argv[1] + sys.argv[2]
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)
@@ -138,6 +145,33 @@ class FORM:
         else:
             if edt_selection != "None":
                 return edt_selection
+
+    def hghlght_txt(self, srcText, searchTxts):
+        retText = srcText
+        if searchTxts != "":
+            for txt in searchTxts:
+                txt = str(txt).lstrip("%").rstrip("%")
+                txt = txt.replace("''", "'")
+                txt = txt.replace("[[]", "[")
+                retText = str(retText).replace(txt, ":orange-background[{}]".format(txt))
+                retText = str(retText).replace(txt.capitalize(),
+                                          ":orange-background[{}]".format(txt.capitalize()))
+                retText = str(retText).replace(txt.lower(),
+                                          ":orange-background[{}]".format(txt.lower()))
+                retText = str(retText).replace(txt.upper(),
+                                          ":orange-background[{}]".format(txt.upper()))
+                strForHghlghts = txt.split(" ")
+                if len(strForHghlghts) > 1:
+                    retText = self.__txtCaseHghlghtsByWrd(retText, txt, self.dict_hlght_cases.get("cap_all"))
+                    retText = self.__txtCaseHghlghtsByWrd(retText, txt, self.dict_hlght_cases.get("lwr"))
+                    retText = self.__txtCaseHghlghtsByWrd(retText, txt, self.dict_hlght_cases.get("upr"))
+                    capAllStr = ""
+                    for wrd in range(0, len(strForHghlghts)):
+                        capAllStr = capAllStr + str(strForHghlghts[wrd]).capitalize() + " "
+                    capAllStr = capAllStr.strip()
+                    retText = self.__txtCaseHghlghtsByWrd(retText, capAllStr, self.dict_hlght_cases.get("lwr"))
+                    retText = self.__txtCaseHghlghtsByWrd(retText, capAllStr, self.dict_hlght_cases.get("upr"))
+        return retText
 
     def isValidYearFormat(self, year, format):
         try:
@@ -210,3 +244,33 @@ class FORM:
         st.markdown(":{}[First edition location:] {}".format(colour, bk_first_edition_locale))
         st.markdown(":{}[First edition name:] {}".format(colour, bk_first_edition_name))
         st.markdown(":{}[First edition publisher:] {}".format(colour, bk_first_edition_publisher))
+
+    def __txtCaseHghlghtsByWrd(self,srcText, txt, case):
+        sText = srcText
+        strForHghlghts = txt.split(" ")
+        capAllStr = ""
+        if case == self.dict_hlght_cases.get("cap_all"):
+            for wrd in range(0, len(strForHghlghts)):
+                capAllStr = capAllStr + str(strForHghlghts[wrd]).capitalize() + " "
+            capAllStr = capAllStr.strip()
+            sText = sText.replace(capAllStr,
+                                  ":orange-background[{}]".format(capAllStr))
+        else:
+            for wrd in range(0, len(strForHghlghts)):
+                tempStr = ""
+                tempwrd = ""
+                if case == self.dict_hlght_cases.get("cap"):
+                    tempwrd = strForHghlghts[wrd].capitalize()
+                elif case == self.dict_hlght_cases.get("lwr"):
+                    tempwrd = strForHghlghts[wrd].lower()
+                elif case == self.dict_hlght_cases.get("upr"):
+                    tempwrd = strForHghlghts[wrd].upper()
+                for wrdIndx in range(0, len(strForHghlghts)):
+                    if wrd == wrdIndx:
+                        tempStr = tempStr + " " + tempwrd
+                    else:
+                        tempStr = tempStr + " " + str(strForHghlghts[wrdIndx])
+                tempStr = tempStr.strip()
+                sText = sText.replace(tempStr,
+                                      ":orange-background[{}]".format(tempStr))
+        return sText
