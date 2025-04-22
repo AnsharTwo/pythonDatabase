@@ -1,5 +1,7 @@
 import streamlit as st
 from pandasql import sqldf
+from bs4 import BeautifulSoup
+import requests
 import form_sr
 
 class SHEET_FORM(form_sr.FORM):
@@ -19,7 +21,8 @@ class SHEET_FORM(form_sr.FORM):
         "view_sites": "View websites",
         "view_srch_pages": "Search webpages",
         "view_srch_videos": "Search videos",
-        "view_srch_sites": "Search sites"
+        "view_srch_sites": "Search sites",
+        "view_dredge_pages": "Dredge webpages"
     }
 
     def webpages_vw_new_entry(self):
@@ -39,6 +42,15 @@ class SHEET_FORM(form_sr.FORM):
 
     def sites_sheet_srch(self):
         st.session_state.sites_st_srch = "vw_sch_sites"
+
+    def webpages_web_dredge(self):
+        st.session_state.webpages_web_drdg = "vw_drdg_webpages"
+
+    def webpages_web_dredge_sel_pages(self):
+        st.session_state.webpages_web_drdg = "webpages_web_drdg_sel_pages"
+
+    def webpages_web_dredge_sel_results(self):
+        st.session_state.webpages_web_drdg = "webpages_web_drdg_sel_results"
 
     def select_vw_sht_webpages(self):
         if "vw_webpages_form_flow" not in st.session_state:
@@ -225,6 +237,130 @@ class SHEET_FORM(form_sr.FORM):
                                              "URL": st.column_config.LinkColumn(
                                                  self.dict_book_sheets_spec.get("sites").get("url")),
                                          })
+
+    def select_drdg_webpages(self):
+        if "webpages_web_drdg" not in st.session_state:
+            st.session_state.webpages_web_drdg = "vw_drdg_webpages"
+        if "web_drdg_srch_str" not in st.session_state:
+            st.session_state.web_drdg_srch_str = ""
+        if "web_drdg_srch_str_value" not in st.session_state:
+            st.session_state.web_drdg_srch_str_value = ""
+        if "web_drdg_srch_exclsv_in_row" not in st.session_state:
+            st.session_state.web_drdg_srch_exclsv_in_row = False
+        if "web_drdg_srch_exclsv_in_row_value" not in st.session_state:
+            st.session_state.web_drdg_srch_exclsv_in_row_value = False
+        if "rows_selected_dredge" not in st.session_state:
+            st.session_state.rows_selected_dredge = None
+        if "drdg_sheet_web_pages" not in st.session_state:
+            st.session_state.drdg_sheet_web_pages = None
+        if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
+            with st.form("Dredge internet pages saved"):
+                st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
+                                                                  value=st.session_state.web_drdg_srch_str_value)
+                btn_drdg_next_1 = st.form_submit_button("Next")
+                if btn_drdg_next_1:
+                    if st.session_state.web_drdg_srch_str == "":
+                        st.markdown(":red[no search text given.]")
+                    else:
+                        self.webpages_web_dredge_sel_pages()
+                        st.session_state.web_drdg_srch_str_value = st.session_state.web_drdg_srch_str
+                        st.rerun()
+        elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_pages":
+            with st.form("Dredge internet pages saved - select pages"):
+                st.session_state.web_drdg_srch_exclsv_in_row = st.checkbox("Only search in URLs containing the search text",
+                                                                           key="xcel_vw_drdg+pgs", disabled=True,
+                                                                           value=st.session_state.web_drdg_srch_exclsv_in_row_value)
+                st.write("Select web pages to search for :blue[ " + st.session_state.web_drdg_srch_str + "]")
+                st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                st.session_state.rows_selected_dredge = st.dataframe(st.session_state.drdg_sheet_web_pages,
+                                                                     on_select="rerun", selection_mode="multi-row")
+                cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
+                if cols_pages_btns[0].form_submit_button("Start dredge search"):
+                    st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
+                    if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
+                        st.markdown(":red[Select at least one row to continue.]")
+                    else:
+                        self.webpages_web_dredge_sel_results()
+                        st.rerun()
+                if cols_pages_btns[1].form_submit_button("Back to add search text"):
+                    st.session_state.web_drdg_srch_exclsv_in_row_value = ""
+                    self.webpages_web_dredge()
+                    st.rerun()
+        elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_results":
+            with (st.form("Dredge internet pages saved - result")):
+                cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
+                st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
+                req_wait = 30  # TODO add to settings and config.ini
+                for r in st.session_state.rows_selected_dredge.selection.rows:
+                    st.divider()
+                    st.write(":orange[" + st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")] + "]")
+                    st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("read")])
+                    if str(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                             self.dict_book_sheets_spec.get("web_pages").get("index").get("url")]) \
+                                                                == "nan":
+                        st.markdown(":red[No URL had been given for this web page (row " + str(r) + ".)]")
+                    else:
+                        st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                self.dict_book_sheets_spec.get("web_pages").get("index").get("url")])
+                        try:
+                            html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                        self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
+                                                     timeout=req_wait)
+                            if str(html_page).find("<Response [4") != -1 and str(html_page).find("<Response [403") == -1:
+                                st.markdown(":red[Client error (if 404, the web page was not found). " + str(html_page) + ".]")
+                            elif str(html_page).find("<Response [5") != -1:
+                                st.markdown(":red[Server error (the web page server could not connect. " + str(html_page) + ".]")
+                            elif str(html_page).find("<Response [2") == -1:
+                                st.markdown(":red[An unexpected server response has occured. " + str(html_page) + ".]")
+                            else:
+                                if str(html_page).find("403") != -1:
+                                    st.markdown(":violet[NOTE the web page requires authorisation (response code 403).]")
+                                text = BeautifulSoup(html_page.text, 'lxml').get_text()
+                                wrap_dist = 125 # TODO add to settings and config.ini
+                                srch_txt_lst = self.formatSearchText(st.session_state.web_drdg_srch_str)
+                                for s_txt in srch_txt_lst:
+                                    found_all = 0
+                                    txt_bkmrk = 0
+                                    drdg_txt = ""
+                                    res_ctr = 0
+                                    while found_all != -1:
+                                        s = str(s_txt).strip("%")
+                                        srch_indx = text.find(s, txt_bkmrk)
+                                        if srch_indx != -1:
+                                            if srch_indx < wrap_dist:
+                                                start = 0
+                                            else:
+                                                start = srch_indx - wrap_dist
+                                            drdg_txt = text[start:srch_indx + len(s) + wrap_dist] # no excptn if over end
+                                            if (srch_indx + len(s)) <= (len(text) - 1):
+                                                txt_bkmrk  = srch_indx + len(s)
+                                            else:
+                                                found_all = srch_indx
+                                        else:
+                                            found_all = srch_indx
+                                        if drdg_txt == "":
+                                            st.write(":red[Search text '" + s + "' was not found at this URL.]")
+                                        else:
+                                            res_ctr += 1
+                                            drdg_txt = self.hghlght_txt(drdg_txt, srch_txt_lst)
+                                            st.write(":green[Search result " + str(res_ctr) + "]")
+                                            st.write("..." + drdg_txt + "...")
+                        except requests.RequestException as e:
+                            st.markdown(":rainbow[Error getting web page:] :red[" + str(e) + "]")
+                if cols_pages_btns[0].form_submit_button("Done"):
+                    st.session_state.web_drdg_srch_str_value = ""
+                    st.session_state.web_drdg_srch_str = ""
+                    st.session_state.web_drdg_srch_exclsv_in_row = False
+                    st.session_state.web_drdg_srch_exclsv_in_row_value = False
+                    st.session_state.rows_selected_dredge = None
+                    st.session_state.drdg_rows = None
+                    self.webpages_web_dredge()
+                    st.rerun()
+                if cols_pages_btns[1].form_submit_button("Back to select web pages"):
+                    self.webpages_web_dredge_sel_pages()
+                    st.rerun()
 
     def write_srch_row_sum(self, row_sum):
         rsum = str(row_sum).split(" ")

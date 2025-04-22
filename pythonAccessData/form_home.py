@@ -45,16 +45,18 @@ class HOME_FORM (form_sr.FORM):
                                           sheetForm.dict_book_sheets_view)
         if itm_slctd == sheetForm.dict_book_sheets_view.get("view_web_pages"):
             sheetForm.select_vw_sht_webpages()
-        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_videos"):
+        elif itm_slctd == sheetForm.dict_book_sheets_view.get("view_videos"):
             sheetForm.select_vw_sht_videos()
-        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_sites"):
+        elif itm_slctd == sheetForm.dict_book_sheets_view.get("view_sites"):
             sheetForm.select_vw_sht_sites()
-        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_pages"):
+        elif itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_pages"):
             sheetForm.select_srch_webpages()
-        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_videos"):
+        elif itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_videos"):
             sheetForm.select_srch_videos()
-        if itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_sites"):
-            sheetForm.select_srch_sites()
+        elif itm_slctd == sheetForm.dict_book_sheets_view.get("view_srch_sites"):
+            sheetForm.select_srch_sites(),
+        elif itm_slctd == sheetForm.dict_book_sheets_view.get("view_dredge_pages"):
+            sheetForm.select_drdg_webpages(),
 
     def select_do_ant(self):
         annt_worker_form = form_annt.EDIT_ANNOT()
@@ -74,9 +76,9 @@ class HOME_FORM (form_sr.FORM):
                                           editSheetForm.dict_book_sheets_edt)
         if itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_web_pages"):
             editSheetForm.select_edt_sht_webpages()
-        if itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_videos"):
+        elif itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_videos"):
             editSheetForm.select_edt_sht_videos()
-        if itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_sites"):
+        elif itm_slctd == editSheetForm.dict_book_sheets_edt.get("do_sites"):
             editSheetForm.select_edt_sht_sites()
 
     def select_sttngs(self):
