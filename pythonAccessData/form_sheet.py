@@ -268,7 +268,7 @@ class SHEET_FORM(form_sr.FORM):
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_pages":
             with st.form("Dredge internet pages saved - select pages"):
                 st.session_state.web_drdg_srch_exclsv_in_row = st.checkbox("Only search in URLs containing the search text",
-                                                                           key="xcel_vw_drdg+pgs",
+                                                                           key="xcel_vw_drdg+pgs", disabled=True,
                                                                            value=st.session_state.web_drdg_srch_exclsv_in_row_value)
                 st.write("Select web pages to search for :blue[ " + st.session_state.web_drdg_srch_str + "]")
                 st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
@@ -304,45 +304,51 @@ class SHEET_FORM(form_sr.FORM):
                     else:
                         st.write(st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("url")])
-                        html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
-                                                                    self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
-                                                 timeout=req_wait)
-                        if str(html_page).find("404") != -1:
-                            st.markdown(":red[the web page could not be found. Error code was:] :grey[" + str(html_page) + "]")
-                        else:
-                            if str(html_page).find("403") != -1:
-                                st.markdown(":violet[NOTE the web page requires authorisation. Response code was:] :grey[" + str(
-                                    html_page) + "]") # TODO - get plain text with all html removed
-                            text = BeautifulSoup(html_page.text, 'lxml').get_text()
-                            found_all = 0
-                            wrap_dist = 125 # TODO add to settings and config.ini
-                            txt_bkmrk = 0
-                            drdg_txt = ""
-                            res_ctr = 0
-                            srch_txt_lst = self.formatSearchText(st.session_state.web_drdg_srch_str)
-                            for s_txt in srch_txt_lst:
-                                while found_all != -1:
-                                    s = str(s_txt).strip("%")
-                                    srch_indx = text.find(s, txt_bkmrk)
-                                    if srch_indx != -1:
-                                        if srch_indx < wrap_dist:
-                                            start = 0
-                                        else:
-                                            start = srch_indx - wrap_dist
-                                        drdg_txt = text[start:srch_indx + len(s) + wrap_dist] # no excptn if over end
-                                        if (srch_indx + len(s)) <= (len(text) - 1):
-                                            txt_bkmrk  = srch_indx + len(s)
+                        try:
+                            html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                                        self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
+                                                     timeout=req_wait)
+                            if str(html_page).find("<Response [4") != -1 and str(html_page).find("<Response [403") == -1:
+                                st.markdown(":red[Client error (if 404, the web page was not found). " + str(html_page) + ".]")
+                            elif str(html_page).find("<Response [5") != -1:
+                                st.markdown(":red[Server error (the web page server could not connect. " + str(html_page) + ".]")
+                            elif str(html_page).find("<Response [2") == -1:
+                                st.markdown(":red[An unexpected server response has occured. " + str(html_page) + ".]")
+                            else:
+                                if str(html_page).find("403") != -1:
+                                    st.markdown(":violet[NOTE the web page requires authorisation (response code 403).]")
+                                text = BeautifulSoup(html_page.text, 'lxml').get_text()
+                                wrap_dist = 125 # TODO add to settings and config.ini
+                                srch_txt_lst = self.formatSearchText(st.session_state.web_drdg_srch_str)
+                                for s_txt in srch_txt_lst:
+                                    found_all = 0
+                                    txt_bkmrk = 0
+                                    drdg_txt = ""
+                                    res_ctr = 0
+                                    while found_all != -1:
+                                        s = str(s_txt).strip("%")
+                                        srch_indx = text.find(s, txt_bkmrk)
+                                        if srch_indx != -1:
+                                            if srch_indx < wrap_dist:
+                                                start = 0
+                                            else:
+                                                start = srch_indx - wrap_dist
+                                            drdg_txt = text[start:srch_indx + len(s) + wrap_dist] # no excptn if over end
+                                            if (srch_indx + len(s)) <= (len(text) - 1):
+                                                txt_bkmrk  = srch_indx + len(s)
+                                            else:
+                                                found_all = srch_indx
                                         else:
                                             found_all = srch_indx
-                                    else:
-                                        found_all = srch_indx
-                                    if drdg_txt == "":
-                                        st.write(":red[Search text '" + s + "' was not found at this URL.]")
-                                    else:
-                                        res_ctr += 1
-                                        drdg_txt = self.hghlght_txt(drdg_txt, srch_txt_lst)
-                                        st.write(":green[Search result " + str(res_ctr) + "]")
-                                        st.write("..." + drdg_txt + "...")
+                                        if drdg_txt == "":
+                                            st.write(":red[Search text '" + s + "' was not found at this URL.]")
+                                        else:
+                                            res_ctr += 1
+                                            drdg_txt = self.hghlght_txt(drdg_txt, srch_txt_lst)
+                                            st.write(":green[Search result " + str(res_ctr) + "]")
+                                            st.write("..." + drdg_txt + "...")
+                        except requests.RequestException as e:
+                            st.markdown(":rainbow[Error getting web page:] :red[" + str(e) + "]")
                 if cols_pages_btns[0].form_submit_button("Done"):
                     st.session_state.web_drdg_srch_str_value = ""
                     st.session_state.web_drdg_srch_str = ""
