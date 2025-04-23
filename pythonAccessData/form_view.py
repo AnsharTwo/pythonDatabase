@@ -393,7 +393,7 @@ class DATA_FORM(form_sr.FORM):
 
     def __markdown_srch_res(self, ant, searchTxts):
         srcText = self.hghlght_txt(str(ant.__getattribute__('Source Text')), searchTxts)
-        if srcText.find(":orange-background[") == -1:
+        if srcText.find(":orange-background[") == -1 and searchTxts != "":
             st.write(":green-background[The text you searched for was found but cannot be highlighted ¬]")
         st.markdown(""":green[Title:] :red[{title}]
                     \r\r:blue[Author: {author}]
