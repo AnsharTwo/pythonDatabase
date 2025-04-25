@@ -231,6 +231,16 @@ class FORM:
                 searchArr.append(self.format_sql_wrap(txt))
         return searchArr
 
+    def formatSheetSearchText(self, searchText):
+        searchArr = []
+        if searchText.find(",") == -1:
+            searchArr.append(searchText)
+        else:
+            searchTxt = searchText.split(",")
+            for txt in searchTxt:
+                searchArr.append(txt)
+        return searchArr
+
     def show_book_entered(self, colour, bk_title, bk_author, bk_publisher, bk_date_pub, bk_year_read, bk_pub_location, bk_edition,
                             bk_first_edition, bk_first_edition_locale, bk_first_edition_name, bk_first_edition_publisher):
         st.markdown(":{}[Title:] {}".format(colour, bk_title))
