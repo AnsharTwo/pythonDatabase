@@ -1,10 +1,9 @@
 [client]
-showsidebarnavigation = false
+showSidebarNavigation = false
 
 [browser]
-serveraddress = "localhost"
+serverAddress = "localhost"
 
 [theme]
 base = "dark"
 font = "sans serif"
-

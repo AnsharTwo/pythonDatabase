@@ -15,7 +15,13 @@ class CONFIG_FORM (form_sr.FORM):
             "inpt_spllchck_dstnc": 1,
             "inpt_spllchck_dstnc_minval": 1,
             "basic_clr_def_index": 0,
-            "font_def_index": 0
+            "font_def_index": 0,
+            "inpt_drdg_timeout": 3,
+            "inpt_drdg_timeout_minval": 10,
+            "inpt_drdg_timeout_maxval": 60,
+            "inpt_drdg_distance": 3,
+            "inpt_drdg_distance_minval": 21,
+            "inpt_drdg_distance_maxval": 264
         }
     }
 
@@ -34,9 +40,16 @@ class CONFIG_FORM (form_sr.FORM):
     def set_config_flow(self):
         st.session_state.form_config_flow = "config settings"
 
+    def set_config_flow_dredge(self):
+        st.session_state.form_config_flow_dredge = "config settings - dredge"
+
     def edt_sttngs(self):
         if "form_config_flow" not in st.session_state:
             st.session_state.form_config_flow = ""
+
+        if "form_config_flow_dredge" not in st.session_state:
+            st.session_state.form_config_flow_dredge = ""
+
         if "inpt_ant_edt_hght" not in st.session_state:
             st.session_state.inpt_ant_edt_hght = ""
         if "val_ant_edt_hght" not in st.session_state:
@@ -49,6 +62,15 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.sel_thm_bs_clr = ""
         if "sel_thm_fnt" not in st.session_state:
             st.session_state.sel_thm_fnt = ""
+
+        if "inpt_drdg_timeout" not in st.session_state:
+            st.session_state.inpt_drdg_timeout = ""
+        if "val_inpt_drdg_timeout" not in st.session_state:
+            st.session_state.val_inpt_drdg_timeout = ""
+        if "val_dredge_dstnc" not in st.session_state:
+            st.session_state.val_dredge_dstnc = ""
+
+
         self.set_config_flow()
         if st.session_state.form_config_flow == "config settings":
             config_data = self.load_ini_config()
@@ -117,6 +139,80 @@ class CONFIG_FORM (form_sr.FORM):
                                                                                   'Check Spelling' button to update)""")
                 st.divider()
                 cols_config = st.columns(2, gap="small", vertical_alignment="center")
+                if cols_config[0].form_submit_button("Save"):
+                    can_save = True
+                    if st.session_state.inpt_ant_edt_hght == "" or not st.session_state.inpt_ant_edt_hght.isdigit() \
+                                                                or int (st.session_state.inpt_ant_edt_hght) < \
+                                                                    self.form_config.get("wdgt_specs").get("inpt_ant_edt_hght_minval"):
+                        st.markdown(":red[Annotations editor height must be entered as a number up to 3 digits, and not lesser than 68.]")
+                        can_save = False
+                    elif st.session_state.inpt_spllchck_dstnc == "" or not st.session_state.inpt_spllchck_dstnc.isdigit() \
+                                                                or int (st.session_state.inpt_spllchck_dstnc) < \
+                                                                    self.form_config.get("wdgt_specs").get("inpt_spllchck_dstnc_minval"):
+                        st.markdown(":red[Spellcheck distance must be entered as a number up to 1 digit, and greater than 0.]")
+                        can_save = False
+                    if can_save:
+                        st.session_state.val_ant_edt_hght = st.session_state.inpt_ant_edt_hght
+                        st.session_state.val_spllchck_dstnc = st.session_state.inpt_spllchck_dstnc
+                        st.session_state[sel_opt_bscol] = values_list_bscol.index(st.session_state.sel_thm_bs_clr)
+                        st.session_state[sel_opt_fnt] = values_list_fnt.index(st.session_state.sel_thm_fnt)
+                        config_toml_data["theme"]["base"] = str('"' + st.session_state.sel_thm_bs_clr + '"').lower()
+                        config_toml_data["theme"]["font"] = str('"' + st.session_state.sel_thm_fnt + '"')
+                        config_data["widget_dims"]["textarea_annot_height"] = st.session_state.inpt_ant_edt_hght
+                        config_data["spellcheck"]["distance"] = st.session_state.inpt_spllchck_dstnc
+                        if st.session_state.val_ant_edt_hght != st.session_state.inpt_ant_edt_hght:
+                            st.session_state.val_ant_edt_hght = st.session_state.inpt_ant_edt_hght
+                        if st.session_state.val_spllchck_dstnc != st.session_state.inpt_spllchck_dstnc:
+                            st.session_state.val_spllchck_dstnc = st.session_state.inpt_spllchck_dstnc
+                        self.write_toml_config(config_toml_data)
+                        self.write_ini_config(config_data)
+                        st.rerun()
+                if cols_config[1].form_submit_button("Reset"):
+                    os.remove(self.dict_config.get("toml_config"))
+                    os.remove(self.dict_config.get("ini_config"))
+                    shutil.copy(self.dict_config.get("toml_config_def"), self.dict_config.get("toml_config"))
+                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
+                    st.session_state[sel_opt_bscol] = self.form_config.get("wdgt_specs").get("basic_clr_def_index")
+                    st.session_state[sel_opt_fnt] = self.form_config.get("wdgt_specs").get("font_def_index")
+                    config_def_data = self.load_ini_config()
+                    st.session_state.val_ant_edt_hght = config_def_data["widget_dims"]["textarea_annot_height"]
+                    st.session_state.val_spllchck_dstnc = config_def_data["spellcheck"]["distance"]
+                    st.rerun()
+
+            ######################################################
+
+        self.set_config_flow_dredge()
+        if st.session_state.form_config_flow_dredge == "config settings - dredge":
+            config_data = self.load_ini_config()
+            if st.session_state.val_inpt_drdg_timeout == "":
+                st.session_state.val_inpt_drdg_timeout = config_data['dredge']['response_timeout']
+            if st.session_state.val_dredge_dstnc == "":
+                st.session_state.val_dredge_dstnc = config_data['dredge']['result_distance']
+            with (st.form("config_settings_dredge")):
+                st.markdown(f"**Dredge web pages**")
+                st.markdown(":orange[(Current: ]" + str(config_data["dredge"]["result_distance"]).title() + ":orange[)]  ")
+                cols_wrkspc_drdg_timeout = st.columns(4, gap="small", vertical_alignment="center")
+                st.session_state.inpt_drdg_timeout = cols_wrkspc_drdg_timeout[0].text_input("Returned text snippet size",
+                                                                                  value=int(st.session_state.val_dredge_dstnc),
+                                                                                  max_chars=self.form_config.get("wdgt_specs").get("inpt_drdg_distance"),
+                                                                                  help="""must be a number of characters between """ +
+                                                                                       str(self.form_config.get("wdgt_specs").get("inpt_drdg_distance_minval")) +
+                                                                                       " and " +
+                                                                                       str(self.form_config.get("wdgt_specs").get("inpt_drdg_distance_maxval")))
+                st.divider()
+                st.markdown(":orange[(Current: ]" + str(config_data["dredge"]["response_timeout"]).title() + ":orange[)]  ")
+                cols_wrkspc_drdg_timeout = st.columns(4, gap="small", vertical_alignment="center")
+                st.session_state.inpt_drdg_timeout = cols_wrkspc_drdg_timeout[0].text_input("Web page server response timeout",
+                                                                                  value=int(st.session_state.val_inpt_drdg_timeout),
+                                                                                  max_chars=self.form_config.get("wdgt_specs").get("inpt_drdg_timeout"),
+                                                                                  help="""must be a number in seconds between """ +
+                                                                                       str(self.form_config.get("wdgt_specs").get("inpt_drdg_timeout_minval")) +
+                                                                                       " and " +
+                                                                                       str(self.form_config.get("wdgt_specs").get("inpt_drdg_timeout_maxval")))
+                cols_config = st.columns(2, gap="small", vertical_alignment="center")
+
+                # TODO HERE ##########################################################################
+
                 if cols_config[0].form_submit_button("Save"):
                     can_save = True
                     if st.session_state.inpt_ant_edt_hght == "" or not st.session_state.inpt_ant_edt_hght.isdigit() \

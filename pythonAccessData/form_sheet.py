@@ -253,6 +253,10 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.rows_selected_dredge = None
         if "drdg_sheet_web_pages" not in st.session_state:
             st.session_state.drdg_sheet_web_pages = None
+        if "ant_drdg_timeout" not in st.session_state:
+            st.session_state.ant_drdg_timeout = None
+        if "ant_drdg_distance" not in st.session_state:
+            st.session_state.ant_drdg_distance = None
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
                 st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
@@ -290,9 +294,11 @@ class SHEET_FORM(form_sr.FORM):
                     st.rerun()
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_results":
             with (st.form("Dredge internet pages saved - result")):
+                config_data = self.load_ini_config()
+                st.session_state.ant_drdg_timeout = int(config_data.get('dredge', 'response_timeout'))
+                st.session_state.ant_drdg_distance = int(config_data.get('dredge', 'result_distance'))
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
-                req_wait = 30  # TODO add to settings and config.ini
                 srch_txts = []
                 for r in st.session_state.rows_selected_dredge.selection.rows:
                     st.divider()
@@ -324,7 +330,7 @@ class SHEET_FORM(form_sr.FORM):
                             try:
                                 html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
                                                          self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
-                                                         timeout=req_wait)
+                                                         timeout=st.session_state.ant_drdg_timeout)
                                 if str(html_page).find("<Response [404") != -1:
                                     st.markdown(":red[The web page was not found. " + str(html_page) + ".]")
                                 elif str(html_page).find("<Response [5") != -1:
@@ -335,7 +341,6 @@ class SHEET_FORM(form_sr.FORM):
                                                     :red[(The search may not not find matches as an 'access denied' or similar 
                                                     message may be returned instead. A manual visit to the web page amy enable a search.)]""")
                                     text = BeautifulSoup(html_page.text, 'lxml').get_text()
-                                    wrap_dist = 125 # TODO add to settings and config.ini
                                     if st.session_state.web_drdg_srch_exclsv_in_row:
                                         srch_txt_lst.clear()
                                         srch_txt_lst = srch_txts
@@ -348,11 +353,11 @@ class SHEET_FORM(form_sr.FORM):
                                             s = str(s_txt)
                                             srch_indx = text.find(s, txt_bkmrk)
                                             if srch_indx != -1:
-                                                if srch_indx < wrap_dist:
+                                                if srch_indx < st.session_state.ant_drdg_distance:
                                                     start = 0
                                                 else:
-                                                    start = srch_indx - wrap_dist
-                                                drdg_txt = text[start:srch_indx + len(s) + wrap_dist] # no excptn if over end
+                                                    start = srch_indx - st.session_state.ant_drdg_distance
+                                                drdg_txt = text[start:srch_indx + len(s) + st.session_state.ant_drdg_distance] # no excptn if over end
                                                 if (srch_indx + len(s)) <= (len(text) - 1):
                                                     txt_bkmrk  = srch_indx + len(s)
                                                 else:
