@@ -40,7 +40,7 @@ class CONFIG_FORM (form_sr.FORM):
     }
 
     def set_config_flow_theme(self):
-        st.session_state.form_config_flow = "config settings - theme"
+        st.session_state.form_config_flow_theme = "config settings - theme"
 
     def set_config_flow_annt_hght(self):
         st.session_state.form_config_flow_annt_hght = "config settings - annot height"
@@ -52,8 +52,8 @@ class CONFIG_FORM (form_sr.FORM):
         st.session_state.form_config_flow_dredge = "config settings - dredge"
 
     def edt_sttngs(self):
-        if "form_config_flow" not in st.session_state:
-            st.session_state.form_config_flow = ""
+        if "form_config_flow_theme" not in st.session_state:
+            st.session_state.form_config_flow_theme = ""
         if "form_config_flow_annt_hght" not in st.session_state:
             st.session_state.form_config_flow_annt_hght = ""
         if "form_config_flow_spell" not in st.session_state:
@@ -89,17 +89,17 @@ class CONFIG_FORM (form_sr.FORM):
         if "val_inpt_drdge_dstnc" not in st.session_state:
             st.session_state.val_inpt_drdge_dstnc = ""
         self.set_config_flow_theme()
-        if st.session_state.form_config_flow == "config settings - theme":
+        if st.session_state.form_config_flow_theme == "config settings - theme":
             config_toml_data = self.load_toml_config()
             st.header("Manage Settings")
-            with (st.form("Theme")):
+            with (st.form("config_settings")):
                 st.markdown(f":blue[**Theme**]")
-                cols_wrkspc_sz = st.columns(4, gap="small", vertical_alignment="center")
+                cols_wrkspc_clr = st.columns(4, gap="small", vertical_alignment="center")
                 sel_opt_bscol = 'selectbox_option_' + "base_colour_itms"
                 if sel_opt_bscol not in st.session_state:
                     st.session_state[sel_opt_bscol] = 0
                 values_list_bscol = list(self.ddlist_itms.get("basic_clr").values())
-                st.session_state.sel_thm_bs_clr = cols_wrkspc_sz[0].selectbox("Base colour",
+                st.session_state.sel_thm_bs_clr = cols_wrkspc_clr[0].selectbox("Base colour",
                                              [
                                                  value
                                                  for value in self.ddlist_itms.get("basic_clr").values()
@@ -110,12 +110,12 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state[sel_opt_bscol] = values_list_bscol.index(st.session_state.sel_thm_bs_clr)
                 st.markdown(":orange[(Current: ]" + str(config_toml_data["theme"]["base"]).title() + ":orange[)]  ")
                 st.divider()
-                cols_wrkspc_sz = st.columns(4, gap="small", vertical_alignment="center")
+                cols_wrkspc_fnt = st.columns(4, gap="small", vertical_alignment="center")
                 sel_opt_fnt = 'selectbox_option_' + "font"
                 if sel_opt_fnt not in st.session_state:
                     st.session_state[sel_opt_fnt] = 0
                 values_list_fnt = list(self.ddlist_itms.get("font").values())
-                st.session_state.sel_thm_fnt = cols_wrkspc_sz[0].selectbox("Font",
+                st.session_state.sel_thm_fnt = cols_wrkspc_fnt[0].selectbox("Font",
                                              [
                                                  value
                                                  for value in self.ddlist_itms.get("font").values()
@@ -140,6 +140,13 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state[sel_opt_bscol] = self.form_config.get("wdgt_specs").get("basic_clr_def_index")
                     st.session_state[sel_opt_fnt] = self.form_config.get("wdgt_specs").get("font_def_index")
                     st.rerun()
+
+
+
+
+#######################################
+        ############################
+
         self.set_config_flow_annt_hght()
         if st.session_state.form_config_flow_annt_hght == "config settings - annot height":
             config_data = self.load_ini_config()
