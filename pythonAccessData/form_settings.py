@@ -140,13 +140,6 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state[sel_opt_bscol] = self.form_config.get("wdgt_specs").get("basic_clr_def_index")
                     st.session_state[sel_opt_fnt] = self.form_config.get("wdgt_specs").get("font_def_index")
                     st.rerun()
-
-
-
-
-#######################################
-        ############################
-
         self.set_config_flow_annt_hght()
         if st.session_state.form_config_flow_annt_hght == "config settings - annot height":
             config_data = self.load_ini_config()
