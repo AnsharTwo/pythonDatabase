@@ -5,6 +5,9 @@ showsidebarnavigation = false
 serveraddress = "localhost"
 
 [theme]
-base = "dark"
+base = "light"
 font = "sans serif"
+
+[server]
+runonsave = true
 
