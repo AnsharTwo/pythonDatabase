@@ -348,7 +348,6 @@ class SHEET_FORM(form_sr.FORM):
                                         found_all = 0
                                         txt_bkmrk = 0
                                         drdg_txt = ""
-                                        res_ctr = 0
                                         while found_all != -1:
                                             s = str(s_txt)
                                             srch_indx = text.find(s, txt_bkmrk)
@@ -367,9 +366,8 @@ class SHEET_FORM(form_sr.FORM):
                                             if drdg_txt == "":
                                                 st.write(":red[Search text '" + s + "' was not found at this URL.]")
                                             else:
-                                                res_ctr += 1
                                                 drdg_txt = self.hghlght_txt(drdg_txt, srch_txt_lst)
-                                                st.write(":green[Search result " + str(res_ctr) + "]")
+                                                st.write(":green[Search result.]")
                                                 st.write("..." + drdg_txt + "...")
                             except requests.RequestException as e:
                                 st.markdown(":rainbow[Error getting web page:] :red[" + str(e) + "]")
