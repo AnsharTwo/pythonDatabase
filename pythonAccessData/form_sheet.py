@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 from pandasql import sqldf
 from bs4 import BeautifulSoup
@@ -300,7 +301,12 @@ class SHEET_FORM(form_sr.FORM):
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
                 srch_txts = []
-                for r in st.session_state.rows_selected_dredge.selection.rows:
+                prog_bar = st.progress(0)
+                for r in range(0, len(st.session_state.rows_selected_dredge.selection.rows)):
+                    time.sleep(0.1)
+                    prog_bar.progress(r / len(st.session_state.rows_selected_dredge.selection.rows),
+                                      text="Dredging web pages for search text in progress, " + str(r) +
+                                           " of " + str(len(st.session_state.rows_selected_dredge.selection.rows)) +". Please wait...")
                     st.divider()
                     st.write(":orange[" + st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")] + "]")
@@ -372,6 +378,8 @@ class SHEET_FORM(form_sr.FORM):
                             except requests.RequestException as e:
                                 st.markdown(":rainbow[Error getting web page:] :red[" + str(e) + "]")
                         srch_txt_lst.clear()
+                time.sleep(1)
+                prog_bar.empty()
                 if cols_pages_btns[0].form_submit_button("Done"):
                     st.session_state.web_drdg_srch_str_value = ""
                     st.session_state.web_drdg_srch_str = ""
