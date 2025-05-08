@@ -37,6 +37,7 @@ class DATA_SOURCE:
         res = result.fetchone()
         return res[0]
 
+    @st.cache_data(show_spinner=True)
     def selectBooksAll(self, cursor):
         books = cursor.execute(self.dict_queries.get("books_all"))
         return books
