@@ -258,6 +258,8 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.ant_drdg_timeout = None
         if "ant_drdg_distance" not in st.session_state:
             st.session_state.ant_drdg_distance = None
+        if "run_dredge" not in st.session_state:
+            st.session_state.run_dredge = False
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
                 st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
@@ -282,6 +284,7 @@ class SHEET_FORM(form_sr.FORM):
                                                                      on_select="rerun", selection_mode="multi-row")
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Start dredge search"):
+                    st.session_state.run_dredge = True
                     st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
                     if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
                         st.markdown(":red[Select at least one row to continue.]")
@@ -301,12 +304,14 @@ class SHEET_FORM(form_sr.FORM):
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
                 srch_txts = []
-                prog_bar = st.progress(0)
+                if st.session_state.run_dredge:
+                    prog_bar = st.progress(0)
                 for r in range(0, len(st.session_state.rows_selected_dredge.selection.rows)):
-                    time.sleep(0.1)
-                    prog_bar.progress(r / len(st.session_state.rows_selected_dredge.selection.rows),
-                                      text="Dredging web pages for search text in progress, " + str(r) +
-                                           " of " + str(len(st.session_state.rows_selected_dredge.selection.rows)) +". Please wait...")
+                    if st.session_state.run_dredge:
+                        time.sleep(0.1)
+                        prog_bar.progress(r / len(st.session_state.rows_selected_dredge.selection.rows),
+                                          text="Dredging web pages for search text in progress, " + str(r) +
+                                               " of " + str(len(st.session_state.rows_selected_dredge.selection.rows)) +". Please wait...")
                     st.divider()
                     st.write(":orange[" + st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")] + "]")
@@ -334,9 +339,9 @@ class SHEET_FORM(form_sr.FORM):
                                 run_dredge = False
                         if run_dredge:
                             try:
-                                html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
-                                                         self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
-                                                         timeout=st.session_state.ant_drdg_timeout)
+                                html_page = self.__request_dredge(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                    self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
+                                                    st.session_state.ant_drdg_timeout)
                                 if str(html_page).find("<Response [404") != -1:
                                     st.markdown(":red[The web page was not found. " + str(html_page) + ".]")
                                 elif str(html_page).find("<Response [5") != -1:
@@ -378,20 +383,25 @@ class SHEET_FORM(form_sr.FORM):
                             except requests.RequestException as e:
                                 st.markdown(":rainbow[Error getting web page:] :red[" + str(e) + "]")
                         srch_txt_lst.clear()
-                time.sleep(1)
-                prog_bar.empty()
+                if st.session_state.run_dredge:
+                    time.sleep(1)
+                    prog_bar.empty()
+                    st.session_state.run_dredge = False
                 if cols_pages_btns[0].form_submit_button("Done"):
                     st.session_state.web_drdg_srch_str_value = ""
                     st.session_state.web_drdg_srch_str = ""
                     st.session_state.web_drdg_srch_exclsv_in_row = False
                     st.session_state.web_drdg_srch_exclsv_in_row_value = False
                     st.session_state.rows_selected_dredge = None
-                    st.session_state.drdg_rows = None
                     self.webpages_web_dredge()
                     st.rerun()
                 if cols_pages_btns[1].form_submit_button("Back to select web pages"):
                     self.webpages_web_dredge_sel_pages()
                     st.rerun()
+
+    @st.cache_data(show_spinner="Loading URLs...")
+    def __request_dredge(_self, url, tmt):
+        return requests.get(url,timeout=tmt)
 
     def write_srch_row_sum(self, row_sum):
         rsum = str(row_sum).split(" ")

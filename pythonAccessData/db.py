@@ -37,14 +37,12 @@ class DATA_SOURCE:
         res = result.fetchone()
         return res[0]
 
-    @st.cache_data(show_spinner=True)
     def selectBooksAll(self, cursor):
         books = cursor.execute(self.dict_queries.get("books_all"))
         return books
 
     def resAnnotsAll(self, cursor):
         results = cursor.execute(self.dict_queries.get("annots_all_count"))
-
         res = results.fetchone()
         return res[0]
 

@@ -108,7 +108,7 @@ class FORM:
         with open(self.dict_config.get("ini_config"), 'w') as configfile:
             config_data.write(configfile)
 
-    @st.cache_data(show_spinner=True)
+    @st.cache_data(show_spinner="Loading data from sheet...")
     def load_book_sheet(_self, sheet):
         sheetbook_path = sys.argv[1] + sys.argv[3]
         dict_sheets = pd.read_excel(sheetbook_path, index_col=0, engine="openpyxl", sheet_name=None)
