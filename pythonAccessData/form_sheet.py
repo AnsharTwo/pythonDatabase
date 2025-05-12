@@ -258,6 +258,8 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.ant_drdg_timeout = None
         if "ant_drdg_distance" not in st.session_state:
             st.session_state.ant_drdg_distance = None
+        if "ant_drdg_max_pages" not in st.session_state:
+            st.session_state.ant_drdg_max_pages = None
         if "run_dredge" not in st.session_state:
             st.session_state.run_dredge = False
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
@@ -274,6 +276,8 @@ class SHEET_FORM(form_sr.FORM):
                         st.rerun()
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_pages":
             with st.form("Dredge internet pages saved - select pages"):
+                config_data = self.load_ini_config()
+                st.session_state.ant_drdg_max_pages = int(config_data.get('dredge', 'max_web_pages'))
                 st.session_state.web_drdg_srch_exclsv_in_row = st.checkbox("""Only search in URLs with a row description containing
                                                                               the search text""",
                                                                            key="xcel_vw_drdg+pgs",
@@ -288,6 +292,10 @@ class SHEET_FORM(form_sr.FORM):
                     st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
                     if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
                         st.markdown(":red[Select at least one row to continue.]")
+                    elif len(st.session_state.rows_selected_dredge.selection.rows) > st.session_state.ant_drdg_max_pages:
+                        st.markdown(""":red[Too many rows selected. The maximum number of rows runnable is defined in the 
+                        Settings tab, Dredge web pages panel. This is currently set to] :blue[""" +
+                                    str(st.session_state.ant_drdg_max_pages) + "] :red[rows.]")
                     else:
                         self.webpages_web_dredge_sel_results()
                         st.rerun()
@@ -306,12 +314,14 @@ class SHEET_FORM(form_sr.FORM):
                 srch_txts = []
                 if st.session_state.run_dredge:
                     prog_bar = st.progress(0)
-                for r in range(0, len(st.session_state.rows_selected_dredge.selection.rows)):
+                    prg_ctr = 0
+                for r in st.session_state.rows_selected_dredge.selection.rows:
                     if st.session_state.run_dredge:
                         time.sleep(0.1)
-                        prog_bar.progress(r / len(st.session_state.rows_selected_dredge.selection.rows),
-                                          text="Dredging web pages for search text in progress, " + str(r) +
+                        prog_bar.progress(prg_ctr / len(st.session_state.rows_selected_dredge.selection.rows),
+                                          text="Dredging web pages for search text in progress, " + str(prg_ctr) +
                                                " of " + str(len(st.session_state.rows_selected_dredge.selection.rows)) +". Please wait...")
+                        prg_ctr += 1
                     st.divider()
                     st.write(":orange[" + st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")] + "]")
@@ -350,7 +360,7 @@ class SHEET_FORM(form_sr.FORM):
                                     if str(html_page).find("403") != -1:
                                         st.markdown(""":violet[NOTE the web page requires authorisation (response code 403). ] 
                                                     :red[(The search may not not find matches as an 'access denied' or similar 
-                                                    message may be returned instead. A manual visit to the web page amy enable a search.)]""")
+                                                    message may be returned instead. A manual visit to the web page may enable a search.)]""")
                                     text = BeautifulSoup(html_page.text, 'lxml').get_text()
                                     if st.session_state.web_drdg_srch_exclsv_in_row:
                                         srch_txt_lst.clear()

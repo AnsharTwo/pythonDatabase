@@ -23,7 +23,10 @@ class CONFIG_FORM (form_sr.FORM):
             "inpt_drdg_timeout_maxval": 60,
             "inpt_drdg_distance": 3,
             "inpt_drdg_distance_minval": 21,
-            "inpt_drdg_distance_maxval": 264
+            "inpt_drdg_distance_maxval": 264,
+            "inpt_drdg_max_pages": 5,
+            "inpt_drdg_max_pages_minval": 1,
+            "inpt_drdg_max_pages_maxval": 99999
         }
     }
 
@@ -82,6 +85,10 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.val_inpt_spell_dstnc = ""
         if "inpt_drdg_timeout" not in st.session_state:
             st.session_state.inpt_drdg_timeout = ""
+        if "inpt_drdg_max_wbpgs" not in st.session_state:
+            st.session_state.inpt_drdg_max_wbpgs = ""
+        if "val_inpt_drdg_max_wbpgs" not in st.session_state:
+            st.session_state.val_inpt_drdg_max_wbpgs = ""
         if "val_inpt_drdg_timeout" not in st.session_state:
             st.session_state.val_inpt_drdg_timeout = ""
         if "inpt_drdge_dstnc" not in st.session_state:
@@ -228,6 +235,8 @@ class CONFIG_FORM (form_sr.FORM):
                 st.session_state.val_inpt_drdg_timeout = config_data['dredge']['response_timeout']
             if st.session_state.val_inpt_drdge_dstnc == "":
                 st.session_state.val_inpt_drdge_dstnc = config_data['dredge']['result_distance']
+            if st.session_state.val_inpt_drdg_max_wbpgs == "":
+                st.session_state.val_inpt_drdg_max_wbpgs = config_data['dredge']['max_web_pages']
             with (st.form("config_settings_dredge")):
                 st.markdown(f"**:blue[Dredge web pages]**")
                 cols_wrkspc_drdg_timeout = st.columns(4, gap="small", vertical_alignment="center")
@@ -239,6 +248,17 @@ class CONFIG_FORM (form_sr.FORM):
                                                                                        " and " +
                                                                                        str(self.form_config.get("wdgt_specs").get("inpt_drdg_distance_maxval")))
                 st.markdown(":orange[(Current: ]" + str(config_data["dredge"]["result_distance"]).title() + ":orange[)]  ")
+                st.divider()
+                cols_wrkspc_drdg_max_wbpgs = st.columns(4, gap="small", vertical_alignment="center")
+                st.session_state.inpt_drdg_max_wbpgs = cols_wrkspc_drdg_max_wbpgs[0].text_input("Max. number of web pages to dredge.",
+                                                                                  value=int(st.session_state.val_inpt_drdg_max_wbpgs),
+                                                                                  max_chars=self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages"),
+                                                                                  help="""must be a number between """ +
+                                                                                       str(self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages_minval")) +
+                                                                                       " and " +
+                                                                                       str(self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages_maxval")) +
+                                                                                        " (WARNING - very high number NOT recommended).")
+                st.markdown(":orange[(Current: ]" + str(config_data["dredge"]["max_web_pages"]).title() + ":orange[)]  ")
                 st.divider()
                 cols_wrkspc_drdg_timeout = st.columns(4, gap="small", vertical_alignment="center")
                 st.session_state.inpt_drdg_timeout = cols_wrkspc_drdg_timeout[0].text_input("Web page server response timeout",
@@ -273,13 +293,26 @@ class CONFIG_FORM (form_sr.FORM):
                                     " digits, and not lesser than " +
                                     str(self.form_config.get("wdgt_specs").get("inpt_drdg_timeout_minval")) + ".]")
                         can_save = False
+                    elif st.session_state.inpt_drdg_max_wbpgs == "" or not st.session_state.inpt_drdg_max_wbpgs.isdigit() \
+                                                                or int(st.session_state.inpt_drdg_max_wbpgs) < \
+                                                                    self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages_minval") \
+                                                                or int(st.session_state.inpt_drdg_max_wbpgs) > \
+                                                                    self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages_maxval"):
+                        st.markdown(":red[Number of web pages to search must be entered as a number up to " +
+                                    str(self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages_maxval")) +
+                                    " digits, and not lesser than " +
+                                    str(self.form_config.get("wdgt_specs").get("inpt_drdg_max_pages_minval")) + ".]")
+                        can_save = False
                     if can_save:
                         config_data["dredge"]["result_distance"] = st.session_state.inpt_drdge_dstnc
                         config_data["dredge"]["response_timeout"] = st.session_state.inpt_drdg_timeout
+                        config_data["dredge"]["max_web_pages"] = st.session_state.inpt_drdg_max_wbpgs
                         if st.session_state.val_inpt_drdge_dstnc != st.session_state.inpt_drdge_dstnc:
                             st.session_state.val_inpt_drdge_dstnc = st.session_state.inpt_drdge_dstnc
                         if st.session_state.val_inpt_drdg_timeout != st.session_state.inpt_drdg_timeout:
                             st.session_state.val_inpt_drdg_timeout = st.session_state.inpt_drdg_timeout
+                        if st.session_state.val_inpt_drdg_max_wbpgs != st.session_state.inpt_drdg_max_wbpgs:
+                            st.session_state.val_inpt_drdg_max_wbpgs = st.session_state.inpt_drdg_max_wbpgs
                         self.write_ini_config(config_data)
                         st.rerun()
                 if cols_config[1].form_submit_button("Reset"):
@@ -288,4 +321,5 @@ class CONFIG_FORM (form_sr.FORM):
                     config_def_data = self.load_ini_config()
                     st.session_state.val_inpt_drdge_dstnc = config_def_data["dredge"]["result_distance"]
                     st.session_state.val_inpt_drdg_timeout = config_def_data["dredge"]["response_timeout"]
+                    st.session_state.val_inpt_drdg_max_wbpgs = config_def_data["dredge"]["max_web_pages"]
                     st.rerun()
