@@ -262,8 +262,11 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.ant_drdg_max_pages = None
         if "run_dredge" not in st.session_state:
             st.session_state.run_dredge = False
+        if "drdg_modal" not in st.session_state:
+            st.session_state.drdg_modal = False
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
+                st.session_state.drdg_modal = False
                 st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
                                                                   value=st.session_state.web_drdg_srch_str_value)
                 btn_drdg_next_1 = st.form_submit_button("Next")
@@ -277,6 +280,10 @@ class SHEET_FORM(form_sr.FORM):
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_pages":
             with st.form("Dredge internet pages saved - select pages"):
                 config_data = self.load_ini_config()
+                if int(config_data.get('show_messages', 'dredge_note')) == 1:
+                    if not st.session_state.drdg_modal:
+                        self.__dredge_msg_modal()
+                        st.session_state.drdg_modal = True
                 st.session_state.ant_drdg_max_pages = int(config_data.get('dredge', 'max_web_pages'))
                 st.session_state.web_drdg_srch_exclsv_in_row = st.checkbox("""Only search in URLs with a row description containing
                                                                               the search text""",
@@ -408,6 +415,14 @@ class SHEET_FORM(form_sr.FORM):
                 if cols_pages_btns[1].form_submit_button("Back to select web pages"):
                     self.webpages_web_dredge_sel_pages()
                     st.rerun()
+
+    @st.dialog("Before searching your web pages", width="large")
+    def __dredge_msg_modal(self):
+        st.write("Text warnings here")
+        if st.checkbox("Don't show this message again."):
+            config_data = self.load_ini_config()
+            config_data["show_messages"]["dredge_note"] = "0"
+            self.write_ini_config(config_data)
 
     @st.cache_data(show_spinner="Loading URLs...")
     def __request_dredge(_self, url, tmt):
