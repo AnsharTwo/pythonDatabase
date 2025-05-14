@@ -54,6 +54,9 @@ class CONFIG_FORM (form_sr.FORM):
     def set_config_flow_dredge(self):
         st.session_state.form_config_flow_dredge = "config settings - dredge"
 
+    def set_config_flow_shw_msgs(self):
+        st.session_state.form_config_flow_shw_msgs = "config settings - show messages"
+
     def edt_sttngs(self):
         if "form_config_flow_theme" not in st.session_state:
             st.session_state.form_config_flow_theme = ""
@@ -63,6 +66,8 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.form_config_flow_spell = ""
         if "form_config_flow_dredge" not in st.session_state:
             st.session_state.form_config_flow_dredge = ""
+        if "form_config_flow_shw_msgs" not in st.session_state:
+            st.session_state.form_config_flow_shw_msgs = ""
         if "inpt_ant_edt_hght" not in st.session_state:
             st.session_state.inpt_ant_edt_hght = ""
         if "val_ant_edt_hght" not in st.session_state:
@@ -95,6 +100,10 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.inpt_drdge_dstnc = ""
         if "val_inpt_drdge_dstnc" not in st.session_state:
             st.session_state.val_inpt_drdge_dstnc = ""
+        if "val_inpt_shw_drdg_msg" not in st.session_state:
+            st.session_state.val_inpt_shw_drdg_msg = ""
+        if "inpt_shw_drdg_msg" not in st.session_state:
+            st.session_state.inpt_shw_drdg_msg = ""
         self.set_config_flow_theme()
         if st.session_state.form_config_flow_theme == "config settings - theme":
             config_toml_data = self.load_toml_config()
@@ -322,4 +331,40 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state.val_inpt_drdge_dstnc = config_def_data["dredge"]["result_distance"]
                     st.session_state.val_inpt_drdg_timeout = config_def_data["dredge"]["response_timeout"]
                     st.session_state.val_inpt_drdg_max_wbpgs = config_def_data["dredge"]["max_web_pages"]
+                    st.rerun()
+        self.set_config_flow_shw_msgs()
+        if st.session_state.form_config_flow_shw_msgs == "config settings - show messages":
+            config_data = self.load_ini_config()
+            if st.session_state.val_inpt_shw_drdg_msg == "":
+                if config_data['show_messages']['dredge_note'] == "1":
+                    st.session_state.val_inpt_shw_drdg_msg = True
+                else:
+                    st.session_state.val_inpt_shw_drdg_msg = False
+            with (st.form("config_settings_shw_msgs")):
+                st.markdown(f"**:blue[Show/hide user messages]**")
+                cols_shw_msgs_drdge = st.columns(2, gap="small", vertical_alignment="center")
+                st.session_state.inpt_shw_drdg_msg = cols_shw_msgs_drdge[0].checkbox("Internet web pages search notification",
+                                                                value=int(st.session_state.val_inpt_shw_drdg_msg),
+                                                                key="shw_drdg_msg_wfs543")
+                if st.session_state.val_inpt_shw_drdg_msg:
+                    st.markdown(":orange[(Current: ]" + "Showing" + ":orange[)]  ")
+                else:
+                    st.markdown(":orange[(Current: ]" + "Not showing" + ":orange[)]  ")
+                cols_config = st.columns(2, gap="small", vertical_alignment="center")
+                if cols_config[0].form_submit_button("Save"):
+                    if st.session_state.inpt_shw_drdg_msg:
+                        if config_data["show_messages"]["dredge_note"] == "0":
+                            config_data["show_messages"]["dredge_note"] = "1"
+                    else:
+                        if config_data["show_messages"]["dredge_note"] == "1":
+                            config_data["show_messages"]["dredge_note"] = "0"
+                    if st.session_state.val_inpt_shw_drdg_msg != st.session_state.inpt_shw_drdg_msg:
+                        st.session_state.val_inpt_shw_drdg_msg = st.session_state.inpt_shw_drdg_msg
+                    self.write_ini_config(config_data)
+                    st.rerun()
+                if cols_config[1].form_submit_button("Reset"):
+                    os.remove(self.dict_config.get("ini_config"))
+                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
+                    config_def_data = self.load_ini_config()
+                    st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
                     st.rerun()

@@ -4,6 +4,7 @@ from pandasql import sqldf
 from bs4 import BeautifulSoup
 import requests
 import form_sr
+import form_settings
 
 class SHEET_FORM(form_sr.FORM):
 
@@ -264,6 +265,8 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.run_dredge = False
         if "drdg_modal" not in st.session_state:
             st.session_state.drdg_modal = False
+        if "val_inpt_shw_drdg_msg" not in st.session_state:
+            st.session_state.val_inpt_shw_drdg_msg = False  # val of Settings > show messages > dredge web note
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
                 st.session_state.drdg_modal = False
@@ -410,6 +413,7 @@ class SHEET_FORM(form_sr.FORM):
                     st.session_state.web_drdg_srch_exclsv_in_row = False
                     st.session_state.web_drdg_srch_exclsv_in_row_value = False
                     st.session_state.rows_selected_dredge = None
+                    st.session_state.drdg_modal = False
                     self.webpages_web_dredge()
                     st.rerun()
                 if cols_pages_btns[1].form_submit_button("Back to select web pages"):
@@ -422,7 +426,10 @@ class SHEET_FORM(form_sr.FORM):
         if st.checkbox("Don't show this message again."):
             config_data = self.load_ini_config()
             config_data["show_messages"]["dredge_note"] = "0"
+            if st.session_state.val_inpt_shw_drdg_msg: # val of Settings > show messages > dredge web note
+                st.session_state.val_inpt_shw_drdg_msg = False
             self.write_ini_config(config_data)
+            st.rerun()
 
     @st.cache_data(show_spinner="Loading URLs...")
     def __request_dredge(_self, url, tmt):
