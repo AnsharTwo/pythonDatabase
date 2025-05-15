@@ -34,10 +34,9 @@ class HOME_FORM (form_sr.FORM):
             db_viewer.bks_all()
         elif itm_slctd == db_viewer.dict_searches.get("bks_yr_read"):
             db_viewer.bks_yr_read()
-        elif itm_slctd == db_viewer.dict_searches.get("ants_all"):
-            db_viewer.ants_all()
         elif itm_slctd == db_viewer.dict_searches.get("ants_yr_read"):
             db_viewer.ants_yr_read()
+
     def select_view_st(self):
         sheetForm = form_sheet.SHEET_FORM()
         itm_slctd = self.select_edit_form(sheetForm.dict_view_sheet.get("header"),

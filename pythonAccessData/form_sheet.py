@@ -60,7 +60,7 @@ class SHEET_FORM(form_sr.FORM):
         self.webpages_vw_new_entry()
         if st.session_state.vw_webpages_form_flow == "vw_webpages":
             sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-            st.dataframe(sheet_web_pages, hide_index=True,
+            st.dataframe(sheet_web_pages, hide_index=False,
                                             column_order=(
                                                           self.dict_book_sheets_spec.get("web_pages").get("desc"),
                                                           self.dict_book_sheets_spec.get("web_pages").get("read"),
@@ -93,7 +93,7 @@ class SHEET_FORM(form_sr.FORM):
         self.sites_vw_new_entry()
         if st.session_state.vw_sites_form_flow == "vw_sites":
             sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-            st.dataframe(sheet_sites, hide_index=True,
+            st.dataframe(sheet_sites, hide_index=False,
                                             column_order=(self.dict_book_sheets_spec.get("sites").get("desc"),
                                                             self.dict_book_sheets_spec.get("sites").get("url")),
                                             column_config={
@@ -422,7 +422,7 @@ class SHEET_FORM(form_sr.FORM):
 
     @st.dialog("Before searching your web pages", width="large")
     def __dredge_msg_modal(self):
-        st.write("Text warnings here")
+        st.write(self.dredge_web_note)
         if st.checkbox("Don't show this message again."):
             config_data = self.load_ini_config()
             config_data["show_messages"]["dredge_note"] = "0"
@@ -530,3 +530,11 @@ class SHEET_FORM(form_sr.FORM):
             "append_sites_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
         }
     }
+
+    dredge_web_note = """You should consider the following: If you select a large number  of web pages to search, 
+                        this may take a long time to complete. Also, be aware of any potential monetary costs that 
+                        you may incur from your Internet service provider. (The default number of pages to dredge 
+                        for your search terms is set to 100. The allowed value is between 1 and 99999.) Finally, 
+                        be confident that you would really want to visit the web pages you have stored in your 
+                        Librotate web pages data set – if they might contain unsuitable or even 
+                        illegal data in your area of residence."""
