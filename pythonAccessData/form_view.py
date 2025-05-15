@@ -196,18 +196,6 @@ class DATA_FORM(form_sr.FORM):
                                     self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", st.session_state["yr_bks_from"],
                                                     st.session_state["yr_bks_to"])
 
-    # def ants_all(self):
-    #     if "go_ants_all" not in st.session_state:
-    #         st.session_state["go_ants_all"] = False
-    #     with st.form("Search for all annotations"):
-    #         st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
-    #         searched = st.form_submit_button("Search")
-    #         if searched:
-    #             st.session_state["go_ants_all"] = True
-    #             st.rerun()
-    #         elif st.session_state["go_ants_all"]:
-    #             self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
-
     def ants_yr_read(self):
         with st.form("Search for annotations by year book titles read"):
             if "go_ants_yr" not in st.session_state:
