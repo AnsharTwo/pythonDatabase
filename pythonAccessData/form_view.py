@@ -23,7 +23,6 @@ class DATA_FORM(form_sr.FORM):
         "bks_auth": "Books by author",
         "bks_all": "All books",
         "bks_yr_read": "Books by year read",
-        "ants_all": "All annotations",
         "ants_yr_read": "Annotations by year read"
     }
 
@@ -197,18 +196,6 @@ class DATA_FORM(form_sr.FORM):
                                     self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", st.session_state["yr_bks_from"],
                                                     st.session_state["yr_bks_to"])
 
-    def ants_all(self):
-        if "go_ants_all" not in st.session_state:
-            st.session_state["go_ants_all"] = False
-        with st.form("Search for all annotations"):
-            st.markdown(":red-background[NOTE: page may be slow to load searching on all annotations...]")
-            searched = st.form_submit_button("Search")
-            if searched:
-                st.session_state["go_ants_all"] = True
-                st.rerun()
-            elif st.session_state["go_ants_all"]:
-                self.db_records(self.dict_searches.get("ants_all"), "", "", "", "", "")
-
     def ants_yr_read(self):
         with st.form("Search for annotations by year book titles read"):
             if "go_ants_yr" not in st.session_state:
@@ -263,8 +250,6 @@ class DATA_FORM(form_sr.FORM):
             self.__show_srch_bk_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("bks_yr_read"):
             self.__show_srch_bks_yr_rd(sourceData, conn, yearFrom, yearTo)
-        elif searchSelection == self.dict_searches.get("ants_all"):
-            self.__show_srch_ants_all(sourceData, conn)
         elif searchSelection == self.dict_searches.get("ants_yr_read"):
             self.__show_srch_ants_yr_rd(sourceData, conn, yearFrom, yearTo)
         conn.close()
@@ -374,13 +359,6 @@ class DATA_FORM(form_sr.FORM):
                                 ]
                             )
             st.dataframe(df, None, height=625, hide_index=True)
-
-    def __show_srch_ants_all(self, sourceData, conn):
-        resCountAnnotsAll = sourceData.resAnnotsAll(conn.cursor())
-        annots = sourceData.selectAnnotsAll(conn.cursor())
-        st.write("Found {} results.".format(resCountAnnotsAll))
-        for ant in annots:
-            self.__markdown_srch_res(ant, "")
 
     def __show_srch_ants_yr_rd(self, sourceData, conn, yearFrom, yearTo):
         resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)

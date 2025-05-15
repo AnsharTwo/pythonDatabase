@@ -41,7 +41,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
                 sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
                 sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-                edit_sheet_wbpgs = st.data_editor(sheet_web_pages, hide_index=True, num_rows="dynamic",
+                edit_sheet_wbpgs = st.data_editor(sheet_web_pages, hide_index=False, num_rows="dynamic",
                                                   column_order=(self.dict_book_sheets_spec.get("web_pages").get("desc"),
                                                                 self.dict_book_sheets_spec.get("web_pages").get("read"),
                                                                 self.dict_book_sheets_spec.get("web_pages").get("url"),

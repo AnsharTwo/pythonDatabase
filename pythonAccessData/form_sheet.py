@@ -1,8 +1,10 @@
+import time
 import streamlit as st
 from pandasql import sqldf
 from bs4 import BeautifulSoup
 import requests
 import form_sr
+import form_settings
 
 class SHEET_FORM(form_sr.FORM):
 
@@ -58,7 +60,7 @@ class SHEET_FORM(form_sr.FORM):
         self.webpages_vw_new_entry()
         if st.session_state.vw_webpages_form_flow == "vw_webpages":
             sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-            st.dataframe(sheet_web_pages, hide_index=True,
+            st.dataframe(sheet_web_pages, hide_index=False,
                                             column_order=(
                                                           self.dict_book_sheets_spec.get("web_pages").get("desc"),
                                                           self.dict_book_sheets_spec.get("web_pages").get("read"),
@@ -91,7 +93,7 @@ class SHEET_FORM(form_sr.FORM):
         self.sites_vw_new_entry()
         if st.session_state.vw_sites_form_flow == "vw_sites":
             sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-            st.dataframe(sheet_sites, hide_index=True,
+            st.dataframe(sheet_sites, hide_index=False,
                                             column_order=(self.dict_book_sheets_spec.get("sites").get("desc"),
                                                             self.dict_book_sheets_spec.get("sites").get("url")),
                                             column_config={
@@ -257,8 +259,17 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.ant_drdg_timeout = None
         if "ant_drdg_distance" not in st.session_state:
             st.session_state.ant_drdg_distance = None
+        if "ant_drdg_max_pages" not in st.session_state:
+            st.session_state.ant_drdg_max_pages = None
+        if "run_dredge" not in st.session_state:
+            st.session_state.run_dredge = False
+        if "drdg_modal" not in st.session_state:
+            st.session_state.drdg_modal = False
+        if "val_inpt_shw_drdg_msg" not in st.session_state:
+            st.session_state.val_inpt_shw_drdg_msg = False  # val of Settings > show messages > dredge web note
         if st.session_state.webpages_web_drdg == "vw_drdg_webpages":
             with st.form("Dredge internet pages saved"):
+                st.session_state.drdg_modal = False
                 st.session_state.web_drdg_srch_str = st.text_area("Text to search for (separate multiple with comma)",
                                                                   value=st.session_state.web_drdg_srch_str_value)
                 btn_drdg_next_1 = st.form_submit_button("Next")
@@ -271,6 +282,12 @@ class SHEET_FORM(form_sr.FORM):
                         st.rerun()
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_pages":
             with st.form("Dredge internet pages saved - select pages"):
+                config_data = self.load_ini_config()
+                if int(config_data.get('show_messages', 'dredge_note')) == 1:
+                    if not st.session_state.drdg_modal:
+                        self.__dredge_msg_modal()
+                        st.session_state.drdg_modal = True
+                st.session_state.ant_drdg_max_pages = int(config_data.get('dredge', 'max_web_pages'))
                 st.session_state.web_drdg_srch_exclsv_in_row = st.checkbox("""Only search in URLs with a row description containing
                                                                               the search text""",
                                                                            key="xcel_vw_drdg+pgs",
@@ -281,9 +298,14 @@ class SHEET_FORM(form_sr.FORM):
                                                                      on_select="rerun", selection_mode="multi-row")
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Start dredge search"):
+                    st.session_state.run_dredge = True
                     st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
                     if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
                         st.markdown(":red[Select at least one row to continue.]")
+                    elif len(st.session_state.rows_selected_dredge.selection.rows) > st.session_state.ant_drdg_max_pages:
+                        st.markdown(""":red[Too many rows selected. The maximum number of rows runnable is defined in the 
+                        Settings tab, Dredge web pages panel. This is currently set to] :blue[""" +
+                                    str(st.session_state.ant_drdg_max_pages) + "] :red[rows.]")
                     else:
                         self.webpages_web_dredge_sel_results()
                         st.rerun()
@@ -300,7 +322,16 @@ class SHEET_FORM(form_sr.FORM):
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 st.write("Search results for :green[ " + st.session_state.web_drdg_srch_str + "]")
                 srch_txts = []
+                if st.session_state.run_dredge:
+                    prog_bar = st.progress(0)
+                    prg_ctr = 0
                 for r in st.session_state.rows_selected_dredge.selection.rows:
+                    if st.session_state.run_dredge:
+                        time.sleep(0.1)
+                        prog_bar.progress(prg_ctr / len(st.session_state.rows_selected_dredge.selection.rows),
+                                          text="Dredging web pages for search text in progress, " + str(prg_ctr) +
+                                               " of " + str(len(st.session_state.rows_selected_dredge.selection.rows)) +". Please wait...")
+                        prg_ctr += 1
                     st.divider()
                     st.write(":orange[" + st.session_state.drdg_sheet_web_pages.iloc[r,
                                                                 self.dict_book_sheets_spec.get("web_pages").get("index").get("desc")] + "]")
@@ -328,9 +359,9 @@ class SHEET_FORM(form_sr.FORM):
                                 run_dredge = False
                         if run_dredge:
                             try:
-                                html_page = requests.get(st.session_state.drdg_sheet_web_pages.iloc[r,
-                                                         self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
-                                                         timeout=st.session_state.ant_drdg_timeout)
+                                html_page = self.__request_dredge(st.session_state.drdg_sheet_web_pages.iloc[r,
+                                                    self.dict_book_sheets_spec.get("web_pages").get("index").get("url")],
+                                                    st.session_state.ant_drdg_timeout)
                                 if str(html_page).find("<Response [404") != -1:
                                     st.markdown(":red[The web page was not found. " + str(html_page) + ".]")
                                 elif str(html_page).find("<Response [5") != -1:
@@ -339,7 +370,7 @@ class SHEET_FORM(form_sr.FORM):
                                     if str(html_page).find("403") != -1:
                                         st.markdown(""":violet[NOTE the web page requires authorisation (response code 403). ] 
                                                     :red[(The search may not not find matches as an 'access denied' or similar 
-                                                    message may be returned instead. A manual visit to the web page amy enable a search.)]""")
+                                                    message may be returned instead. A manual visit to the web page may enable a search.)]""")
                                     text = BeautifulSoup(html_page.text, 'lxml').get_text()
                                     if st.session_state.web_drdg_srch_exclsv_in_row:
                                         srch_txt_lst.clear()
@@ -372,18 +403,37 @@ class SHEET_FORM(form_sr.FORM):
                             except requests.RequestException as e:
                                 st.markdown(":rainbow[Error getting web page:] :red[" + str(e) + "]")
                         srch_txt_lst.clear()
+                if st.session_state.run_dredge:
+                    time.sleep(1)
+                    prog_bar.empty()
+                    st.session_state.run_dredge = False
                 if cols_pages_btns[0].form_submit_button("Done"):
                     st.session_state.web_drdg_srch_str_value = ""
                     st.session_state.web_drdg_srch_str = ""
                     st.session_state.web_drdg_srch_exclsv_in_row = False
                     st.session_state.web_drdg_srch_exclsv_in_row_value = False
                     st.session_state.rows_selected_dredge = None
-                    st.session_state.drdg_rows = None
+                    st.session_state.drdg_modal = False
                     self.webpages_web_dredge()
                     st.rerun()
                 if cols_pages_btns[1].form_submit_button("Back to select web pages"):
                     self.webpages_web_dredge_sel_pages()
                     st.rerun()
+
+    @st.dialog("Before searching your web pages", width="large")
+    def __dredge_msg_modal(self):
+        st.write(self.dredge_web_note)
+        if st.checkbox("Don't show this message again."):
+            config_data = self.load_ini_config()
+            config_data["show_messages"]["dredge_note"] = "0"
+            if st.session_state.val_inpt_shw_drdg_msg: # val of Settings > show messages > dredge web note
+                st.session_state.val_inpt_shw_drdg_msg = False
+            self.write_ini_config(config_data)
+            st.rerun()
+
+    @st.cache_data(show_spinner="Loading URLs...")
+    def __request_dredge(_self, url, tmt):
+        return requests.get(url,timeout=tmt)
 
     def write_srch_row_sum(self, row_sum):
         rsum = str(row_sum).split(" ")
@@ -480,3 +530,11 @@ class SHEET_FORM(form_sr.FORM):
             "append_sites_and_url": ''' OR Description LIKE ('{}') OR URL LIKE ('{}')'''
         }
     }
+
+    dredge_web_note = """You should consider the following: If you select a large number  of web pages to search, 
+                        this may take a long time to complete. Also, be aware of any potential monetary costs that 
+                        you may incur from your Internet service provider. (The default number of pages to dredge 
+                        for your search terms is set to 100. The allowed value is between 1 and 99999.) Finally, 
+                        be confident that you would really want to visit the web pages you have stored in your 
+                        Librotate web pages data set – if they might contain unsuitable or even 
+                        illegal data in your area of residence."""

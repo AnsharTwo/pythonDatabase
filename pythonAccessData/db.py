@@ -41,16 +41,6 @@ class DATA_SOURCE:
         books = cursor.execute(self.dict_queries.get("books_all"))
         return books
 
-    def resAnnotsAll(self, cursor):
-        results = cursor.execute(self.dict_queries.get("annots_all_count"))
-
-        res = results.fetchone()
-        return res[0]
-
-    def selectAnnotsAll(self, cursor):
-        annots = cursor.execute(self.dict_queries.get("annots_all"))
-        return annots
-
     def resAnnotsbyBook(self, cursor, book_title):
         results = cursor.execute(self.dict_queries.get("annots_by_bk_count").format(book_title))
         res = results.fetchone()
@@ -398,14 +388,7 @@ class DATA_SOURCE:
         "books_all": """SELECT * 
                             FROM Books 
                             ORDER BY [Book No]""",
-        "annots_all_count": """SELECT COUNT(*) 
-                                   FROM [Source Text]""",
         "books_max_key": "SELECT MAX([Book No]) FROM Books As Result",
-        "annots_all": """SELECT Books.[Book Title], Books.Author, [Source Text].[Page No], [Source Text].[Source Text]  
-                             FROM [Source Text]
-                             INNER JOIN Books
-                             ON [Source Text].[Book No] = Books.[Book No] 
-                             ORDER BY [Source Text].[Book No], [Source Text].[Page No]""",
         "annots_by_bk_count": """SELECT COUNT(*) 
                                      FROM [Source Text] 
                                      INNER JOIN Books 
