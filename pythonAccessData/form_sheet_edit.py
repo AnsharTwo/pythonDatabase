@@ -59,6 +59,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 st.info(self.dict_wdgt_msgs.get("submit_info"))
                 btn_apply_webpages = st.form_submit_button("Apply web pages", help=self.dict_wdgt_msgs.get("submit_help"))
                 if btn_apply_webpages:
+                    self.load_book_sheet.clear()
                     self.write_book_sheet(edit_sheet_wbpgs, sheet_videos, sheet_sites)
                     st.rerun()
 
@@ -90,6 +91,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 btn_apply_webpages = st.form_submit_button("Apply videos", help=self.dict_wdgt_msgs.get("submit_help"))
                 st.info(self.dict_wdgt_msgs.get("submit_info"))
                 if btn_apply_webpages:
+                    self.load_book_sheet.clear()
                     self.write_book_sheet(sheet_web_pages, edit_sheet_vds, sheet_sites)
                     st.rerun()
 
@@ -113,5 +115,6 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 btn_apply_webpages = st.form_submit_button("Apply sites", help=self.dict_wdgt_msgs.get("submit_help"))
                 st.info(self.dict_wdgt_msgs.get("submit_info"))
                 if btn_apply_webpages:
+                    self.load_book_sheet.clear()
                     self.write_book_sheet(sheet_web_pages, sheet_videos, edit_sheet_sites)
                     st.rerun()
