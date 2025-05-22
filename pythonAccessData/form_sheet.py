@@ -199,7 +199,7 @@ class SHEET_FORM(form_sr.FORM):
                             st.header("Sheet rows")
                             st.dataframe(df_srch, hide_index=True,
                                          column_order=(self.dict_book_sheets_spec.get("videos").get("desc"),
-                                                       self.dict_book_sheets_spec.get("videos").get("read"),
+                                                       self.dict_book_sheets_spec.get("videos").get("watched"),
                                                        self.dict_book_sheets_spec.get("videos").get("url"),
                                                        self.dict_book_sheets_spec.get("videos").get("note")),
                                          column_config={
