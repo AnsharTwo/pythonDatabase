@@ -40,6 +40,7 @@ class FORM:
     dict_book_sheets_spec = {
         "web_pages":
             {
+                "page_no": "Page no.",
                 "desc": "Description",
                 "read":  "Read",
                 "url": "URL",
@@ -53,13 +54,15 @@ class FORM:
             },
         "videos":
             {
+                "video_no": "Video no.",
                 "desc": "Description",
-                "read": "Read",
+                "watched": "Watched",
                 "url": "URL",
                 "note": "Note"
             },
         "sites":
             {
+                "site_no": "Site no.",
                 "desc": "Description",
                 "url": "URL"
             }
@@ -111,16 +114,26 @@ class FORM:
     @st.cache_data(show_spinner="Loading data from sheet...")
     def load_book_sheet(_self, sheet):
         sheetbook_path = sys.argv[1] + sys.argv[3]
-        dict_sheets = pd.read_excel(sheetbook_path, index_col=0, engine="openpyxl", sheet_name=None)
+        dict_sheets = pd.read_excel(sheetbook_path, index_col=None, engine="openpyxl", sheet_name=None)
         sheet_loaded = dict_sheets[sheet]
         return sheet_loaded
 
     def write_book_sheet(self, sheet_web_pages, sheet_videos, sheet_sites):
         sheetbook_path = sys.argv[1] + sys.argv[3]
         with pd.ExcelWriter(sheetbook_path) as writer:
-            sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"))
-            sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"))
-            sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"))
+            sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"), index=False,
+                                     columns=[self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                              self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                              self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                              self.dict_book_sheets_spec.get("web_pages").get("note")])
+            sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"), index=False,
+                                     columns=[self.dict_book_sheets_spec.get("videos").get("desc"),
+                                              self.dict_book_sheets_spec.get("videos").get("watched"),
+                                              self.dict_book_sheets_spec.get("videos").get("url"),
+                                              self.dict_book_sheets_spec.get("videos").get("note")])
+            sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"), index=False,
+                                     columns=[self.dict_book_sheets_spec.get("sites").get("desc"),
+                                              self.dict_book_sheets_spec.get("sites").get("url")])
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())

@@ -60,14 +60,18 @@ class SHEET_FORM(form_sr.FORM):
         self.webpages_vw_new_entry()
         if st.session_state.vw_webpages_form_flow == "vw_webpages":
             sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-            st.dataframe(sheet_web_pages, hide_index=False,
+            sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
+                                                                                                len(sheet_web_pages) + 1)
+            st.dataframe(sheet_web_pages, hide_index=True,
                                             column_order=(
+                                                self.dict_book_sheets_spec.get("web_pages").get("page_no"),
                                                           self.dict_book_sheets_spec.get("web_pages").get("desc"),
                                                           self.dict_book_sheets_spec.get("web_pages").get("read"),
                                                           self.dict_book_sheets_spec.get("web_pages").get("url"),
                                                           self.dict_book_sheets_spec.get("web_pages").get("note")),
                                             column_config={
-                                                  "URL": st.column_config.LinkColumn(
+                                                  self.dict_book_sheets_spec.get("web_pages").get("url"): \
+                                                      st.column_config.LinkColumn(
                                                       self.dict_book_sheets_spec.get("web_pages").get("url")),
                                               })
 
@@ -77,13 +81,17 @@ class SHEET_FORM(form_sr.FORM):
         self.videos_vw_new_entry()
         if st.session_state.vw_videos_form_flow == "vw_videos":
             sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
-            st.dataframe(sheet_videos, hide_index=False,
-                                          column_order=(self.dict_book_sheets_spec.get("videos").get("desc"),
-                                                        self.dict_book_sheets_spec.get("videos").get("read"),
+            sheet_videos[self.dict_book_sheets_spec.get("videos").get("video_no")] = range(1,
+                                                                                                len(sheet_videos) + 1)
+            st.dataframe(sheet_videos, hide_index=True,
+                                          column_order=(self.dict_book_sheets_spec.get("videos").get("video_no"),
+                                                        self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                        self.dict_book_sheets_spec.get("videos").get("watched"),
                                                         self.dict_book_sheets_spec.get("videos").get("url"),
                                                         self.dict_book_sheets_spec.get("videos").get("note")),
                                           column_config={
-                                                "URL": st.column_config.LinkColumn(
+                                                self.dict_book_sheets_spec.get("videos").get("url"): \
+                                                    st.column_config.LinkColumn(
                                                     self.dict_book_sheets_spec.get("videos").get("url")),
                                             })
 
@@ -93,11 +101,15 @@ class SHEET_FORM(form_sr.FORM):
         self.sites_vw_new_entry()
         if st.session_state.vw_sites_form_flow == "vw_sites":
             sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-            st.dataframe(sheet_sites, hide_index=False,
-                                            column_order=(self.dict_book_sheets_spec.get("sites").get("desc"),
-                                                            self.dict_book_sheets_spec.get("sites").get("url")),
+            sheet_sites[self.dict_book_sheets_spec.get("sites").get("site_no")] = range(1,
+                                                                                                len(sheet_sites) + 1)
+            st.dataframe(sheet_sites, hide_index=True,
+                                            column_order=(self.dict_book_sheets_spec.get("sites").get("site_no"),
+                                                          self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                          self.dict_book_sheets_spec.get("sites").get("url")),
                                             column_config={
-                                                  "URL": st.column_config.LinkColumn(
+                                                  self.dict_book_sheets_spec.get("sites").get("url"): \
+                                                      st.column_config.LinkColumn(
                                                       self.dict_book_sheets_spec.get("sites").get("url")),
                                               })
 
@@ -187,7 +199,7 @@ class SHEET_FORM(form_sr.FORM):
                             st.header("Sheet rows")
                             st.dataframe(df_srch, hide_index=True,
                                          column_order=(self.dict_book_sheets_spec.get("videos").get("desc"),
-                                                       self.dict_book_sheets_spec.get("videos").get("read"),
+                                                       self.dict_book_sheets_spec.get("videos").get("watched"),
                                                        self.dict_book_sheets_spec.get("videos").get("url"),
                                                        self.dict_book_sheets_spec.get("videos").get("note")),
                                          column_config={
@@ -294,8 +306,27 @@ class SHEET_FORM(form_sr.FORM):
                                                                            value=st.session_state.web_drdg_srch_exclsv_in_row_value)
                 st.write("Select web pages to search for :blue[ " + st.session_state.web_drdg_srch_str + "]")
                 st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                st.session_state.drdg_sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
+                                                                                     len(st.session_state.drdg_sheet_web_pages) + 1)
                 st.session_state.rows_selected_dredge = st.dataframe(st.session_state.drdg_sheet_web_pages,
-                                                                     on_select="rerun", selection_mode="multi-row")
+                                                                     on_select="rerun", hide_index=True, selection_mode="multi-row",
+                                                                     column_order=(
+                                                                         self.dict_book_sheets_spec.get(
+                                                                             "web_pages").get("page_no"),
+                                                                         self.dict_book_sheets_spec.get(
+                                                                             "web_pages").get("desc"),
+                                                                         self.dict_book_sheets_spec.get(
+                                                                             "web_pages").get("read"),
+                                                                         self.dict_book_sheets_spec.get(
+                                                                             "web_pages").get("url"),
+                                                                         self.dict_book_sheets_spec.get(
+                                                                             "web_pages").get("note")),
+                                                                     column_config=({
+                                                                         self.dict_book_sheets_spec.get(
+                                                                                 "web_pages").get("url"): st.column_config.LinkColumn(
+                                                                             self.dict_book_sheets_spec.get(
+                                                                                 "web_pages").get("url")),
+                                                                     }))
                 cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_pages_btns[0].form_submit_button("Start dredge search"):
                     st.session_state.run_dredge = True
