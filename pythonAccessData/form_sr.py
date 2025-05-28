@@ -83,7 +83,7 @@ class FORM:
     }
 
     def get_data_source(self):
-        dbPath = sys.argv[1] + sys.argv[2]
+        dbPath = st.session_state.ss_dat_loc_annots
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)
         sourceData.is_ms_access_driver()
         return sourceData
@@ -113,13 +113,13 @@ class FORM:
 
     @st.cache_data(show_spinner="Loading data from sheet...")
     def load_book_sheet(_self, sheet):
-        sheetbook_path = sys.argv[1] + sys.argv[3]
+        sheetbook_path = st.session_state.ss_dat_loc_urls
         dict_sheets = pd.read_excel(sheetbook_path, index_col=None, engine="openpyxl", sheet_name=None)
         sheet_loaded = dict_sheets[sheet]
         return sheet_loaded
 
     def write_book_sheet(self, sheet_web_pages, sheet_videos, sheet_sites):
-        sheetbook_path = sys.argv[1] + sys.argv[3]
+        sheetbook_path = st.session_state.ss_dat_loc_urls
         with pd.ExcelWriter(sheetbook_path) as writer:
             sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"), index=False,
                                      columns=[self.dict_book_sheets_spec.get("web_pages").get("desc"),

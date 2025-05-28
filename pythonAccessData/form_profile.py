@@ -54,7 +54,7 @@ class PROF_FORM (form_sr.FORM):
                 st.markdown(f"**:blue[Data locations]**")
                 st.write("Annotations database")
                 st.markdown(":orange[(Current: ]" + str(
-                    config_data["data locations"]["annotations"]).title() + ":orange[)]  ")
+                    st.session_state.ss_dat_loc_annots).title() + ":orange[)]  ")
                 if st.form_submit_button("Browse annotations files"):
                     root = tk.Tk()
                     tk.Button(root, text="Quit annotations file selection", command=root.destroy).pack()
@@ -62,6 +62,7 @@ class PROF_FORM (form_sr.FORM):
                     pth = self.ds_file_dialog("Access", ".mdb")
                     if pth != "":
                         config_data["data locations"]["annotations"] = pth
+                        st.session_state.ss_dat_loc_annots = pth
                         self.write_ini_config(config_data)
                     root.after(1000)
                     root.mainloop()
@@ -69,7 +70,7 @@ class PROF_FORM (form_sr.FORM):
                 st.divider()
                 st.write("URL sheets")
                 st.markdown(":orange[(Current: ]" + str(
-                    config_data["data locations"]["urls"]).title() + ":orange[)]  ")
+                    st.session_state.ss_dat_loc_urls).title() + ":orange[)]  ")
                 if st.form_submit_button("Browse URLs files"):
                     root = tk.Tk()
                     tk.Button(root, text="Quit URLs file selection", command=root.destroy).pack()
@@ -77,13 +78,12 @@ class PROF_FORM (form_sr.FORM):
                     pth = self.ds_file_dialog("Excel", ".xlsx")
                     if pth != "":
                         config_data["data locations"]["urls"] = pth
+                        st.session_state.ss_dat_loc_urls = pth
                         self.write_ini_config(config_data)
+                        self.load_book_sheet.clear() # clear cache or new data will not show
                     root.after(1000)
                     root.mainloop()
                     st.rerun()
-
-
-
         #################################
 
         self.set_prof_flow_chang_pwd()
