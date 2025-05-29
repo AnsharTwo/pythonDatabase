@@ -4,7 +4,6 @@ from pandasql import sqldf
 from bs4 import BeautifulSoup
 import requests
 import form_sr
-import form_settings
 
 class SHEET_FORM(form_sr.FORM):
 

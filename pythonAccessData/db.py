@@ -1,13 +1,15 @@
 import pyodbc
 import streamlit as st
 
-class DATA_SOURCE:
+class DATA_SOURCE():
+
 
     def __init__(self, connectString):
         self.connStr = connectString
 
-    def __str__(self):
-        return f"{self.connStr}"
+    dict_err_gener_msgs = {
+        "cursor_exec": "Error executing data query (Is your data source file a valid one? " + st.session_state.ss_dat_loc_annots + "):"
+    }
 
     def is_ms_access_driver(self):
         found = False
@@ -78,32 +80,57 @@ class DATA_SOURCE:
     def resAnnotsbySearchString(self, cursor, searchString):
         sqlStr = self.dict_queries.get("annots_by_sch_str_count")
         if len(searchString) == 1:
-            results = cursor.execute(sqlStr.format(str(searchString[0])))
+            try:
+                results = cursor.execute(sqlStr.format(str(searchString[0])))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                res = results.fetchone()
+                return res[0]
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
             for srchStrs in range(1, len(searchString)):
                 sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
-            results = cursor.execute(sqlStr)
-        res = results.fetchone()
-        return res[0]
+            try:
+                results = cursor.execute(sqlStr)
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                res = results.fetchone()
+                return res[0]
 
     def selectAnnotsbySearchString(self, cursor, searchString):
         sqlStr = self.dict_queries.get("annots_by_sch_str")
         if len(searchString) == 1:
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-            annots = cursor.execute(sqlStr.format(str(searchString[0])))
+            try:
+                annots = cursor.execute(sqlStr.format(str(searchString[0])))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec")+ "] " + str(ex))
+            else:
+                return annots
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])))
             for srchStrs in range(1, len(searchString)):
                 sqlStr = sqlStr + self.dict_queries.get("append_srch_txt").format(str(searchString[srchStrs]))
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-            annots = cursor.execute(sqlStr)
-        return annots
+            try:
+                annots = cursor.execute(sqlStr)
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                return annots
 
     def resAnnotsbySrchStrAndBook(self, cursor, book, searchString):
         sqlStr = self.dict_queries.get("annots_by_schstr_and_bk_count")
         if len(searchString) == 1:
-            results = cursor.execute(sqlStr.format(book, str(searchString[0])))
+            try:
+                results = cursor.execute(sqlStr.format(book, str(searchString[0])))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                res = results.fetchone()
+                return res[0]
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(book), 1)
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])), 1)
@@ -112,15 +139,24 @@ class DATA_SOURCE:
                 sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(book), 1)
                 sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(str(searchString[srchStrs])), 1)
                 sqlStr = sqlStr + sqlTemp
-            results = cursor.execute(sqlStr)
-        res = results.fetchone()
-        return res[0]
+            try:
+                results = cursor.execute(sqlStr)
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                res = results.fetchone()
+                return res[0]
 
     def selectAnnotsbySrchStrAndBook(self, cursor, book, searchString):
         sqlStr = self.dict_queries.get("annots_by_schstr_and_bk")
         if len(searchString) == 1:
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-            annots = cursor.execute(sqlStr.format(book, str(searchString[0])))
+            try:
+                annots = cursor.execute(sqlStr.format(book, str(searchString[0])))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                return annots
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(book), 1)
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])), 1)
@@ -130,13 +166,23 @@ class DATA_SOURCE:
                 sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(str(searchString[srchStrs])), 1)
                 sqlStr = sqlStr + sqlTemp
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-            annots = cursor.execute(sqlStr)
-        return annots
+            try:
+                annots = cursor.execute(sqlStr)
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                return annots
 
     def resAnnotsbySrchStrAndAuthor(self, cursor, author, searchString):
         sqlStr = self.dict_queries.get("annots_schstr_and_auth_count")
         if len(searchString) == 1:
-            results = cursor.execute(sqlStr.format(author, str(searchString[0])))
+            try:
+                results = cursor.execute(sqlStr.format(author, str(searchString[0])))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                res = results.fetchone()
+                return res[0]
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(author), 1)
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])), 1)
@@ -145,15 +191,24 @@ class DATA_SOURCE:
                 sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(author), 1)
                 sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(str(searchString[srchStrs])), 1)
                 sqlStr = sqlStr + sqlTemp
-            results = cursor.execute(sqlStr)
-        res = results.fetchone()
-        return res[0]
+            try:
+                results = cursor.execute(sqlStr)
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                res = results.fetchone()
+                return res[0]
 
     def selectAnnotsbySrchStrAndAuthor(self, cursor, author, searchString):
         sqlStr = self.dict_queries.get("annots_schstr_and_auth")
         if len(searchString) == 1:
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-            annots = cursor.execute(sqlStr.format(author, str(searchString[0])))
+            try:
+                annots = cursor.execute(sqlStr.format(author, str(searchString[0])))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                return annots
         else:
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(author), 1)
             sqlStr = sqlStr.replace("('{}')", "('{}')".format(str(searchString[0])), 1)
@@ -163,8 +218,12 @@ class DATA_SOURCE:
                 sqlTemp = sqlTemp.replace("('{}')", "('{}')".format(str(searchString[srchStrs])), 1)
                 sqlStr = sqlStr + sqlTemp
             sqlStr = sqlStr + self.dict_queries.get("append_srch_txt_order_by")
-            annots = cursor.execute(sqlStr)
-        return annots
+            try:
+                annots = cursor.execute(sqlStr)
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            else:
+                return annots
 
     def resAnnotsbyYearRead(self, cursor, fromYear, toYear):
         results = cursor.execute(self.dict_queries.get("annots_by_yr_read_count").format(fromYear, toYear))
