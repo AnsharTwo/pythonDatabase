@@ -3,7 +3,6 @@ from datetime import datetime
 import streamlit as st
 import configparser
 import pandas as pd
-import sys
 import db
 
 import random

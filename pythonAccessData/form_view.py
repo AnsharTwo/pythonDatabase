@@ -289,88 +289,93 @@ class DATA_FORM(form_sr.FORM):
     def __show_srch_ants_bk(self, sourceData, conn, bk):
         resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
         annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
-        st.write("Found {} results.".format(resCountBooks))
-        for ant in annots:
-            self.__markdown_srch_res(ant, "")
+        if annots != None:
+            st.write("Found {} results.".format(resCountBooks))
+            for ant in annots:
+                self.__markdown_srch_res(ant, "")
 
     def __show_srch_ants_auth(self, sourceData, conn, auth):
         resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
         annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
-        st.write("Found {} results.".format(resCountAuthor))
-        for ant in annots:
-            self.__markdown_srch_res(ant, "")
+        if annots != None:
+            st.write("Found {} results.".format(resCountAuthor))
+            for ant in annots:
+                self.__markdown_srch_res(ant, "")
 
     def __show_srch_bks_auth(self, sourceData, conn, auth):
         resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
         annots = sourceData.selectBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
-        st.write("Found {} results.".format(resCountBks))
-        for ant in annots:
-            self.__markdown_bks_res(ant)
+        if annots != None:
+            st.write("Found {} results.".format(resCountBks))
+            for ant in annots:
+                self.__markdown_bks_res(ant)
 
     def __show_srch_bk_all(self, sourceData, conn):
         resCountBooksAll = sourceData.resBooksAll(conn.cursor())
         books = sourceData.selectBooksAll(conn.cursor())
-        st.write("Found {} results.".format(resCountBooksAll))
-        if resCountBooksAll > 0:
-            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note self.format_book_no() not working
-                                bk.__getattribute__('Book Title'),
-                                bk.Author,
-                                bk.Publisher,
-                                bk.Dat,
-                                bk.__getattribute__('Year Read'),
-                                bk.__getattribute__('Publication Locale'),
-                                bk.Edition,
-                                bk.__getattribute__('First Edition'),
-                                bk.__getattribute__('First Edition Locale'),
-                                bk.__getattribute__('First Edition Name'),
-                                bk.__getattribute__('First Edition Publisher')
-                                ] for bk in books),
-                        None,
-                              columns=['Book no.',
-                                       'Title',
-                                       'Author',
-                                       'Publisher',
-                                       'Date',
-                                       'Year read',
-                                       'Locale',
-                                       'Edition',
-                                       'First Edition',
-                                       'First Edition Locale',
-                                       'First Edition Name',
-                                       'First Edition Publisher'
-                                ]
-                            )
-            st.dataframe(df, None, height=625, hide_index=True)
+        if books != None:
+            st.write("Found {} results.".format(resCountBooksAll))
+            if resCountBooksAll > 0:
+                df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note self.format_book_no() not working
+                                    bk.__getattribute__('Book Title'),
+                                    bk.Author,
+                                    bk.Publisher,
+                                    bk.Dat,
+                                    bk.__getattribute__('Year Read'),
+                                    bk.__getattribute__('Publication Locale'),
+                                    bk.Edition,
+                                    bk.__getattribute__('First Edition'),
+                                    bk.__getattribute__('First Edition Locale'),
+                                    bk.__getattribute__('First Edition Name'),
+                                    bk.__getattribute__('First Edition Publisher')
+                                    ] for bk in books),
+                            None,
+                                  columns=['Book no.',
+                                           'Title',
+                                           'Author',
+                                           'Publisher',
+                                           'Date',
+                                           'Year read',
+                                           'Locale',
+                                           'Edition',
+                                           'First Edition',
+                                           'First Edition Locale',
+                                           'First Edition Name',
+                                           'First Edition Publisher'
+                                    ]
+                                )
+                st.dataframe(df, None, height=625, hide_index=True)
 
     def __show_srch_bks_yr_rd(self, sourceData, conn, yearFrom, yearTo):
         resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
         books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-        st.write("Found {} results.".format(resCountBooksYearRead))
-        if resCountBooksYearRead > 0:
-            df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note self.format_book_no() not working
-                                bk.__getattribute__('Book Title'),
-                                bk.Author,
-                                bk.Publisher,
-                                bk.__getattribute__('Year Read'),
-                                ] for bk in books),
-                        None,
-                                columns=['Book no.',
-                                        'Title',
-                                        'Author',
-                                        'Publisher',
-                                        'Year read'
-                                ]
-                            )
-            st.dataframe(df, None, height=625, hide_index=True)
+        if books != None:
+            st.write("Found {} results.".format(resCountBooksYearRead))
+            if resCountBooksYearRead > 0:
+                df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note self.format_book_no() not working
+                                    bk.__getattribute__('Book Title'),
+                                    bk.Author,
+                                    bk.Publisher,
+                                    bk.__getattribute__('Year Read'),
+                                    ] for bk in books),
+                            None,
+                                    columns=['Book no.',
+                                            'Title',
+                                            'Author',
+                                            'Publisher',
+                                            'Year read'
+                                    ]
+                                )
+                st.dataframe(df, None, height=625, hide_index=True)
 
     def __show_srch_ants_yr_rd(self, sourceData, conn, yearFrom, yearTo):
         resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
         annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-        st.write("Found {} results.".format(resCountAnnotsYearRead))
-        for ant in annots:
-            st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
-            self.__markdown_srch_res(ant, "")
-
+        if annots != None:
+            st.write("Found {} results.".format(resCountAnnotsYearRead))
+            for ant in annots:
+                st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
+                self.__markdown_srch_res(ant, "")
 
     def __markdown_srch_res(self, ant, searchTxts):
         srcText = self.hghlght_txt(str(ant.__getattribute__('Source Text')), searchTxts)

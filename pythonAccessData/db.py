@@ -3,12 +3,11 @@ import streamlit as st
 
 class DATA_SOURCE():
 
-
     def __init__(self, connectString):
         self.connStr = connectString
 
     dict_err_gener_msgs = {
-        "cursor_exec": "Error executing data query (Is your data source file a valid one? " + st.session_state.ss_dat_loc_annots + "):"
+        "cursor_exec": "Error executing data query (Is your data source file a valid one?)"
     }
 
     def is_ms_access_driver(self):
@@ -30,52 +29,92 @@ class DATA_SOURCE():
             print(i.table_name)
 
     def resBooksAll(self, cursor):
-        results = cursor.execute(self.dict_queries.get("books_all_count"))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(self.dict_queries.get("books_all_count"))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def resBookLatest(self, cursor):
-        result = cursor.execute(self.dict_queries.get("books_max_key"))
-        res = result.fetchone()
-        return res[0]
+        try:
+            result = cursor.execute(self.dict_queries.get("books_max_key"))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = result.fetchone()
+            return res[0]
 
     def selectBooksAll(self, cursor):
-        books = cursor.execute(self.dict_queries.get("books_all"))
-        return books
+        try:
+            books = cursor.execute(self.dict_queries.get("books_all"))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return books
 
     def resAnnotsbyBook(self, cursor, book_title):
-        results = cursor.execute(self.dict_queries.get("annots_by_bk_count").format(book_title))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(self.dict_queries.get("annots_by_bk_count").format(book_title))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def resExactAnnotsbyBook(self, cursor, book):
-        results = cursor.execute(self.dict_queries.get("annots_by_bk_exact_count").format(book[self.dict_books_indx.get("no")]))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(self.dict_queries.get("annots_by_bk_exact_count").format(book[self.dict_books_indx.get("no")]))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def selectAnnotsbyBook(self, cursor, book_title):
-        annots = cursor.execute(self.dict_queries.get("annots_by_bk").format(book_title))
-        return annots
+        try:
+            annots = cursor.execute(self.dict_queries.get("annots_by_bk").format(book_title))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return annots
 
     def resAnnotsbyAuthor(self, cursor, author):
-        results = cursor.execute(
-            self.dict_queries.get("annots_by_auth_count").format(author))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(
+                self.dict_queries.get("annots_by_auth_count").format(author))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def selectAnnotsbyAuthor(self, cursor, author):
-        annots = cursor.execute(self.dict_queries.get("annots_by_auth").format(author))
-        return annots
+        try:
+            annots = cursor.execute(self.dict_queries.get("annots_by_auth").format(author))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return annots
 
     def resBooksByAuthor(self, cursor, author):
-        results = cursor.execute(
-            self.dict_queries.get("books_by_auth_count").format(author))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(
+                self.dict_queries.get("books_by_auth_count").format(author))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def selectBooksByAuthor(self, cursor, author):
-        annots = cursor.execute(self.dict_queries.get("books_by_auth").format(author))
-        return annots
+        try:
+            annots = cursor.execute(self.dict_queries.get("books_by_auth").format(author))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return annots
 
     def resAnnotsbySearchString(self, cursor, searchString):
         sqlStr = self.dict_queries.get("annots_by_sch_str_count")
@@ -226,142 +265,204 @@ class DATA_SOURCE():
                 return annots
 
     def resAnnotsbyYearRead(self, cursor, fromYear, toYear):
-        results = cursor.execute(self.dict_queries.get("annots_by_yr_read_count").format(fromYear, toYear))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(self.dict_queries.get("annots_by_yr_read_count").format(fromYear, toYear))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def selectAnnotsbyYearRead(self, cursor, fromYear, toYear):
-        annots = cursor.execute(self.dict_queries.get("annots_by_yr_read").format(fromYear, toYear))
-        return annots
+        try:
+            annots = cursor.execute(self.dict_queries.get("annots_by_yr_read").format(fromYear, toYear))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return annots
 
     def resBooksbyYearRead(self, cursor, fromYear, toYear):
-        results = cursor.execute(self.dict_queries.get("books_by_yr_read_count").format(fromYear, toYear))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(self.dict_queries.get("books_by_yr_read_count").format(fromYear, toYear))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def selectBooksbyYearRead(self, cursor, fromYear, toYear):
-        annots = cursor.execute(self.dict_queries.get("books_by_yr_read").format(fromYear, toYear))
-        return annots
+        try:
+            annots = cursor.execute(self.dict_queries.get("books_by_yr_read").format(fromYear, toYear))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return annots
 
     def resAddUpdateExactBk(self, cursor, book):
-        results = cursor.execute(self.dict_queries.get("bk_add_edit_exact_count").format(str(book[0])))
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(self.dict_queries.get("bk_add_edit_exact_count").format(str(book[0])))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def AddUpdateExactBk(self, cursor, book):
-        bk = cursor.execute(self.dict_queries.get("bk_add_edit_exact").format(str(book[0])))
-        return bk
+        try:
+            bk = cursor.execute(self.dict_queries.get("bk_add_edit_exact").format(str(book[0])))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return bk
 
     def resAddUpdateNewBk(self, cursor, book):
         sqlStr = self.__sql_bk_srch(True, book)
-        results = cursor.execute(sqlStr)
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(sqlStr)
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def addUpdateNewBk(self, cursor, book):
         sqlStr = self.__sql_bk_srch(False, book)
-        bk = cursor.execute(sqlStr)
-        return bk
+        try:
+            bk = cursor.execute(sqlStr)
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return bk
 
     def addUpdateNewBook(self, cursor, bk_sum, book, bk_exists):
         if not bk_exists:
             sql_str = self.dict_inserts.get("books_new_add")
-            cursor.execute(sql_str.format(
-                     bk_sum, # book no.
-                           str(book[self.dict_books_indx.get("title")]),
-                           str(book[self.dict_books_indx.get("author")]),
-                           str(book[self.dict_books_indx.get("publisher")]),
-                           str(book[self.dict_books_indx.get("dat")]),
-                           str(book[self.dict_books_indx.get("year_read")]),
-                           str(book[self.dict_books_indx.get("publication_locale")]),
-                           str(book[self.dict_books_indx.get("edition")]), # edition
-                           str(book[self.dict_books_indx.get("first_edition")]),
-                           str(book[self.dict_books_indx.get("first_edition_locale")]),
-                           str(book[self.dict_books_indx.get("first_edition_name")]),
-                           str(book[self.dict_books_indx.get("first_edition_publisher")])
-            ))
+            try:
+                cursor.execute(sql_str.format(
+                         bk_sum, # book no.
+                               str(book[self.dict_books_indx.get("title")]),
+                               str(book[self.dict_books_indx.get("author")]),
+                               str(book[self.dict_books_indx.get("publisher")]),
+                               str(book[self.dict_books_indx.get("dat")]),
+                               str(book[self.dict_books_indx.get("year_read")]),
+                               str(book[self.dict_books_indx.get("publication_locale")]),
+                               str(book[self.dict_books_indx.get("edition")]), # edition
+                               str(book[self.dict_books_indx.get("first_edition")]),
+                               str(book[self.dict_books_indx.get("first_edition_locale")]),
+                               str(book[self.dict_books_indx.get("first_edition_name")]),
+                               str(book[self.dict_books_indx.get("first_edition_publisher")])
+                ))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
         else:
             sql_str = self.dict_updates.get("books_update_add")
-            cursor.execute(sql_str.format(
-                      str(book[self.dict_books_indx.get("author")]),
-                            str(book[self.dict_books_indx.get("publisher")]),
-                            str(book[self.dict_books_indx.get("dat")]),
-                            str(book[self.dict_books_indx.get("year_read")]),
-                            str(book[self.dict_books_indx.get("publication_locale")]),
-                            str(book[self.dict_books_indx.get("edition")]),  # edition
-                            str(book[self.dict_books_indx.get("first_edition")]),
-                            str(book[self.dict_books_indx.get("first_edition_locale")]),
-                            str(book[self.dict_books_indx.get("first_edition_name")]),
-                            str(book[self.dict_books_indx.get("first_edition_publisher")]),
-                            str(book[self.dict_books_indx.get("no")])
-            ))
+            try:
+                cursor.execute(sql_str.format(
+                          str(book[self.dict_books_indx.get("author")]),
+                                str(book[self.dict_books_indx.get("publisher")]),
+                                str(book[self.dict_books_indx.get("dat")]),
+                                str(book[self.dict_books_indx.get("year_read")]),
+                                str(book[self.dict_books_indx.get("publication_locale")]),
+                                str(book[self.dict_books_indx.get("edition")]),  # edition
+                                str(book[self.dict_books_indx.get("first_edition")]),
+                                str(book[self.dict_books_indx.get("first_edition_locale")]),
+                                str(book[self.dict_books_indx.get("first_edition_name")]),
+                                str(book[self.dict_books_indx.get("first_edition_publisher")]),
+                                str(book[self.dict_books_indx.get("no")])
+                ))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
         try:
             cursor.commit()
         except pyodbc.Error as ex:
             pyodbc_state = ex.args[1]
-            st.write(pyodbc_state)
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
 
     def resAddNewAnnot_srch_bk(self, cursor, book):
         sqlStr = self.__sql_nw_annt_bk_srch("count", book)
-        results = cursor.execute(sqlStr)
-        res = results.fetchone()
-        return res[0]
+        try:
+            results = cursor.execute(sqlStr)
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            res = results.fetchone()
+            return res[0]
 
     def addNewAnnot_srch_bk(self, cursor, book):
         sqlStr = self.__sql_nw_annt_bk_srch("records", book)
-        annots = cursor.execute(sqlStr)
-        return annots
+        try:
+            annots = cursor.execute(sqlStr)
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return annots
 
     def delExactAnnotsbyBook(self, cursor, book):
-        cursor.execute(self.dict_deletes.get("annots_by_bk_exact_del").format(book[self.dict_books_indx.get("no")]))
         try:
+            cursor.execute(self.dict_deletes.get("annots_by_bk_exact_del").format(book[self.dict_books_indx.get("no")]))
             cursor.commit()
         except pyodbc.Error as ex:
             pyodbc_state = ex.args[1]
-            st.write(pyodbc_state)
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
 
     def addNewAnnot_srch_page_no(self, cursor, record):
-        annot = cursor.execute(self.dict_queries.get("new_annot_page_no_exists").format(
-                                                     str(record[self.dict_annots_indx.get("book_no")]),
-                                                           str(record[self.dict_annots_indx.get("page_no")]) # book no, page no
-                                                    ))
-        return(annot)
+        try:
+            annot = cursor.execute(self.dict_queries.get("new_annot_page_no_exists").format(
+                                                         str(record[self.dict_annots_indx.get("book_no")]),
+                                                               str(record[self.dict_annots_indx.get("page_no")]) # book no, page no
+                                                        ))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+        else:
+            return(annot)
 
     def addUpdateAnnot(self, cursor, ant, annotExists):
         if not annotExists:
-            cursor.execute(self.dict_inserts.get("annots_new_add").format(
-                                                         str(ant[self.dict_annots_indx.get("book_no")]),
-                                                               str(ant[self.dict_annots_indx.get("page_no")]),
-                                                               str(ant[self.dict_annots_indx.get("source_text")])
+            try:
+                cursor.execute(self.dict_inserts.get("annots_new_add").format(
+                                                             str(ant[self.dict_annots_indx.get("book_no")]),
+                                                                   str(ant[self.dict_annots_indx.get("page_no")]),
+                                                                   str(ant[self.dict_annots_indx.get("source_text")])
                                                         ))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
         else:
-            cursor.execute(self.dict_updates.get("annots_update_add").format(
-                                                         str(ant[self.dict_annots_indx.get("source_text")]),
-                                                               str(ant[self.dict_annots_indx.get("book_no")]),
-                                                               str(ant[self.dict_annots_indx.get("page_no")])
-                                                        ))
+            try:
+                cursor.execute(self.dict_updates.get("annots_update_add").format(
+                                                             str(ant[self.dict_annots_indx.get("source_text")]),
+                                                                   str(ant[self.dict_annots_indx.get("book_no")]),
+                                                                   str(ant[self.dict_annots_indx.get("page_no")])
+                                                            ))
+            except pyodbc.Error as ex:
+                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
         try:
             cursor.commit()
         except pyodbc.Error as ex:
             pyodbc_state = ex.args[1]
-            st.write(pyodbc_state)
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
 
     def deleteAnnot(self, cursor, ant):
-        cursor.execute(self.dict_deletes.get("annots_del").format(str(ant[self.dict_annots_indx.get("book_no")]),
-                                                                        str(ant[self.dict_annots_indx.get("page_no")])))
+        try:
+            cursor.execute(self.dict_deletes.get("annots_del").format(str(ant[self.dict_annots_indx.get("book_no")]),
+                                                                            str(ant[self.dict_annots_indx.get("page_no")])))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
         try:
             cursor.commit()
         except pyodbc.Error as ex:
             pyodbc_state = ex.args[1]
-            st.write(pyodbc_state)
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
 
     def delete_bk(self, cursor, bk):
-        cursor.execute(self.dict_deletes.get("bk_del").format(str(bk[self.dict_books_indx.get("no")])))
+        try:
+            cursor.execute(self.dict_deletes.get("bk_del").format(str(bk[self.dict_books_indx.get("no")])))
+        except pyodbc.Error as ex:
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
         try:
             cursor.commit()
         except pyodbc.Error as ex:
             pyodbc_state = ex.args[1]
-            st.write(pyodbc_state)
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
 
     def __sql_bk_srch(self, isCountQuery, book):
         if isCountQuery:
