@@ -149,78 +149,81 @@ class EDIT_ANNOT(form_sr.FORM):
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, True)
                 bks = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, False)
-                if bkSum > 1:
-                    st.write("Found {} results.".format(str(bkSum)))
-                add_nw_bk = False
-                if bkSum == 0:
-                    st.markdown(":red[Book was not found.]")
-                    search_books_again = st.form_submit_button(label="Search for book again")
-                    if search_books_again:
-                        self.annot_srch_bk()
-                        st.rerun()
-                    add_new_book = st.form_submit_button(label="Add as new book")
-                    if add_new_book:
-                        add_nw_bk = True
-                elif bkSum == 1:
-                    st.markdown(":green[Book was found.]")
-                    for bk in bks:
-                        st.session_state["book_no"] = bk.__getattribute__('Book No')
-                        st.session_state["book_title"] = bk.__getattribute__('Book Title')
-                        st.session_state["author"] = bk.Author
-                        st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
-                        st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
-                    self.__show_bk_srch_res()
-                    btn_annot_go = st.form_submit_button(label="Create or edit annotation")
-                    btn_annot_back = st.form_submit_button(label="Back")
-                    if btn_annot_go:
-                        self.annot_new_annot()
-                        st.rerun()
-                    elif btn_annot_back:
-                       if st.session_state["res_multi_books_for_new_annot"]: # go back to multi-search result page with that data
-                           st.session_state["book_title"] = st.session_state["orig_book_title"]
-                           st.session_state["author"] = st.session_state["orig_author"]
-                           st.session_state["publisher"] = st.session_state["orig_publisher"]
-                           st.session_state["date_published"] = st.session_state["orig_date_published"]
-                           st.session_state["res_multi_books_for_new_annot"] = False
-                           self.annot_srch_bk_res()
-                       else:
+                if bkSum != None:
+                    if bkSum > 1:
+                        st.write("Found {} results.".format(str(bkSum)))
+                    add_nw_bk = False
+                    if bkSum == 0:
+                        st.markdown(":red[Book was not found.]")
+                        search_books_again = st.form_submit_button(label="Search for book again")
+                        if search_books_again:
                             self.annot_srch_bk()
-                       st.rerun()
-                elif bkSum > 1:
-                    editSelection = st.selectbox("Select book to annotate", [
-                        "{title}>>{author}>>{publisher}>>{date}".format(
-                            title = bk.__getattribute__('Book Title'),
-                            author = bk.Author,
-                            publisher = bk.Publisher,
-                            date = bk.Dat
-                            )
-                        for bk in bks
-                    ])
-                    btn_book_select = st.form_submit_button(label="Select and annotate")
-                    st.markdown(":orange[OR...]")
-                    btn_book_again = st.form_submit_button(label="Refine the book search")
-                    if btn_book_select:
-                        book_selected = editSelection.split(">>")
-                        for ctr in range(2, len(book_selected)): # i.e. non-mandatory fields pub, date pubed
-                            if str(book_selected[ctr]) == "None":
-                                book_selected.pop(ctr)
-                                book_selected.insert(ctr, "")
-                        st.session_state["orig_book_title"] = st.session_state["book_title"] # save srch to go back to multi-search result page
-                        st.session_state["orig_author"] = st.session_state["author"]
-                        st.session_state["orig_publisher"] = st.session_state["publisher"]
-                        st.session_state["orig_date_published"] = st.session_state["date_published"]
-                        st.session_state["res_multi_books_for_new_annot"] = True
-                        st.session_state["book_title"] = str(book_selected[0])
-                        st.session_state["author"] = str(book_selected[1])
-                        st.session_state["publisher"] = str(book_selected[2])
-                        st.session_state["date_published"] = str(book_selected[3])
-                        self.annot_srch_bk_res()
-                        st.rerun()
-                    elif btn_book_again:
-                        self.annot_srch_bk()
-                        st.rerun()
-            # TODO - get below working (btn above is disabled while not
-            #if add_nw_bk:
+                            st.rerun()
+                        add_new_book = st.form_submit_button(label="Add as new book")
+                        if add_new_book:
+                            add_nw_bk = True
+                    elif bkSum == 1:
+                        st.markdown(":green[Book was found.]")
+                        for bk in bks:
+                            st.session_state["book_no"] = bk.__getattribute__('Book No')
+                            st.session_state["book_title"] = bk.__getattribute__('Book Title')
+                            st.session_state["author"] = bk.Author
+                            st.session_state["publisher"] = self.conv_none_for_db(bk.Publisher)
+                            st.session_state["date_published"] = self.conv_none_for_db(bk.Dat)
+                        self.__show_bk_srch_res()
+                        btn_annot_go = st.form_submit_button(label="Create or edit annotation")
+                        btn_annot_back = st.form_submit_button(label="Back")
+                        if btn_annot_go:
+                            self.annot_new_annot()
+                            st.rerun()
+                        elif btn_annot_back:
+                           if st.session_state["res_multi_books_for_new_annot"]: # go back to multi-search result page with that data
+                               st.session_state["book_title"] = st.session_state["orig_book_title"]
+                               st.session_state["author"] = st.session_state["orig_author"]
+                               st.session_state["publisher"] = st.session_state["orig_publisher"]
+                               st.session_state["date_published"] = st.session_state["orig_date_published"]
+                               st.session_state["res_multi_books_for_new_annot"] = False
+                               self.annot_srch_bk_res()
+                           else:
+                                self.annot_srch_bk()
+                           st.rerun()
+                    elif bkSum > 1:
+                        editSelection = st.selectbox("Select book to annotate", [
+                            "{title}>>{author}>>{publisher}>>{date}".format(
+                                title = bk.__getattribute__('Book Title'),
+                                author = bk.Author,
+                                publisher = bk.Publisher,
+                                date = bk.Dat
+                                )
+                            for bk in bks
+                        ])
+                        btn_book_select = st.form_submit_button(label="Select and annotate")
+                        st.markdown(":orange[OR...]")
+                        btn_book_again = st.form_submit_button(label="Refine the book search")
+                        if btn_book_select:
+                            book_selected = editSelection.split(">>")
+                            for ctr in range(2, len(book_selected)): # i.e. non-mandatory fields pub, date pubed
+                                if str(book_selected[ctr]) == "None":
+                                    book_selected.pop(ctr)
+                                    book_selected.insert(ctr, "")
+                            st.session_state["orig_book_title"] = st.session_state["book_title"] # save srch to go back to multi-search result page
+                            st.session_state["orig_author"] = st.session_state["author"]
+                            st.session_state["orig_publisher"] = st.session_state["publisher"]
+                            st.session_state["orig_date_published"] = st.session_state["date_published"]
+                            st.session_state["res_multi_books_for_new_annot"] = True
+                            st.session_state["book_title"] = str(book_selected[0])
+                            st.session_state["author"] = str(book_selected[1])
+                            st.session_state["publisher"] = str(book_selected[2])
+                            st.session_state["date_published"] = str(book_selected[3])
+                            self.annot_srch_bk_res()
+                            st.rerun()
+                        elif btn_book_again:
+                            self.annot_srch_bk()
+                            st.rerun()
+                # TODO - get below working (btn above is disabled while not
+                #if add_nw_bk:
+                else: # add form button if exception raised
+                    st.form_submit_button("Form can't be displayed.", disabled=True)
         elif st.session_state["form_flow"] == "create_the_new_annotation":
             with st.form("New annotation"):
                 self.__show_bk_srch_res()
@@ -248,80 +251,83 @@ class EDIT_ANNOT(form_sr.FORM):
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
                 annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                  False)
-                if not st.session_state["annot_sql_done"]:
-                    st.session_state["has_annot"] = False
-                    for ants in annot:
-                        st.session_state["annot_text"] = ants.__getattribute__('Source Text')
-                    st.session_state["annot_sql_done"] = True
-                if st.session_state["annot_text"] != "":
-                    if not st.session_state["visited_spell_check"]:
-                        st.session_state["has_annot"] = True
-                        st.markdown(":orange[(Page already has an annotation entered.)]")
-                st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"],
-                                                                  height=st.session_state.wdgt_ant_edt_hght)
-                btn_spell_check = st.form_submit_button("Check spelling")
-                if btn_spell_check:
-                    illegal_txt = ["( ", " )", "[ ", " ]", "{ ", " }", "< ",
-                                   " >"]  # these not compatible with :<markdown colour>[]
-                    stops_txt = ["..."]
-                    if st.session_state["annot_txt_area"] == "":
-                        st.markdown(":red[No annotation to spell check.]")
-                    elif self.has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
-                        st.markdown(":red[text cannot contain a bracket immediately enclosing a space chracter e.g. '( ', ' }'.]")
-                    elif self.has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
-                        st.markdown(":red[text cannot contain 3 consecutive full-stops (2 are allowed).]")
-                    else:
-                        self.spell_chk()
+                if annot != None:
+                    if not st.session_state["annot_sql_done"]:
+                        st.session_state["has_annot"] = False
+                        for ants in annot:
+                            st.session_state["annot_text"] = ants.__getattribute__('Source Text')
+                        st.session_state["annot_sql_done"] = True
+                    if st.session_state["annot_text"] != "":
+                        if not st.session_state["visited_spell_check"]:
+                            st.session_state["has_annot"] = True
+                            st.markdown(":orange[(Page already has an annotation entered.)]")
+                    st.session_state["annot_txt_area"] = st.text_area("Enter the annotation", value=st.session_state["annot_text"],
+                                                                      height=st.session_state.wdgt_ant_edt_hght)
+                    btn_spell_check = st.form_submit_button("Check spelling")
+                    if btn_spell_check:
+                        illegal_txt = ["( ", " )", "[ ", " ]", "{ ", " }", "< ",
+                                       " >"]  # these not compatible with :<markdown colour>[]
+                        stops_txt = ["..."]
+                        if st.session_state["annot_txt_area"] == "":
+                            st.markdown(":red[No annotation to spell check.]")
+                        elif self.has_illegal_text(st.session_state["annot_txt_area"], illegal_txt):
+                            st.markdown(":red[text cannot contain a bracket immediately enclosing a space chracter e.g. '( ', ' }'.]")
+                        elif self.has_illegal_text(st.session_state["annot_txt_area"], stops_txt):
+                            st.markdown(":red[text cannot contain 3 consecutive full-stops (2 are allowed).]")
+                        else:
+                            self.spell_chk()
+                            st.rerun()
+                    add_update_annot = st.form_submit_button("Add or update annotation")
+                    discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
+                    if st.session_state["has_annot"]:
+                        if st.session_state["del_annot"]:
+                            if st.session_state["del_annot_yes"]:
+                                annot_del_record = [st.session_state["book_no"],
+                                                    st.session_state["page_no"].zfill(
+                                                        self.dict_db_fld_validations.get("annots_pg_no_len")),
+                                                    ]
+                                self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_del_annot"),
+                                                annot_del_record, False)
+                                st.session_state["annot_sql_done"] = False
+                                st.session_state["has_annot"] = False
+                                st.session_state["visited_spell_check"] = False
+                                st.session_state["annot_text"] = ""
+                                self.annot_success_new_annot()
+                                st.rerun()
+                            elif st.session_state["del_annot_no"]:
+                                st.session_state["del_annot"] = False
+                                st.session_state["del_annot_no"] = False
+                        btn_delete_annot = st.form_submit_button("Delete annotation")
+                        if btn_delete_annot:
+                            st.session_state["del_annot"] = True
+                            self.annot_success_new_annot()
+                            st.rerun()
+                    if discard_doing_new_annot:
+                        st.session_state["annot_sql_done"] = False
+                        st.session_state["has_annot"] = False
+                        st.session_state["visited_spell_check"] = False
+                        st.session_state["page_no"] = ""
+                        st.session_state["annot_text"] = ""
+                        self.annot_new_annot()
                         st.rerun()
-                add_update_annot = st.form_submit_button("Add or update annotation")
-                discard_doing_new_annot = st.form_submit_button("Discard annotation changes \ go back")
-                if st.session_state["has_annot"]:
-                    if st.session_state["del_annot"]:
-                        if st.session_state["del_annot_yes"]:
-                            annot_del_record = [st.session_state["book_no"],
-                                                st.session_state["page_no"].zfill(
-                                                    self.dict_db_fld_validations.get("annots_pg_no_len")),
-                                                ]
-                            self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_del_annot"),
-                                            annot_del_record, False)
+                    if add_update_annot:
+                        if st.session_state["annot_txt_area"] == "":
+                            st.markdown(":red[Annotation cannot be left empty]")
+                        else:
+                            annot_record = [st.session_state["book_no"],
+                                            st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
+                                            self.formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
+                                            ]
+                            self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
+                                            annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
                             st.session_state["annot_sql_done"] = False
                             st.session_state["has_annot"] = False
                             st.session_state["visited_spell_check"] = False
                             st.session_state["annot_text"] = ""
                             self.annot_success_new_annot()
                             st.rerun()
-                        elif st.session_state["del_annot_no"]:
-                            st.session_state["del_annot"] = False
-                            st.session_state["del_annot_no"] = False
-                    btn_delete_annot = st.form_submit_button("Delete annotation")
-                    if btn_delete_annot:
-                        st.session_state["del_annot"] = True
-                        self.annot_success_new_annot()
-                        st.rerun()
-                if discard_doing_new_annot:
-                    st.session_state["annot_sql_done"] = False
-                    st.session_state["has_annot"] = False
-                    st.session_state["visited_spell_check"] = False
-                    st.session_state["page_no"] = ""
-                    st.session_state["annot_text"] = ""
-                    self.annot_new_annot()
-                    st.rerun()
-                if add_update_annot:
-                    if st.session_state["annot_txt_area"] == "":
-                        st.markdown(":red[Annotation cannot be left empty]")
-                    else:
-                        annot_record = [st.session_state["book_no"],
-                                        st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len")),
-                                        self.formatSQLSpecialChars(st.session_state["annot_txt_area"]).strip()
-                                        ]
-                        self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"),
-                                        annot_record, st.session_state["has_annot"]) # NOTE this is NOT using wraps of % with __format_sql_wrap(), works.
-                        st.session_state["annot_sql_done"] = False
-                        st.session_state["has_annot"] = False
-                        st.session_state["visited_spell_check"] = False
-                        st.session_state["annot_text"] = ""
-                        self.annot_success_new_annot()
-                        st.rerun()
+                else: # add form button if exception raised
+                    st.form_submit_button("Form can't be displayed.", disabled=True)
         elif st.session_state["form_flow"] == "spell_check_Annotation":
             config_data = self.load_ini_config()
             st.session_state.ant_spllchck_dstnc = int(config_data.get('spellcheck', 'distance'))

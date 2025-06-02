@@ -372,11 +372,13 @@ class DATA_SOURCE():
                 ))
             except pyodbc.Error as ex:
                 st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+
+                # HERE ############################################################
+                raise self.dict_err_gener_msgs.get("cursor_exec") + str(ex) from RuntimeError
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            pyodbc_state = ex.args[1]
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
 
     def resAddNewAnnot_srch_bk(self, cursor, book):
         sqlStr = self.__sql_nw_annt_bk_srch("count", book)
@@ -402,8 +404,7 @@ class DATA_SOURCE():
             cursor.execute(self.dict_deletes.get("annots_by_bk_exact_del").format(book[self.dict_books_indx.get("no")]))
             cursor.commit()
         except pyodbc.Error as ex:
-            pyodbc_state = ex.args[1]
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
 
     def addNewAnnot_srch_page_no(self, cursor, record):
         try:
@@ -438,8 +439,7 @@ class DATA_SOURCE():
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            pyodbc_state = ex.args[1]
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
 
     def deleteAnnot(self, cursor, ant):
         try:
@@ -450,8 +450,7 @@ class DATA_SOURCE():
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            pyodbc_state = ex.args[1]
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
 
     def delete_bk(self, cursor, bk):
         try:
@@ -461,8 +460,7 @@ class DATA_SOURCE():
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            pyodbc_state = ex.args[1]
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(pyodbc_state))
+            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
 
     def __sql_bk_srch(self, isCountQuery, book):
         if isCountQuery:
