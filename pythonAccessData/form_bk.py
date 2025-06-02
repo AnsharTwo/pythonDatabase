@@ -143,9 +143,7 @@ class EDIT_BOOK(form_sr.FORM):
             bk_title.append(self.formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"),
                                                               bk_title,True)
-
             if st.session_state["bk_srch_sum"] != None:
-
                 with st.form("Search results for book title"):
                     if st.session_state["bk_srch_sum"] == 1:
                         bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"), bk_title, False)
@@ -367,14 +365,7 @@ class EDIT_BOOK(form_sr.FORM):
                             temp_bk_sum = self.db_records(
                                 self.dict_flow_flags.get("bk_add_edit_is_full_match"),
                                 bk_title, True)
-
                             if temp_bk_sum != None:
-                                print("Temp book sum is not None:" + str(temp_bk_sum))
-                            else:
-                                print("Temp book sum IS None:" + str(temp_bk_sum))
-
-                            if temp_bk_sum != None:
-
                                 if temp_bk_sum == 0:
                                     self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
                                     self.add_updt_bk_added()
@@ -407,10 +398,8 @@ class EDIT_BOOK(form_sr.FORM):
                                         self.__clear_ss_bk_flds()
                                         self.add_updt_bk_edit()
                                         st.rerun()
-
                             else:  # add form button if exception raised
                                 st.form_submit_button("Form can't be displayed.", disabled=True)
-
                         else:
                             self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
                             self.add_updt_bk_added()
@@ -426,9 +415,7 @@ class EDIT_BOOK(form_sr.FORM):
                     if not st.session_state["del_bk_yes"] and not st.session_state["del_bk_no"]:
                         bk_annots_warn = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
                                                         del_book, False)
-
                         if bk_annots_warn != None:
-
                             if bk_annots_warn > 0:
                                 st.warning("WARNING: Book has " + str(bk_annots_warn) +  " annotations added. Confirm deletion of this book AND its annotations?")
                             else:
@@ -444,24 +431,19 @@ class EDIT_BOOK(form_sr.FORM):
                                 st.rerun()
                         else:  # add form button if exception raised
                             st.form_submit_button("Form can't be displayed.", disabled=True)
-
                     if st.session_state["del_bk_yes"]:
                         self.db_records(self.dict_flow_flags.get("bk_del"),
                                         del_book, False)
                         bk_annots_cnt = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
                                         del_book, False)
-
                         if bk_annots_cnt != None:
-
                             if bk_annots_cnt > 0:
                                 st.session_state["del_bk_has_annots"] = bk_annots_cnt
                                 self.db_records(self.dict_flow_flags.get("bk_del_Annots"), del_book, False)
                             self.add_updt_bk_added()
                             st.rerun()
-
                         else:  # add form button if exception raised
                             st.form_submit_button("Form can't be displayed.", disabled=True)
-
                     elif st.session_state["del_bk_no"]:
                         st.session_state["del_bk"] = False
                         st.session_state["del_bk_no"] = False
