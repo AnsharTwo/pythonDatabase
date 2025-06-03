@@ -1,3 +1,4 @@
+import pyodbc
 import streamlit as st
 import form_sr
 
@@ -147,43 +148,48 @@ class EDIT_BOOK(form_sr.FORM):
                 with st.form("Search results for book title"):
                     if st.session_state["bk_srch_sum"] == 1:
                         bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"), bk_title, False)
-                        st.info("The following book has been found that matches your search text.")
-                        for bk in bk_rec:
-                            self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
-                                                     bk.__getattribute__('Year Read'), bk.__getattribute__('Publication Locale'),
-                                                     bk.Edition, bk.__getattribute__('First Edition'),
-                                                     bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
-                                                     bk.__getattribute__("First Edition Publisher"),
-                                                     )
-                            self.__add_bk_to_s_state(bk)
-                        bk_title.pop(
-                            0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
-                        bk_title.append(self.format_sql_wrap(st.session_state["srch_book_title"]))
-                        btn_edt_bk = st.form_submit_button("Edit book")
-                        btn_return_bk = st.form_submit_button("Search again")
-                        if btn_return_bk:
-                            if st.session_state["bk_res_multi_books_part_mtch_srch"]:
-                                st.session_state["bk_res_multi_books_part_mtch_srch"] = False
-                            self.__clear_ss_bk_flds()
-                            self.__clear_ss_res1_bk_flds()
-                            self.add_updt_bk_srch()
-                            st.rerun()
-                        if st.session_state["bk_res_multi_books_part_mtch_srch"]:
-                            btn_bk_back = st.form_submit_button("Back to book selection")
-                            btn_add_prt_mtch_multi_sel_bk = st.form_submit_button("Add as a new book")
-                            if btn_bk_back:
-                                st.session_state["srch_book_title"] = st.session_state["bk_orig_title"]
-                                self.add_updt_bk()
+
+                        if bk_rec != None:
+
+                            st.info("The following book has been found that matches your search text.")
+                            for bk in bk_rec:
+                                self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
+                                                         bk.__getattribute__('Year Read'), bk.__getattribute__('Publication Locale'),
+                                                         bk.Edition, bk.__getattribute__('First Edition'),
+                                                         bk.__getattribute__("First Edition Locale"), bk.__getattribute__("First Edition Name"),
+                                                         bk.__getattribute__("First Edition Publisher"),
+                                                         )
+                                self.__add_bk_to_s_state(bk)
+                            bk_title.pop(
+                                0)  # rem as bk title is formatted for special chars and this will be done in sql wrap function below
+                            bk_title.append(self.format_sql_wrap(st.session_state["srch_book_title"]))
+                            btn_edt_bk = st.form_submit_button("Edit book")
+                            btn_return_bk = st.form_submit_button("Search again")
+                            if btn_return_bk:
+                                if st.session_state["bk_res_multi_books_part_mtch_srch"]:
+                                    st.session_state["bk_res_multi_books_part_mtch_srch"] = False
+                                self.__clear_ss_bk_flds()
+                                self.__clear_ss_res1_bk_flds()
+                                self.add_updt_bk_srch()
                                 st.rerun()
-                            if btn_add_prt_mtch_multi_sel_bk:
-                                st.session_state["bk_add_from_part_match"] = True
-                                st.session_state["res1_bk_book_title"] = st.session_state["bk_orig_title"]
+                            if st.session_state["bk_res_multi_books_part_mtch_srch"]:
+                                btn_bk_back = st.form_submit_button("Back to book selection")
+                                btn_add_prt_mtch_multi_sel_bk = st.form_submit_button("Add as a new book")
+                                if btn_bk_back:
+                                    st.session_state["srch_book_title"] = st.session_state["bk_orig_title"]
+                                    self.add_updt_bk()
+                                    st.rerun()
+                                if btn_add_prt_mtch_multi_sel_bk:
+                                    st.session_state["bk_add_from_part_match"] = True
+                                    st.session_state["res1_bk_book_title"] = st.session_state["bk_orig_title"]
+                                    self.add_updt_bk_edit()
+                                    st.rerun()
+                            if btn_edt_bk:
+                                st.session_state["bk_is_editing"] = True
                                 self.add_updt_bk_edit()
                                 st.rerun()
-                        if btn_edt_bk:
-                            st.session_state["bk_is_editing"] = True
-                            self.add_updt_bk_edit()
-                            st.rerun()
+                        else:
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     else:
                         bk_title.insert(0, "0") # dummy val to set correct index for bk title
                         temp_bk_title = str(bk_title[1])
@@ -191,73 +197,90 @@ class EDIT_BOOK(form_sr.FORM):
                         bk_title.pop(1)
                         bk_title.insert(1, temp_bk_title) # now search for partial match of book title
                         bk_sum = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title, True)
-                        if bk_sum == 0: # so no partial match as well as no exact match
-                            st.session_state["res1_bk_book_title"] = st.session_state["srch_book_title"] # to show for Add book form
-                            self.add_updt_bk_edit()
-                            st.rerun()
+
+                        if bk_sum != None:
+
+                            if bk_sum == 0: # so no partial match as well as no exact match
+                                st.session_state["res1_bk_book_title"] = st.session_state["srch_book_title"] # to show for Add book form
+                                self.add_updt_bk_edit()
+                                st.rerun()
+                            else:
+                                if bk_sum == 1:
+                                    bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title,
+                                                         False)
+
+                                    if bk_rec != None:
+
+                                        st.info("One book partially matches your search.")
+                                        for bk in bk_rec:
+                                            self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
+                                                                     bk.Publisher, bk.Dat,
+                                                                     bk.__getattribute__('Year Read'),
+                                                                     bk.__getattribute__('Publication Locale'),
+                                                                     bk.Edition, bk.__getattribute__('First Edition'),
+                                                                     bk.__getattribute__("First Edition Locale"),
+                                                                     bk.__getattribute__("First Edition Name"),
+                                                                     bk.__getattribute__("First Edition Publisher"),
+                                                                     )
+                                        btn_edt_prt_mtch_bk = st.form_submit_button("Edit book found")
+                                        btn_rtrn_prt_mtch_bk = st.form_submit_button("Return to book search/add")
+                                        btn_add_prt_mtch_bk = st.form_submit_button("Add title as new book")
+                                        if btn_rtrn_prt_mtch_bk:
+                                            self.add_updt_bk_srch()
+                                            st.rerun()
+                                        if btn_edt_prt_mtch_bk:
+                                            st.session_state["bk_is_editing"] = True
+                                            self.__add_bk_to_s_state(bk)
+                                            self.add_updt_bk_edit()
+                                            st.rerun()
+                                        if btn_add_prt_mtch_bk:
+                                            st.session_state["bk_add_from_part_match"] = True
+                                            st.session_state["res1_bk_book_title"] = st.session_state["srch_book_title"]
+                                            self.add_updt_bk_edit()
+                                            st.rerun()
+                                    else:
+                                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                elif bk_sum > 1:
+                                    bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title,
+                                                         False)
+
+                                    if bk_rec != None:
+
+                                        st.info(str(bk_sum) + " books partially match your search.")
+                                        editSelection = st.selectbox("Select book to work with", [
+                                            "{title}>>{author}>>{publisher}>>{date}".format(
+                                                title=bk.__getattribute__('Book Title'),
+                                                author=bk.Author,
+                                                publisher=bk.Publisher,
+                                                date=bk.Dat
+                                            )
+                                            for bk in bk_rec
+                                        ])
+                                        btn_bk_sel = st.form_submit_button(label="Select this book")
+                                        st.markdown(":orange[OR...]")
+                                        btn_book_again = st.form_submit_button(label="Refine the book search")
+                                        if btn_bk_sel:
+                                            st.session_state["bk_res_multi_books_part_mtch_srch"] = True
+                                            book_selected = editSelection.split(">>")
+                                            st.session_state["bk_orig_title"] = st.session_state["srch_book_title"]
+                                            st.session_state["srch_book_title"] = str(book_selected[0])
+                                            self.add_updt_bk()
+                                            st.rerun()
+                                        elif btn_book_again:
+                                            if st.session_state["bk_is_editing"]:
+                                                st.session_state["bk_is_editing"] = False
+                                            if st.session_state["bk_add_from_part_match"]:
+                                                st.session_state["bk_add_from_part_match"] = False
+                                            self.__clear_ss_bk_flds()
+                                            self.__clear_ss_res1_bk_flds()
+                                            self.add_updt_bk_srch()
+                                            st.rerun()
+                                    else:
+                                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                         else:
-                            if bk_sum == 1:
-                                bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title,
-                                                     False)
-                                st.info("One book partially matches your search.")
-                                for bk in bk_rec:
-                                    self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
-                                                             bk.Publisher, bk.Dat,
-                                                             bk.__getattribute__('Year Read'),
-                                                             bk.__getattribute__('Publication Locale'),
-                                                             bk.Edition, bk.__getattribute__('First Edition'),
-                                                             bk.__getattribute__("First Edition Locale"),
-                                                             bk.__getattribute__("First Edition Name"),
-                                                             bk.__getattribute__("First Edition Publisher"),
-                                                             )
-                                btn_edt_prt_mtch_bk = st.form_submit_button("Edit book found")
-                                btn_rtrn_prt_mtch_bk = st.form_submit_button("Return to book search/add")
-                                btn_add_prt_mtch_bk = st.form_submit_button("Add title as new book")
-                                if btn_rtrn_prt_mtch_bk:
-                                    self.add_updt_bk_srch()
-                                    st.rerun()
-                                if btn_edt_prt_mtch_bk:
-                                    st.session_state["bk_is_editing"] = True
-                                    self.__add_bk_to_s_state(bk)
-                                    self.add_updt_bk_edit()
-                                    st.rerun()
-                                if btn_add_prt_mtch_bk:
-                                    st.session_state["bk_add_from_part_match"] = True
-                                    st.session_state["res1_bk_book_title"] = st.session_state["srch_book_title"]
-                                    self.add_updt_bk_edit()
-                                    st.rerun()
-                            elif bk_sum > 1:
-                                bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title,
-                                                     False)
-                                st.info(str(bk_sum) + " books partially match your search.")
-                                editSelection = st.selectbox("Select book to work with", [
-                                    "{title}>>{author}>>{publisher}>>{date}".format(
-                                        title=bk.__getattribute__('Book Title'),
-                                        author=bk.Author,
-                                        publisher=bk.Publisher,
-                                        date=bk.Dat
-                                    )
-                                    for bk in bk_rec
-                                ])
-                                btn_bk_sel = st.form_submit_button(label="Select this book")
-                                st.markdown(":orange[OR...]")
-                                btn_book_again = st.form_submit_button(label="Refine the book search")
-                                if btn_bk_sel:
-                                    st.session_state["bk_res_multi_books_part_mtch_srch"] = True
-                                    book_selected = editSelection.split(">>")
-                                    st.session_state["bk_orig_title"] = st.session_state["srch_book_title"]
-                                    st.session_state["srch_book_title"] = str(book_selected[0])
-                                    self.add_updt_bk()
-                                    st.rerun()
-                                elif btn_book_again:
-                                    if st.session_state["bk_is_editing"]:
-                                        st.session_state["bk_is_editing"] = False
-                                    if st.session_state["bk_add_from_part_match"]:
-                                        st.session_state["bk_add_from_part_match"] = False
-                                    self.__clear_ss_bk_flds()
-                                    self.__clear_ss_res1_bk_flds()
-                                    self.add_updt_bk_srch()
-                                    st.rerun()
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+            else:
+                st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
         if st.session_state["form_flow_bk"] == "add_update_book_edit":
             with st.form("Add or update book"):
                 sbmt_bk = False
@@ -399,15 +422,24 @@ class EDIT_BOOK(form_sr.FORM):
                                         self.add_updt_bk_edit()
                                         st.rerun()
                             else:  # add form button if exception raised
+                                st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                                 st.form_submit_button("Form can't be displayed.", disabled=True)
                         else:
-                            self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
+                            db_exec = self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
+
+                            if db_exec != None:
+                                self.add_updt_bk_added()
+                                st.rerun()
+                            else:
+                                st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                    else:
+                        db_exec = self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, True)
+
+                        if db_exec != None:
                             self.add_updt_bk_added()
                             st.rerun()
-                    else:
-                        self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, True)
-                        self.add_updt_bk_added()
-                        st.rerun()
+                        else:
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                 else:
                     del_book = []
                     del_book.append(st.session_state["res1_bk_book_no"].zfill(
@@ -430,20 +462,27 @@ class EDIT_BOOK(form_sr.FORM):
                                 self.add_updt_bk_sbmttd()
                                 st.rerun()
                         else:  # add form button if exception raised
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                             st.form_submit_button("Form can't be displayed.", disabled=True)
                     if st.session_state["del_bk_yes"]:
-                        self.db_records(self.dict_flow_flags.get("bk_del"),
+                        db_exec = self.db_records(self.dict_flow_flags.get("bk_del"),
                                         del_book, False)
-                        bk_annots_cnt = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
-                                        del_book, False)
-                        if bk_annots_cnt != None:
-                            if bk_annots_cnt > 0:
-                                st.session_state["del_bk_has_annots"] = bk_annots_cnt
-                                self.db_records(self.dict_flow_flags.get("bk_del_Annots"), del_book, False)
-                            self.add_updt_bk_added()
-                            st.rerun()
-                        else:  # add form button if exception raised
-                            st.form_submit_button("Form can't be displayed.", disabled=True)
+
+                        if db_exec != None:
+
+                            bk_annots_cnt = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
+                                            del_book, False)
+                            if bk_annots_cnt != None:
+                                if bk_annots_cnt > 0:
+                                    st.session_state["del_bk_has_annots"] = bk_annots_cnt
+                                    self.db_records(self.dict_flow_flags.get("bk_del_Annots"), del_book, False)
+                                self.add_updt_bk_added()
+                                st.rerun()
+                            else:  # add form button if exception raised
+                                st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                st.form_submit_button("Form can't be displayed.", disabled=True)
+                        else:
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     elif st.session_state["del_bk_no"]:
                         st.session_state["del_bk"] = False
                         st.session_state["del_bk_no"] = False
@@ -489,43 +528,65 @@ class EDIT_BOOK(form_sr.FORM):
                     st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-        sourceData = self.get_data_source()
-        conn = self.get_connection(sourceData)
-        if searchSelection == self.dict_flow_flags.get("bk_add_edit_is_full_match"):
-            if getResultsCount:
-                return self.__add_update_book_exact_count(sourceData, conn, record)
-            else:
-                return self.__add_update_book_exact(sourceData, conn, record)
-        elif searchSelection == self.dict_flow_flags.get("bk_add_update_bk"):
-            if getResultsCount:
-                return self.__add_update_book_count(sourceData, conn, record)
-            else:
-                return self.__add_update_book(sourceData, conn, record)
-        elif searchSelection == self.dict_flow_flags.get("bk_add_edit_bk_write"):
-            self.__add_update_book_new(sourceData, conn, record, getResultsCount)
-        elif searchSelection == self.dict_flow_flags.get("bk_del"):
-            self.__delete_book(sourceData, conn, record)
-        elif searchSelection == self.dict_flow_flags.get("bk_del_Annots_count"):
-            return self.__bk_has_annots_count(sourceData, conn, record)
-        elif searchSelection == self.dict_flow_flags.get("bk_del_Annots"):
-            return self.__bk_has_annots_delete(sourceData, conn, record)
-        conn.close()
+
+        try:
+
+            sourceData = self.get_data_source()
+            conn = self.get_connection(sourceData)
+            if searchSelection == self.dict_flow_flags.get("bk_add_edit_is_full_match"):
+                if getResultsCount:
+                    return self.__add_update_book_exact_count(sourceData, conn, record)
+                else:
+                    return self.__add_update_book_exact(sourceData, conn, record)
+            elif searchSelection == self.dict_flow_flags.get("bk_add_update_bk"):
+                if getResultsCount:
+                    return self.__add_update_book_count(sourceData, conn, record)
+                else:
+                    return self.__add_update_book(sourceData, conn, record)
+            elif searchSelection == self.dict_flow_flags.get("bk_add_edit_bk_write"):
+                self.__add_update_book_new(sourceData, conn, record, getResultsCount)
+            elif searchSelection == self.dict_flow_flags.get("bk_del"):
+                self.__delete_book(sourceData, conn, record)
+            elif searchSelection == self.dict_flow_flags.get("bk_del_Annots_count"):
+                return self.__bk_has_annots_count(sourceData, conn, record)
+            elif searchSelection == self.dict_flow_flags.get("bk_del_Annots"):
+                return self.__bk_has_annots_delete(sourceData, conn, record)
+            conn.close()
+
+        except pyodbc.Error:
+            return None
 
     def __add_update_book_exact_count(self, sourceData, conn, book):
-        bk_sum = sourceData.resAddUpdateExactBk(conn.cursor(), book)
-        return(bk_sum)
+        try:
+            bk_sum = sourceData.resAddUpdateExactBk(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
+        else:
+            return(bk_sum)
 
     def __add_update_book_exact(self, sourceData, conn, book):
-        bk = sourceData.AddUpdateExactBk(conn.cursor(), book)
-        return bk
+        try:
+            bk = sourceData.AddUpdateExactBk(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
+        else:
+            return bk
 
     def __add_update_book_count(self, sourceData, conn, book):
-        bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
-        return(bk_sum)
+        try:
+            bk_sum = sourceData.resAddUpdateNewBk(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
+        else:
+            return(bk_sum)
 
     def __add_update_book(self, sourceData, conn, book):
-        bk = sourceData.addUpdateNewBk(conn.cursor(), book)
-        return bk
+        try:
+            bk = sourceData.addUpdateNewBk(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
+        else:
+            return bk
 
     def __add_update_book_new(self, sourceData, conn, book, bk_exists):
         bk_sum = 0
@@ -533,18 +594,31 @@ class EDIT_BOOK(form_sr.FORM):
             tmp_fld = str(book[ctr])
             book.pop(ctr)
             book.insert(ctr, self.rem_sql_wrap_chars(tmp_fld))
-        if not bk_exists:
-            bk_sum = str(int(sourceData.resBookLatest(conn.cursor())) + 1).zfill(self.dict_db_fld_validations.get("books_bk_no_len"))
-        sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
+        try:
+            if not bk_exists:
+                bk_sum = str(int(sourceData.resBookLatest(conn.cursor())) + 1).zfill(
+                    self.dict_db_fld_validations.get("books_bk_no_len"))
+            sourceData.addUpdateNewBook(conn.cursor(), bk_sum, book, bk_exists)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __delete_book(self, sourceData, conn, book):
-        sourceData.delete_bk(conn.cursor(), book)
+        try:
+            sourceData.delete_bk(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __bk_has_annots_count(self, sourceData, conn, book):
-        return sourceData.resExactAnnotsbyBook(conn.cursor(), book)
+        try:
+            return sourceData.resExactAnnotsbyBook(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __bk_has_annots_delete(self, sourceData, conn, book):
-        sourceData.delExactAnnotsbyBook(conn.cursor(), book)
+        try:
+            sourceData.delExactAnnotsbyBook(conn.cursor(), book)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __add_bk_to_s_state(self, bk):
         st.session_state["res1_bk_book_no"] = bk.__getattribute__('Book No')

@@ -41,7 +41,7 @@ class DATA_SOURCE():
         try:
             result = cursor.execute(self.dict_queries.get("books_max_key"))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = result.fetchone()
             return res[0]
@@ -67,7 +67,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(self.dict_queries.get("annots_by_bk_exact_count").format(book[self.dict_books_indx.get("no")]))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -302,7 +302,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(self.dict_queries.get("bk_add_edit_exact_count").format(str(book[0])))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -311,7 +311,7 @@ class DATA_SOURCE():
         try:
             bk = cursor.execute(self.dict_queries.get("bk_add_edit_exact").format(str(book[0])))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return bk
 
@@ -320,7 +320,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(sqlStr)
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -330,7 +330,7 @@ class DATA_SOURCE():
         try:
             bk = cursor.execute(sqlStr)
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return bk
 
@@ -371,14 +371,11 @@ class DATA_SOURCE():
                                 str(book[self.dict_books_indx.get("no")])
                 ))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
-
-                # HERE ############################################################
-                raise self.dict_err_gener_msgs.get("cursor_exec") + str(ex) from RuntimeError
+                raise ex
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
 
     def resAddNewAnnot_srch_bk(self, cursor, book):
         sqlStr = self.__sql_nw_annt_bk_srch("count", book)
@@ -456,11 +453,11 @@ class DATA_SOURCE():
         try:
             cursor.execute(self.dict_deletes.get("bk_del").format(str(bk[self.dict_books_indx.get("no")])))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
 
     def __sql_bk_srch(self, isCountQuery, book):
         if isCountQuery:

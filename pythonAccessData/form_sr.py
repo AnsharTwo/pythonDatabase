@@ -81,6 +81,9 @@ class FORM:
         "upr": "upper"
     }
 
+    dict_err_msgs = {
+        "cursor_exec": "Error executing data query (Is your data source file a valid one?)"
+    }
     def get_data_source(self):
         dbPath = st.session_state.ss_dat_loc_annots
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)
