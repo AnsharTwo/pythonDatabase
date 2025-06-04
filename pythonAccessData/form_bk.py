@@ -144,13 +144,11 @@ class EDIT_BOOK(form_sr.FORM):
             bk_title.append(self.formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"),
                                                               bk_title,True)
-            if st.session_state["bk_srch_sum"] != None:
+            if str(st.session_state["bk_srch_sum"]) != str(pyodbc.Error):
                 with st.form("Search results for book title"):
                     if st.session_state["bk_srch_sum"] == 1:
                         bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"), bk_title, False)
-
-                        if bk_rec != None:
-
+                        if str(bk_rec) != str(pyodbc.Error):
                             st.info("The following book has been found that matches your search text.")
                             for bk in bk_rec:
                                 self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author, bk.Publisher, bk.Dat,
@@ -190,6 +188,7 @@ class EDIT_BOOK(form_sr.FORM):
                                 st.rerun()
                         else:
                             st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.form_submit_button("Form can't be displayed.", disabled=True)
                     else:
                         bk_title.insert(0, "0") # dummy val to set correct index for bk title
                         temp_bk_title = str(bk_title[1])
@@ -197,9 +196,7 @@ class EDIT_BOOK(form_sr.FORM):
                         bk_title.pop(1)
                         bk_title.insert(1, temp_bk_title) # now search for partial match of book title
                         bk_sum = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title, True)
-
-                        if bk_sum != None:
-
+                        if str(bk_sum) != str(pyodbc.Error):
                             if bk_sum == 0: # so no partial match as well as no exact match
                                 st.session_state["res1_bk_book_title"] = st.session_state["srch_book_title"] # to show for Add book form
                                 self.add_updt_bk_edit()
@@ -208,9 +205,7 @@ class EDIT_BOOK(form_sr.FORM):
                                 if bk_sum == 1:
                                     bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title,
                                                          False)
-
-                                    if bk_rec != None:
-
+                                    if str(bk_rec) != str(pyodbc.Error):
                                         st.info("One book partially matches your search.")
                                         for bk in bk_rec:
                                             self.show_book_entered("blue", bk.__getattribute__('Book Title'), bk.Author,
@@ -240,12 +235,11 @@ class EDIT_BOOK(form_sr.FORM):
                                             st.rerun()
                                     else:
                                         st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                        st.form_submit_button("Form can't be displayed.", disabled=True)
                                 elif bk_sum > 1:
                                     bk_rec = self.db_records(self.dict_flow_flags.get("bk_add_update_bk"), bk_title,
                                                          False)
-
-                                    if bk_rec != None:
-
+                                    if str(bk_rec) != str(pyodbc.Error):
                                         st.info(str(bk_sum) + " books partially match your search.")
                                         editSelection = st.selectbox("Select book to work with", [
                                             "{title}>>{author}>>{publisher}>>{date}".format(
@@ -277,8 +271,10 @@ class EDIT_BOOK(form_sr.FORM):
                                             st.rerun()
                                     else:
                                         st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                        st.form_submit_button("Form can't be displayed.", disabled=True)
                         else:
                             st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.form_submit_button("Form can't be displayed.", disabled=True)
             else:
                 st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
         if st.session_state["form_flow_bk"] == "add_update_book_edit":
@@ -388,7 +384,7 @@ class EDIT_BOOK(form_sr.FORM):
                             temp_bk_sum = self.db_records(
                                 self.dict_flow_flags.get("bk_add_edit_is_full_match"),
                                 bk_title, True)
-                            if temp_bk_sum != None:
+                            if str(temp_bk_sum) != str(pyodbc.Error):
                                 if temp_bk_sum == 0:
                                     self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
                                     self.add_updt_bk_added()
@@ -426,20 +422,20 @@ class EDIT_BOOK(form_sr.FORM):
                                 st.form_submit_button("Form can't be displayed.", disabled=True)
                         else:
                             db_exec = self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, False)
-
-                            if db_exec != None:
+                            if str(db_exec) != str(pyodbc.Error):
                                 self.add_updt_bk_added()
                                 st.rerun()
                             else:
                                 st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                st.form_submit_button("Form can't be displayed.", disabled=True)
                     else:
                         db_exec = self.db_records(self.dict_flow_flags.get("bk_add_edit_bk_write"), book, True)
-
-                        if db_exec != None:
+                        if str(db_exec) != str(pyodbc.Error):
                             self.add_updt_bk_added()
                             st.rerun()
                         else:
                             st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.form_submit_button("Form can't be displayed.", disabled=True)
                 else:
                     del_book = []
                     del_book.append(st.session_state["res1_bk_book_no"].zfill(
@@ -447,7 +443,7 @@ class EDIT_BOOK(form_sr.FORM):
                     if not st.session_state["del_bk_yes"] and not st.session_state["del_bk_no"]:
                         bk_annots_warn = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
                                                         del_book, False)
-                        if bk_annots_warn != None:
+                        if str(bk_annots_warn) != str(pyodbc.Error):
                             if bk_annots_warn > 0:
                                 st.warning("WARNING: Book has " + str(bk_annots_warn) +  " annotations added. Confirm deletion of this book AND its annotations?")
                             else:
@@ -467,12 +463,10 @@ class EDIT_BOOK(form_sr.FORM):
                     if st.session_state["del_bk_yes"]:
                         db_exec = self.db_records(self.dict_flow_flags.get("bk_del"),
                                         del_book, False)
-
-                        if db_exec != None:
-
+                        if str(db_exec) != str(pyodbc.Error):
                             bk_annots_cnt = self.db_records(self.dict_flow_flags.get("bk_del_Annots_count"),
                                             del_book, False)
-                            if bk_annots_cnt != None:
+                            if str(bk_annots_cnt) != str(pyodbc.Error):
                                 if bk_annots_cnt > 0:
                                     st.session_state["del_bk_has_annots"] = bk_annots_cnt
                                     self.db_records(self.dict_flow_flags.get("bk_del_Annots"), del_book, False)
@@ -483,6 +477,7 @@ class EDIT_BOOK(form_sr.FORM):
                                 st.form_submit_button("Form can't be displayed.", disabled=True)
                         else:
                             st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.form_submit_button("Form can't be displayed.", disabled=True)
                     elif st.session_state["del_bk_no"]:
                         st.session_state["del_bk"] = False
                         st.session_state["del_bk_no"] = False
@@ -528,9 +523,7 @@ class EDIT_BOOK(form_sr.FORM):
                     st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-
         try:
-
             sourceData = self.get_data_source()
             conn = self.get_connection(sourceData)
             if searchSelection == self.dict_flow_flags.get("bk_add_edit_is_full_match"):
@@ -552,9 +545,9 @@ class EDIT_BOOK(form_sr.FORM):
             elif searchSelection == self.dict_flow_flags.get("bk_del_Annots"):
                 return self.__bk_has_annots_delete(sourceData, conn, record)
             conn.close()
-
-        except pyodbc.Error:
-            return None
+        except pyodbc.Error as ex:
+            st.write(str(ex))
+            return pyodbc.Error
 
     def __add_update_book_exact_count(self, sourceData, conn, book):
         try:
