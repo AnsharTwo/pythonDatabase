@@ -57,7 +57,7 @@ class PROF_FORM (form_sr.FORM):
                     st.session_state.ss_dat_loc_annots).title() + ":orange[)]  ")
                 if st.form_submit_button("Browse annotations files"):
                     root = tk.Tk()
-                    tk.Button(root, text="Quit annotations file selection", command=root.destroy).pack()
+                    tk.Button(root, text="Confirm data source file selection", font=("Arial", 12), command=root.destroy).pack()
                     tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
                     pth = self.ds_file_dialog("Access", ".mdb")
                     if pth != "":

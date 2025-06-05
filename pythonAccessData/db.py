@@ -32,7 +32,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(self.dict_queries.get("books_all_count"))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -50,7 +50,7 @@ class DATA_SOURCE():
         try:
             books = cursor.execute(self.dict_queries.get("books_all"))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return books
 
@@ -58,7 +58,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(self.dict_queries.get("annots_by_bk_count").format(book_title))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -76,7 +76,7 @@ class DATA_SOURCE():
         try:
             annots = cursor.execute(self.dict_queries.get("annots_by_bk").format(book_title))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return annots
 
@@ -85,7 +85,7 @@ class DATA_SOURCE():
             results = cursor.execute(
                 self.dict_queries.get("annots_by_auth_count").format(author))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -94,7 +94,7 @@ class DATA_SOURCE():
         try:
             annots = cursor.execute(self.dict_queries.get("annots_by_auth").format(author))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return annots
 
@@ -103,7 +103,7 @@ class DATA_SOURCE():
             results = cursor.execute(
                 self.dict_queries.get("books_by_auth_count").format(author))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -112,7 +112,7 @@ class DATA_SOURCE():
         try:
             annots = cursor.execute(self.dict_queries.get("books_by_auth").format(author))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return annots
 
@@ -122,7 +122,7 @@ class DATA_SOURCE():
             try:
                 results = cursor.execute(sqlStr.format(str(searchString[0])))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 res = results.fetchone()
                 return res[0]
@@ -133,7 +133,7 @@ class DATA_SOURCE():
             try:
                 results = cursor.execute(sqlStr)
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 res = results.fetchone()
                 return res[0]
@@ -145,7 +145,7 @@ class DATA_SOURCE():
             try:
                 annots = cursor.execute(sqlStr.format(str(searchString[0])))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec")+ "] " + str(ex))
+                raise ex
             else:
                 return annots
         else:
@@ -156,7 +156,7 @@ class DATA_SOURCE():
             try:
                 annots = cursor.execute(sqlStr)
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 return annots
 
@@ -166,7 +166,7 @@ class DATA_SOURCE():
             try:
                 results = cursor.execute(sqlStr.format(book, str(searchString[0])))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 res = results.fetchone()
                 return res[0]
@@ -181,7 +181,7 @@ class DATA_SOURCE():
             try:
                 results = cursor.execute(sqlStr)
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 res = results.fetchone()
                 return res[0]
@@ -193,7 +193,7 @@ class DATA_SOURCE():
             try:
                 annots = cursor.execute(sqlStr.format(book, str(searchString[0])))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 return annots
         else:
@@ -208,7 +208,7 @@ class DATA_SOURCE():
             try:
                 annots = cursor.execute(sqlStr)
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 return annots
 
@@ -218,7 +218,7 @@ class DATA_SOURCE():
             try:
                 results = cursor.execute(sqlStr.format(author, str(searchString[0])))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 res = results.fetchone()
                 return res[0]
@@ -233,7 +233,7 @@ class DATA_SOURCE():
             try:
                 results = cursor.execute(sqlStr)
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 res = results.fetchone()
                 return res[0]
@@ -245,7 +245,7 @@ class DATA_SOURCE():
             try:
                 annots = cursor.execute(sqlStr.format(author, str(searchString[0])))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 return annots
         else:
@@ -260,7 +260,7 @@ class DATA_SOURCE():
             try:
                 annots = cursor.execute(sqlStr)
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
             else:
                 return annots
 
@@ -268,7 +268,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(self.dict_queries.get("annots_by_yr_read_count").format(fromYear, toYear))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -277,7 +277,7 @@ class DATA_SOURCE():
         try:
             annots = cursor.execute(self.dict_queries.get("annots_by_yr_read").format(fromYear, toYear))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return annots
 
@@ -285,7 +285,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(self.dict_queries.get("books_by_yr_read_count").format(fromYear, toYear))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -294,7 +294,7 @@ class DATA_SOURCE():
         try:
             annots = cursor.execute(self.dict_queries.get("books_by_yr_read").format(fromYear, toYear))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return annots
 
@@ -353,7 +353,7 @@ class DATA_SOURCE():
                                str(book[self.dict_books_indx.get("first_edition_publisher")])
                 ))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
         else:
             sql_str = self.dict_updates.get("books_update_add")
             try:
@@ -382,7 +382,7 @@ class DATA_SOURCE():
         try:
             results = cursor.execute(sqlStr)
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             res = results.fetchone()
             return res[0]
@@ -392,7 +392,7 @@ class DATA_SOURCE():
         try:
             annots = cursor.execute(sqlStr)
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return annots
 
@@ -401,7 +401,7 @@ class DATA_SOURCE():
             cursor.execute(self.dict_deletes.get("annots_by_bk_exact_del").format(book[self.dict_books_indx.get("no")]))
             cursor.commit()
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
 
     def addNewAnnot_srch_page_no(self, cursor, record):
         try:
@@ -410,7 +410,7 @@ class DATA_SOURCE():
                                                                str(record[self.dict_annots_indx.get("page_no")]) # book no, page no
                                                         ))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         else:
             return(annot)
 
@@ -423,7 +423,7 @@ class DATA_SOURCE():
                                                                    str(ant[self.dict_annots_indx.get("source_text")])
                                                         ))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
         else:
             try:
                 cursor.execute(self.dict_updates.get("annots_update_add").format(
@@ -432,22 +432,22 @@ class DATA_SOURCE():
                                                                    str(ant[self.dict_annots_indx.get("page_no")])
                                                             ))
             except pyodbc.Error as ex:
-                st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+                raise ex
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
 
     def deleteAnnot(self, cursor, ant):
         try:
             cursor.execute(self.dict_deletes.get("annots_del").format(str(ant[self.dict_annots_indx.get("book_no")]),
                                                                             str(ant[self.dict_annots_indx.get("page_no")])))
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
         try:
             cursor.commit()
         except pyodbc.Error as ex:
-            st.markdown(":red[" + self.dict_err_gener_msgs.get("cursor_exec") + "] " + str(ex))
+            raise ex
 
     def delete_bk(self, cursor, bk):
         try:

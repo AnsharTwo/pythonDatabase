@@ -1,7 +1,7 @@
 import streamlit as st
 from spellchecker import SpellChecker
-import configparser
 import form_sr
+import pyodbc
 
 class EDIT_ANNOT(form_sr.FORM):
 
@@ -149,7 +149,7 @@ class EDIT_ANNOT(form_sr.FORM):
                     book_search.append("")
                 bkSum = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, True)
                 bks = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"), book_search, False)
-                if bkSum != None:
+                if str(bkSum) != str(pyodbc.Error):
                     if bkSum > 1:
                         st.write("Found {} results.".format(str(bkSum)))
                     add_nw_bk = False
@@ -223,6 +223,7 @@ class EDIT_ANNOT(form_sr.FORM):
                 # TODO - get below working (btn above is disabled while not
                 #if add_nw_bk:
                 else: # add form button if exception raised
+                    st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.form_submit_button("Form can't be displayed.", disabled=True)
         elif st.session_state["form_flow"] == "create_the_new_annotation":
             with st.form("New annotation"):
@@ -251,7 +252,7 @@ class EDIT_ANNOT(form_sr.FORM):
                                   st.session_state["page_no"].zfill(self.dict_db_fld_validations.get("annots_pg_no_len"))]
                 annot = self.db_records(self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"), page_no_record,
                                                                  False)
-                if annot != None:
+                if str(annot) != str(pyodbc.Error):
                     if not st.session_state["annot_sql_done"]:
                         st.session_state["has_annot"] = False
                         for ants in annot:
@@ -327,6 +328,7 @@ class EDIT_ANNOT(form_sr.FORM):
                             self.annot_success_new_annot()
                             st.rerun()
                 else: # add form button if exception raised
+                    st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.form_submit_button("Form can't be displayed.", disabled=True)
         elif st.session_state["form_flow"] == "spell_check_Annotation":
             config_data = self.load_ini_config()
@@ -518,34 +520,55 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.rerun()
 
     def db_records(self, searchSelection, record, getResultsCount):
-        sourceData = self.get_data_source()
-        conn = self.get_connection(sourceData)
-        if searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"):
-            return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
-            return self.__srch_ants_for_exists_annot(sourceData, conn, record)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
-            self.__add_update_annot(sourceData, conn, record, getResultsCount)
-        elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_del_annot"):
-            self.__delete_annot(sourceData, conn, record)
-        conn.close()
+        try:
+            sourceData = self.get_data_source()
+            conn = self.get_connection(sourceData)
+            if searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_bk_srch"):
+                return self.__srch_bks_for_new_annot(sourceData, conn, record, getResultsCount)
+            elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_srch_ppg_no"):
+                return self.__srch_ants_for_exists_annot(sourceData, conn, record)
+            elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_add_updte_annot"):
+                self.__add_update_annot(sourceData, conn, record, getResultsCount)
+            elif searchSelection == self.dict_edit_annot_nonmenu_flags.get("ants_edt_del_annot"):
+                self.__delete_annot(sourceData, conn, record)
+            conn.close()
+        except pyodbc.Error as ex:
+            st.write(str(ex))
+            return pyodbc.Error
 
     def __srch_bks_for_new_annot(self, sourceData, conn, book, getResultsCount):
         if getResultsCount:
-            bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
-            return bkSum
+            try:
+                bkSum = sourceData.resAddNewAnnot_srch_bk(conn.cursor(), book)
+            except pyodbc.Error as ex:
+                raise ex
+            else:
+                return bkSum
         else:
-            annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
-            return annots
+            try:
+                annots = sourceData.addNewAnnot_srch_bk(conn.cursor(), book)
+            except pyodbc.Error as ex:
+                raise ex
+            else:
+                return annots
 
     def __srch_ants_for_exists_annot(self, sourceData, conn, record):
-        return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
+        try:
+            return sourceData.addNewAnnot_srch_page_no(conn.cursor(), record)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __add_update_annot(self, sourceData, conn, ant, annotExists):
-        sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
+        try:
+            sourceData.addUpdateAnnot(conn.cursor(), ant, annotExists)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __delete_annot(self, sourceData, conn, ant):
-        sourceData.deleteAnnot(conn.cursor(), ant)
+        try:
+            sourceData.deleteAnnot(conn.cursor(), ant)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_bk_srch_res(self):
         st.markdown(":blue[Title:] :orange[{}]\r\r".format(
