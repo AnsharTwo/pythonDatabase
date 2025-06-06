@@ -2,6 +2,7 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 import form_sr
+import pyodbc
 
 class DATA_FORM(form_sr.FORM):
 
@@ -42,8 +43,11 @@ class DATA_FORM(form_sr.FORM):
                 if st.session_state["txt_srch_searchtext"] == "":
                     st.markdown(":red[no search text given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_srch_txt"), st.session_state["txt_srch_searchtext"],
+                    db_exec = self.db_records(self.dict_searches.get("ants_srch_txt"), st.session_state["txt_srch_searchtext"],
                                     "", "", "", "")
+                    if str(db_exec) == str(pyodbc.Error):
+                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                        st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def srch_searchtext_auth(self):
         if "go_srch_searchtext_auth" not in st.session_state:
@@ -68,9 +72,12 @@ class DATA_FORM(form_sr.FORM):
                     if st.session_state["auth_srch_searchtext_auth"] == "":
                         st.markdown(":red[no author given.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_srch_txt_auth"),
+                        db_exec = self.db_records(self.dict_searches.get("ants_srch_txt_auth"),
                                         st.session_state["txt_srch_searchtext_auth"],
                                         st.session_state["auth_srch_searchtext_auth"], "", "", "")
+                        if str(db_exec) == str(pyodbc.Error):
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def srch_searchtext_bk(self):
         if "go_srch_searchtext_bk" not in st.session_state:
@@ -94,8 +101,11 @@ class DATA_FORM(form_sr.FORM):
                     if st.session_state["bk_srch_searchtext_bk"] == "":
                         st.markdown(":red[no book given.]")
                     else:
-                        self.db_records(self.dict_searches.get("ants_srch_txt_bk"), st.session_state["txt_srch_searchtext_bk"],
+                        db_exec = self.db_records(self.dict_searches.get("ants_srch_txt_bk"), st.session_state["txt_srch_searchtext_bk"],
                                         "", st.session_state["bk_srch_searchtext_bk"], "", "")
+                        if str(db_exec) == str(pyodbc.Error):
+                            st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def srch_bk(self):
         if "go_srch_bk" not in st.session_state:
@@ -112,8 +122,11 @@ class DATA_FORM(form_sr.FORM):
                 if st.session_state["bk_srch_bk"] == "":
                     st.markdown(":red[no book given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_bk"), "", "", st.session_state["bk_srch_bk"],
+                    db_exec = self.db_records(self.dict_searches.get("ants_bk"), "", "", st.session_state["bk_srch_bk"],
                                     "", "")
+                    if str(db_exec) == str(pyodbc.Error):
+                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                        st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def srch_auth(self):
         if "go_srch_auth" not in st.session_state:
@@ -130,8 +143,11 @@ class DATA_FORM(form_sr.FORM):
                 if st.session_state["auth_srch_auth"] == "":
                     st.markdown(":red[no author given.]")
                 else:
-                    self.db_records(self.dict_searches.get("ants_auth"), "", st.session_state["auth_srch_auth"],
+                    db_exec = self.db_records(self.dict_searches.get("ants_auth"), "", st.session_state["auth_srch_auth"],
                                 "", "", "")
+                    if str(db_exec) == str(pyodbc.Error):
+                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                        st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def bks_auth(self):
         if "go_srch_bks_auth" not in st.session_state:
@@ -148,8 +164,11 @@ class DATA_FORM(form_sr.FORM):
                 if st.session_state["auth_srch_bks_auth"] == "":
                     st.markdown(":red[no author given.]")
                 else:
-                    self.db_records(self.dict_searches.get("bks_auth"), "", st.session_state["auth_srch_bks_auth"],
+                    db_exec = self.db_records(self.dict_searches.get("bks_auth"), "", st.session_state["auth_srch_bks_auth"],
                                     "", "", "")
+                    if str(db_exec) == str(pyodbc.Error):
+                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                        st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def bks_all(self):
         if "go_bks_all" not in st.session_state:
@@ -160,7 +179,10 @@ class DATA_FORM(form_sr.FORM):
                 st.session_state["go_bks_all"] = True
                 st.rerun()
             elif st.session_state["go_bks_all"]:
-                self.db_records(self.dict_searches.get("bks_all"), "", "", "", "", "")
+                db_exec= self.db_records(self.dict_searches.get("bks_all"), "", "", "", "", "")
+                if str(db_exec) == str(pyodbc.Error):
+                    st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                    st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def bks_yr_read(self):
         if "go_bks_yr" not in st.session_state:
@@ -193,8 +215,11 @@ class DATA_FORM(form_sr.FORM):
                                         1) > date(int(st.session_state["yr_bks_to"]), 1, 1):
                                     st.markdown(":red[From year cannot be greater than To year.]")
                                 else:
-                                    self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", st.session_state["yr_bks_from"],
+                                    db_exec = self.db_records(self.dict_searches.get("bks_yr_read"), "", "", "", st.session_state["yr_bks_from"],
                                                     st.session_state["yr_bks_to"])
+                                    if str(db_exec) == str(pyodbc.Error):
+                                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                        st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def ants_yr_read(self):
         with st.form("Search for annotations by year book titles read"):
@@ -227,155 +252,189 @@ class DATA_FORM(form_sr.FORM):
                                                                                                 1, 1):
                                     st.markdown(":red[From year cannot be greater than To year.]")
                                 else:
-                                    self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", st.session_state["yr_ants_from"],
+                                    db_exec = self.db_records(self.dict_searches.get("ants_yr_read"), "", "", "", st.session_state["yr_ants_from"],
                                                     st.session_state["yr_ants_to"])
+                                    if str(db_exec) == str(pyodbc.Error):
+                                        st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                                        st.form_submit_button("Form can't be displayed.", disabled=True)
 
     def db_records(self, searchSelection, searchText, auth, bk, yearFrom, yearTo):
         sourceData = self.get_data_source()
         conn = self.get_connection(sourceData)
         st.header("Database Records")
-        if searchSelection == self.dict_searches.get("ants_srch_txt"):
-            self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
-        elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
-            self.__show_srch_ants_auth_srch_txt(sourceData, conn, auth, searchText)
-        elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
-            self.__show_srch_ants_bk_srch_txt(sourceData, conn, bk, searchText)
-        elif searchSelection == self.dict_searches.get("ants_bk"):
-            self.__show_srch_ants_bk(sourceData, conn, bk)
-        elif searchSelection == self.dict_searches.get("ants_auth"):
-            self.__show_srch_ants_auth(sourceData, conn, auth)
-        elif searchSelection == self.dict_searches.get("bks_auth"):
-            self.__show_srch_bks_auth(sourceData, conn, auth)
-        elif searchSelection == self.dict_searches.get("bks_all"):
-            self.__show_srch_bk_all(sourceData, conn)
-        elif searchSelection == self.dict_searches.get("bks_yr_read"):
-            self.__show_srch_bks_yr_rd(sourceData, conn, yearFrom, yearTo)
-        elif searchSelection == self.dict_searches.get("ants_yr_read"):
-            self.__show_srch_ants_yr_rd(sourceData, conn, yearFrom, yearTo)
-        conn.close()
+        try:
+            if searchSelection == self.dict_searches.get("ants_srch_txt"):
+                self.__show_srch_ants_srch_txt(sourceData, conn, searchText)
+            elif searchSelection == self.dict_searches.get("ants_srch_txt_auth"):
+                self.__show_srch_ants_auth_srch_txt(sourceData, conn, auth, searchText)
+            elif searchSelection == self.dict_searches.get("ants_srch_txt_bk"):
+                self.__show_srch_ants_bk_srch_txt(sourceData, conn, bk, searchText)
+            elif searchSelection == self.dict_searches.get("ants_bk"):
+                self.__show_srch_ants_bk(sourceData, conn, bk)
+            elif searchSelection == self.dict_searches.get("ants_auth"):
+                self.__show_srch_ants_auth(sourceData, conn, auth)
+            elif searchSelection == self.dict_searches.get("bks_auth"):
+                self.__show_srch_bks_auth(sourceData, conn, auth)
+            elif searchSelection == self.dict_searches.get("bks_all"):
+                self.__show_srch_bk_all(sourceData, conn)
+            elif searchSelection == self.dict_searches.get("bks_yr_read"):
+                self.__show_srch_bks_yr_rd(sourceData, conn, yearFrom, yearTo)
+            elif searchSelection == self.dict_searches.get("ants_yr_read"):
+                self.__show_srch_ants_yr_rd(sourceData, conn, yearFrom, yearTo)
+            conn.close()
+        except pyodbc.Error as ex:
+            st.write(str(ex))
+            return pyodbc.Error
 
     def __show_srch_ants_srch_txt(self, sourceData, conn, searchText):
         searchTxtArr = self.formatSearchText(searchText)
-        resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchTxtArr)
-        annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchTxtArr)
-        if annots != None:
-            st.write("Found {} results.".format(resCountSearchString))
-            for ant in annots:
-                self.__markdown_srch_res(ant,searchTxtArr)
+        try:
+            resCountSearchString = sourceData.resAnnotsbySearchString(conn.cursor(), searchTxtArr)
+            annots = sourceData.selectAnnotsbySearchString(conn.cursor(), searchTxtArr)
+            if annots != None:
+                st.write("Found {} results.".format(resCountSearchString))
+                for ant in annots:
+                    self.__markdown_srch_res(ant,searchTxtArr)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_ants_auth_srch_txt(self, sourceData, conn, auth, searchText):
         searchTxtArr = self.formatSearchText(searchText)
-        resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
-                                                                          self.format_sql_wrap(auth),
-                                                                          searchTxtArr)
-        annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.format_sql_wrap(auth),
-                                                                          searchTxtArr)
-        if annots != None:
-            st.write("Found {} results.".format(resCountSrchStrAndAuthor))
-            for ant in annots:
-                self.__markdown_srch_res(ant,searchTxtArr)
+        try:
+            resCountSrchStrAndAuthor = sourceData.resAnnotsbySrchStrAndAuthor(conn.cursor(),
+                                                                              self.format_sql_wrap(auth),
+                                                                              searchTxtArr)
+            annots = sourceData.selectAnnotsbySrchStrAndAuthor(conn.cursor(), self.format_sql_wrap(auth),
+                                                                              searchTxtArr)
+            if annots != None:
+                st.write("Found {} results.".format(resCountSrchStrAndAuthor))
+                for ant in annots:
+                    self.__markdown_srch_res(ant,searchTxtArr)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_ants_bk_srch_txt(self, sourceData, conn, bk, searchText):
         searchTxtArr = self.formatSearchText(searchText)
-        resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.format_sql_wrap(bk),
-                                                                                     searchTxtArr)
-        annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.format_sql_wrap(bk),
-                                                                         searchTxtArr)
-        if annots != None:
-            st.write("Found {} results.".format(resCountSrchStrAndBook))
-            for ant in annots:
-                self.__markdown_srch_res(ant, searchTxtArr)
+        try:
+            resCountSrchStrAndBook = sourceData.resAnnotsbySrchStrAndBook(conn.cursor(), self.format_sql_wrap(bk),
+                                                                                         searchTxtArr)
+            annots = sourceData.selectAnnotsbySrchStrAndBook(conn.cursor(),  self.format_sql_wrap(bk),
+                                                                             searchTxtArr)
+            if annots != None:
+                st.write("Found {} results.".format(resCountSrchStrAndBook))
+                for ant in annots:
+                    self.__markdown_srch_res(ant, searchTxtArr)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_ants_bk(self, sourceData, conn, bk):
-        resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
-        annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
-        if annots != None:
-            st.write("Found {} results.".format(resCountBooks))
-            for ant in annots:
-                self.__markdown_srch_res(ant, "")
+        try:
+            resCountBooks = sourceData.resAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
+            annots = sourceData.selectAnnotsbyBook(conn.cursor(), self.format_sql_wrap(bk))
+            if annots != None:
+                st.write("Found {} results.".format(resCountBooks))
+                for ant in annots:
+                    self.__markdown_srch_res(ant, "")
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_ants_auth(self, sourceData, conn, auth):
-        resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
-        annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
-        if annots != None:
-            st.write("Found {} results.".format(resCountAuthor))
-            for ant in annots:
-                self.__markdown_srch_res(ant, "")
+        try:
+            resCountAuthor = sourceData.resAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
+            annots = sourceData.selectAnnotsbyAuthor(conn.cursor(), self.format_sql_wrap(auth))
+            if annots != None:
+                st.write("Found {} results.".format(resCountAuthor))
+                for ant in annots:
+                    self.__markdown_srch_res(ant, "")
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_bks_auth(self, sourceData, conn, auth):
-        resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
-        annots = sourceData.selectBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
-        if annots != None:
-            st.write("Found {} results.".format(resCountBks))
-            for ant in annots:
-                self.__markdown_bks_res(ant)
+        try:
+            resCountBks = sourceData.resBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
+            annots = sourceData.selectBooksByAuthor(conn.cursor(), self.format_sql_wrap(auth))
+            if annots != None:
+                st.write("Found {} results.".format(resCountBks))
+                for ant in annots:
+                    self.__markdown_bks_res(ant)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_bk_all(self, sourceData, conn):
-        resCountBooksAll = sourceData.resBooksAll(conn.cursor())
-        books = sourceData.selectBooksAll(conn.cursor())
-        if books != None:
-            st.write("Found {} results.".format(resCountBooksAll))
-            if resCountBooksAll > 0:
-                df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note self.format_book_no() not working
-                                    bk.__getattribute__('Book Title'),
-                                    bk.Author,
-                                    bk.Publisher,
-                                    bk.Dat,
-                                    bk.__getattribute__('Year Read'),
-                                    bk.__getattribute__('Publication Locale'),
-                                    bk.Edition,
-                                    bk.__getattribute__('First Edition'),
-                                    bk.__getattribute__('First Edition Locale'),
-                                    bk.__getattribute__('First Edition Name'),
-                                    bk.__getattribute__('First Edition Publisher')
-                                    ] for bk in books),
-                            None,
-                                  columns=['Book no.',
-                                           'Title',
-                                           'Author',
-                                           'Publisher',
-                                           'Date',
-                                           'Year read',
-                                           'Locale',
-                                           'Edition',
-                                           'First Edition',
-                                           'First Edition Locale',
-                                           'First Edition Name',
-                                           'First Edition Publisher'
-                                    ]
-                                )
-                st.dataframe(df, None, height=625, hide_index=True)
+        try:
+            resCountBooksAll = sourceData.resBooksAll(conn.cursor())
+            books = sourceData.selectBooksAll(conn.cursor())
+            if books != None:
+                st.write("Found {} results.".format(resCountBooksAll))
+                if resCountBooksAll > 0:
+                    df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')), # note self.format_book_no() not working
+                                        bk.__getattribute__('Book Title'),
+                                        bk.Author,
+                                        bk.Publisher,
+                                        bk.Dat,
+                                        bk.__getattribute__('Year Read'),
+                                        bk.__getattribute__('Publication Locale'),
+                                        bk.Edition,
+                                        bk.__getattribute__('First Edition'),
+                                        bk.__getattribute__('First Edition Locale'),
+                                        bk.__getattribute__('First Edition Name'),
+                                        bk.__getattribute__('First Edition Publisher')
+                                        ] for bk in books),
+                                None,
+                                      columns=['Book no.',
+                                               'Title',
+                                               'Author',
+                                               'Publisher',
+                                               'Date',
+                                               'Year read',
+                                               'Locale',
+                                               'Edition',
+                                               'First Edition',
+                                               'First Edition Locale',
+                                               'First Edition Name',
+                                               'First Edition Publisher'
+                                        ]
+                                    )
+                    st.dataframe(df, None, height=625, hide_index=True)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_bks_yr_rd(self, sourceData, conn, yearFrom, yearTo):
-        resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-        books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
-        if books != None:
-            st.write("Found {} results.".format(resCountBooksYearRead))
-            if resCountBooksYearRead > 0:
-                df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note self.format_book_no() not working
-                                    bk.__getattribute__('Book Title'),
-                                    bk.Author,
-                                    bk.Publisher,
-                                    bk.__getattribute__('Year Read'),
-                                    ] for bk in books),
-                            None,
-                                    columns=['Book no.',
-                                            'Title',
-                                            'Author',
-                                            'Publisher',
-                                            'Year read'
-                                    ]
-                                )
-                st.dataframe(df, None, height=625, hide_index=True)
+        try:
+            resCountBooksYearRead = sourceData.resBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+            books = sourceData.selectBooksbyYearRead(conn.cursor(), yearFrom, yearTo)
+            if books != None:
+                st.write("Found {} results.".format(resCountBooksYearRead))
+                if resCountBooksYearRead > 0:
+                    df = pd.DataFrame(([self.format_book_no(bk.__getattribute__('Book No')),  # note self.format_book_no() not working
+                                        bk.__getattribute__('Book Title'),
+                                        bk.Author,
+                                        bk.Publisher,
+                                        bk.__getattribute__('Year Read'),
+                                        ] for bk in books),
+                                None,
+                                        columns=['Book no.',
+                                                'Title',
+                                                'Author',
+                                                'Publisher',
+                                                'Year read'
+                                        ]
+                                    )
+                    st.dataframe(df, None, height=625, hide_index=True)
+        except pyodbc.Error as ex:
+            raise ex
 
     def __show_srch_ants_yr_rd(self, sourceData, conn, yearFrom, yearTo):
-        resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-        annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
-        if annots != None:
-            st.write("Found {} results.".format(resCountAnnotsYearRead))
-            for ant in annots:
-                st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
-                self.__markdown_srch_res(ant, "")
+        try:
+            resCountAnnotsYearRead = sourceData.resAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+            annots = sourceData.selectAnnotsbyYearRead(conn.cursor(), yearFrom, yearTo)
+            if annots != None:
+                st.write("Found {} results.".format(resCountAnnotsYearRead))
+                for ant in annots:
+                    st.markdown(":gray[year read:] :orange[{year_read}] ->...\r\r".format(year_read=ant.__getattribute__('Year Read')))
+                    self.__markdown_srch_res(ant, "")
+        except pyodbc.Error as ex:
+            raise ex
 
     def __markdown_srch_res(self, ant, searchTxts):
         srcText = self.hghlght_txt(str(ant.__getattribute__('Source Text')), searchTxts)

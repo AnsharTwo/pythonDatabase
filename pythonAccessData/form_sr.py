@@ -83,6 +83,7 @@ class FORM:
     dict_err_msgs = {
         "cursor_exec": "Error executing data query (Is your data source file a valid one?)"
     }
+
     def get_data_source(self):
         dbPath = st.session_state.ss_dat_loc_annots
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)
@@ -114,27 +115,34 @@ class FORM:
 
     @st.cache_data(show_spinner="Loading data from sheet...")
     def load_book_sheet(_self, sheet):
-        sheetbook_path = st.session_state.ss_dat_loc_urls
-        dict_sheets = pd.read_excel(sheetbook_path, index_col=None, engine="openpyxl", sheet_name=None)
-        sheet_loaded = dict_sheets[sheet]
-        return sheet_loaded
+        try:
+            sheetbook_path = st.session_state.ss_dat_loc_urls
+            dict_sheets = pd.read_excel(sheetbook_path, index_col=None, engine="openpyxl", sheet_name=None)
+            sheet_loaded = dict_sheets[sheet]
+        except Exception as ex:
+            raise ex
+        else:
+            return sheet_loaded
 
     def write_book_sheet(self, sheet_web_pages, sheet_videos, sheet_sites):
         sheetbook_path = st.session_state.ss_dat_loc_urls
-        with pd.ExcelWriter(sheetbook_path) as writer:
-            sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"), index=False,
-                                     columns=[self.dict_book_sheets_spec.get("web_pages").get("desc"),
-                                              self.dict_book_sheets_spec.get("web_pages").get("read"),
-                                              self.dict_book_sheets_spec.get("web_pages").get("url"),
-                                              self.dict_book_sheets_spec.get("web_pages").get("note")])
-            sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"), index=False,
-                                     columns=[self.dict_book_sheets_spec.get("videos").get("desc"),
-                                              self.dict_book_sheets_spec.get("videos").get("watched"),
-                                              self.dict_book_sheets_spec.get("videos").get("url"),
-                                              self.dict_book_sheets_spec.get("videos").get("note")])
-            sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"), index=False,
-                                     columns=[self.dict_book_sheets_spec.get("sites").get("desc"),
-                                              self.dict_book_sheets_spec.get("sites").get("url")])
+        try:
+            with pd.ExcelWriter(sheetbook_path) as writer:
+                sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"), index=False,
+                                         columns=[self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                  self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                  self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                                  self.dict_book_sheets_spec.get("web_pages").get("note")])
+                sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"), index=False,
+                                         columns=[self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                  self.dict_book_sheets_spec.get("videos").get("watched"),
+                                                  self.dict_book_sheets_spec.get("videos").get("url"),
+                                                  self.dict_book_sheets_spec.get("videos").get("note")])
+                sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"), index=False,
+                                         columns=[self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                  self.dict_book_sheets_spec.get("sites").get("url")])
+        except Exception as ex:
+            raise ex
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())
