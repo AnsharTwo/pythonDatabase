@@ -58,59 +58,74 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.vw_webpages_form_flow = "vw_webpages"
         self.webpages_vw_new_entry()
         if st.session_state.vw_webpages_form_flow == "vw_webpages":
-            sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-            sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
-                                                                                                len(sheet_web_pages) + 1)
-            st.dataframe(sheet_web_pages, hide_index=True,
-                                            column_order=(
-                                                self.dict_book_sheets_spec.get("web_pages").get("page_no"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("desc"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("read"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("url"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("note")),
-                                            column_config={
-                                                  self.dict_book_sheets_spec.get("web_pages").get("url"): \
-                                                      st.column_config.LinkColumn(
-                                                      self.dict_book_sheets_spec.get("web_pages").get("url")),
-                                              })
+            try:
+                sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+            except Exception as ex:
+                st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                st.write(str(ex))
+            else:
+                sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
+                                                                                                    len(sheet_web_pages) + 1)
+                st.dataframe(sheet_web_pages, hide_index=True,
+                                                column_order=(
+                                                    self.dict_book_sheets_spec.get("web_pages").get("page_no"),
+                                                              self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                              self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                              self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                                              self.dict_book_sheets_spec.get("web_pages").get("note")),
+                                                column_config={
+                                                      self.dict_book_sheets_spec.get("web_pages").get("url"): \
+                                                          st.column_config.LinkColumn(
+                                                          self.dict_book_sheets_spec.get("web_pages").get("url")),
+                                                  })
 
     def select_vw_sht_videos(self):
         if "vw_videos_form_flow" not in st.session_state:
             st.session_state.vw_videos_form_flow = "vw_videos"
         self.videos_vw_new_entry()
         if st.session_state.vw_videos_form_flow == "vw_videos":
-            sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
-            sheet_videos[self.dict_book_sheets_spec.get("videos").get("video_no")] = range(1,
-                                                                                                len(sheet_videos) + 1)
-            st.dataframe(sheet_videos, hide_index=True,
-                                          column_order=(self.dict_book_sheets_spec.get("videos").get("video_no"),
-                                                        self.dict_book_sheets_spec.get("videos").get("desc"),
-                                                        self.dict_book_sheets_spec.get("videos").get("watched"),
-                                                        self.dict_book_sheets_spec.get("videos").get("url"),
-                                                        self.dict_book_sheets_spec.get("videos").get("note")),
-                                          column_config={
-                                                self.dict_book_sheets_spec.get("videos").get("url"): \
-                                                    st.column_config.LinkColumn(
-                                                    self.dict_book_sheets_spec.get("videos").get("url")),
-                                            })
+            try:
+                sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
+            except Exception as ex:
+                st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                st.write(str(ex))
+            else:
+                sheet_videos[self.dict_book_sheets_spec.get("videos").get("video_no")] = range(1,
+                                                                                                    len(sheet_videos) + 1)
+                st.dataframe(sheet_videos, hide_index=True,
+                                              column_order=(self.dict_book_sheets_spec.get("videos").get("video_no"),
+                                                            self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                            self.dict_book_sheets_spec.get("videos").get("watched"),
+                                                            self.dict_book_sheets_spec.get("videos").get("url"),
+                                                            self.dict_book_sheets_spec.get("videos").get("note")),
+                                              column_config={
+                                                    self.dict_book_sheets_spec.get("videos").get("url"): \
+                                                        st.column_config.LinkColumn(
+                                                        self.dict_book_sheets_spec.get("videos").get("url")),
+                                                })
 
     def select_vw_sht_sites(self):
         if "vw_sites_form_flow" not in st.session_state:
             st.session_state.vw_sites_form_flow = "vw_sites"
         self.sites_vw_new_entry()
         if st.session_state.vw_sites_form_flow == "vw_sites":
-            sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-            sheet_sites[self.dict_book_sheets_spec.get("sites").get("site_no")] = range(1,
-                                                                                                len(sheet_sites) + 1)
-            st.dataframe(sheet_sites, hide_index=True,
-                                            column_order=(self.dict_book_sheets_spec.get("sites").get("site_no"),
-                                                          self.dict_book_sheets_spec.get("sites").get("desc"),
+            try:
+                sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
+            except Exception as ex:
+                st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                st.write(str(ex))
+            else:
+                sheet_sites[self.dict_book_sheets_spec.get("sites").get("site_no")] = range(1,
+                                                                                                    len(sheet_sites) + 1)
+                st.dataframe(sheet_sites, hide_index=True,
+                                                column_order=(self.dict_book_sheets_spec.get("sites").get("site_no"),
+                                                              self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                              self.dict_book_sheets_spec.get("sites").get("url")),
+                                                column_config={
+                                                      self.dict_book_sheets_spec.get("sites").get("url"): \
+                                                          st.column_config.LinkColumn(
                                                           self.dict_book_sheets_spec.get("sites").get("url")),
-                                            column_config={
-                                                  self.dict_book_sheets_spec.get("sites").get("url"): \
-                                                      st.column_config.LinkColumn(
-                                                      self.dict_book_sheets_spec.get("sites").get("url")),
-                                              })
+                                                  })
 
     def select_srch_webpages(self):
         if "webpages_st_srch" not in st.session_state:
