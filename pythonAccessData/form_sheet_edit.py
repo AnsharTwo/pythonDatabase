@@ -40,7 +40,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 except Exception as ex:
                     st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.write(str(ex))
-                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_diplay")), disabled=True)
+                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
                 else:
                     sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
                                                                                                     len(sheet_web_pages) + 1)
@@ -73,7 +73,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                         except Exception as ex:
                             st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                             st.write(str(ex))
-                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_diplay")), disabled=True)
+                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
 
     def select_edt_sht_videos(self):
         if "do_videos_form_flow" not in st.session_state:
@@ -88,7 +88,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 except Exception as ex:
                     st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.write(str(ex))
-                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_diplay")), disabled=True)
+                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
                 else:
                     sheet_videos[self.dict_book_sheets_spec.get("videos").get("video_no")] = range(1, len(sheet_videos) + 1)
                     edit_sheet_vds = st.data_editor(sheet_videos, hide_index=True, num_rows="dynamic",
@@ -120,7 +120,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                         except Exception as ex:
                             st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                             st.write(str(ex))
-                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_diplay")), disabled=True)
+                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
 
     def select_edt_sht_sites(self):
         if "do_sites_form_flow" not in st.session_state:
@@ -135,7 +135,7 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                 except Exception as ex:
                     st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.write(str(ex))
-                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_diplay")), disabled=True)
+                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
                 else:
                     sheet_sites[self.dict_book_sheets_spec.get("sites").get("site_no")] = range(1, len(sheet_sites) + 1)
                     edit_sheet_sites = st.data_editor(sheet_sites, hide_index=True, num_rows="dynamic",
@@ -157,4 +157,4 @@ class EDIT_SHEET_FORM(form_sr.FORM):
                         except Exception as ex:
                             st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                             st.write(str(ex))
-                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_diplay")), disabled=True)
+                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
