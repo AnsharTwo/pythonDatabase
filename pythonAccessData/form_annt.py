@@ -152,16 +152,16 @@ class EDIT_ANNOT(form_sr.FORM):
                 if str(bkSum) != str(pyodbc.Error):
                     if bkSum > 1:
                         st.write("Found {} results.".format(str(bkSum)))
-                    add_nw_bk = False
+                    #add_nw_bk = False # for future Add New Book if annot search for book not found
                     if bkSum == 0:
                         st.markdown(":red[Book was not found.]")
                         search_books_again = st.form_submit_button(label="Search for book again")
                         if search_books_again:
                             self.annot_srch_bk()
                             st.rerun()
-                        add_new_book = st.form_submit_button(label="Add as new book")
-                        if add_new_book:
-                            add_nw_bk = True
+                        # add_new_book = st.form_submit_button(label="Add as new book")
+                        # if add_new_book: # for future Add New Book if annot search for book not found
+                        #     add_nw_bk = True
                     elif bkSum == 1:
                         st.markdown(":green[Book was found.]")
                         for bk in bks:
@@ -221,7 +221,7 @@ class EDIT_ANNOT(form_sr.FORM):
                             self.annot_srch_bk()
                             st.rerun()
                 # TODO - get below working (btn above is disabled while not
-                #if add_nw_bk:
+                #if add_nw_bk: # for future Add New Book if annot search for book not found
                 else: # add form button if exception raised
                     st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.form_submit_button("Form can't be displayed.", disabled=True)

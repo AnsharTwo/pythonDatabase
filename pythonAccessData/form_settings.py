@@ -57,6 +57,9 @@ class CONFIG_FORM (form_sr.FORM):
     def set_config_flow_shw_msgs(self):
         st.session_state.form_config_flow_shw_msgs = "config settings - show messages"
 
+    def set_config_flow_dtsrc_fct_defs(self):
+        st.session_state.form_config_flow_shw_msgs = "config settings - source file factory defaults"
+
     def edt_sttngs(self):
         if "form_config_flow_theme" not in st.session_state:
             st.session_state.form_config_flow_theme = ""
@@ -350,6 +353,36 @@ class CONFIG_FORM (form_sr.FORM):
                     st.markdown(":orange[(Current: ]" + "Showing" + ":orange[)]  ")
                 else:
                     st.markdown(":orange[(Current: ]" + "Not showing" + ":orange[)]  ")
+                cols_config = st.columns(2, gap="small", vertical_alignment="center")
+                if cols_config[0].form_submit_button("Save"):
+                    if st.session_state.inpt_shw_drdg_msg:
+                        if config_data["show_messages"]["dredge_note"] == "0":
+                            config_data["show_messages"]["dredge_note"] = "1"
+                    else:
+                        if config_data["show_messages"]["dredge_note"] == "1":
+                            config_data["show_messages"]["dredge_note"] = "0"
+                    if st.session_state.val_inpt_shw_drdg_msg != st.session_state.inpt_shw_drdg_msg:
+                        st.session_state.val_inpt_shw_drdg_msg = st.session_state.inpt_shw_drdg_msg
+                    self.write_ini_config(config_data)
+                    st.rerun()
+                if cols_config[1].form_submit_button("Reset"):
+                    os.remove(self.dict_config.get("ini_config"))
+                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
+                    config_def_data = self.load_ini_config()
+                    st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
+                    st.rerun()
+
+        #########################################
+
+        self.set_config_flow_dtsrc_fct_defs()
+        if st.session_state.form_config_flow_shw_msgs == "config settings - source file factory defaults":
+            config_data = self.load_ini_config()
+            with (st.form("config_settings_src_fac_defs")):
+                st.markdown(f"**:blue[Restore data sources to factory defaults]**")
+                st.markdown(":orange[Current locations:]")
+
+                # HERE #####################################
+
                 cols_config = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_config[0].form_submit_button("Save"):
                     if st.session_state.inpt_shw_drdg_msg:
