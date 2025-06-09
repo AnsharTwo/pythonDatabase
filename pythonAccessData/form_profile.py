@@ -44,8 +44,6 @@ class PROF_FORM (form_sr.FORM):
         authent = self.authenticator
         prf_auth_obj = form_auth.LOGIN()
         st.header("Manage Profile")
-
-        #################################
         self.set_prof_flow_data_locs()
         if st.session_state.form_prof_flow == "profile settings - data locations":
             with st.form("data locations"):
@@ -84,8 +82,6 @@ class PROF_FORM (form_sr.FORM):
                     root.after(1000)
                     root.mainloop()
                     st.rerun()
-        #################################
-
         self.set_prof_flow_chang_pwd()
         if st.session_state.form_prof_flow == "profile settings - change password":
             if st.session_state["authentication_status"]:

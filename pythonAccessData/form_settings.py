@@ -371,33 +371,36 @@ class CONFIG_FORM (form_sr.FORM):
                     config_def_data = self.load_ini_config()
                     st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
                     st.rerun()
-
-        #########################################
-
         self.set_config_flow_dtsrc_fct_defs()
         if st.session_state.form_config_flow_shw_msgs == "config settings - source file factory defaults":
-            config_data = self.load_ini_config()
             with (st.form("config_settings_src_fac_defs")):
                 st.markdown(f"**:blue[Restore data sources to factory defaults]**")
-                st.markdown(":orange[Current locations:]")
-
-                # HERE #####################################
-
-                cols_config = st.columns(2, gap="small", vertical_alignment="center")
-                if cols_config[0].form_submit_button("Save"):
-                    if st.session_state.inpt_shw_drdg_msg:
-                        if config_data["show_messages"]["dredge_note"] == "0":
-                            config_data["show_messages"]["dredge_note"] = "1"
-                    else:
-                        if config_data["show_messages"]["dredge_note"] == "1":
-                            config_data["show_messages"]["dredge_note"] = "0"
-                    if st.session_state.val_inpt_shw_drdg_msg != st.session_state.inpt_shw_drdg_msg:
-                        st.session_state.val_inpt_shw_drdg_msg = st.session_state.inpt_shw_drdg_msg
+                st.markdown(":orange[Current book database location:] " + str(st.session_state.ss_dat_loc_annots))
+                st.markdown(""":red[WARNING. Restoring your data source files to empty default source data files will 
+                                                        delete all of your existing saved data.]""")
+                cols_config_bk = st.columns(2, gap="small", vertical_alignment="center")
+                if cols_config_bk[0].form_submit_button("Restore book source"):
+                    os.remove(st.session_state.ss_dat_loc_annots)
+                    dstn = st.session_state.ss_dat_loc_annots.rsplit("/", 1)
+                    fact_def_file = str(self.dict_fac_defs.get("bk")).rsplit("/", 1)
+                    st.session_state.ss_dat_loc_annots = str(dstn[0]) + "/" + str(fact_def_file[1])
+                    shutil.copy(self.dict_fac_defs.get("bk"), str(dstn[0]))
+                    config_data = self.load_ini_config()
+                    config_data["data locations"]["annotations"] = st.session_state.ss_dat_loc_annots
                     self.write_ini_config(config_data)
                     st.rerun()
-                if cols_config[1].form_submit_button("Reset"):
-                    os.remove(self.dict_config.get("ini_config"))
-                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
-                    config_def_data = self.load_ini_config()
-                    st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
+                st.divider()
+                st.markdown(":orange[Current online URLS sheets location:] " + str(st.session_state.ss_dat_loc_urls))
+                st.markdown(""":red[WARNING. Restoring your data source files to empty default source data files will 
+                                                        delete all of your existing saved data.]""")
+                cols_config_online = st.columns(2, gap="small", vertical_alignment="center")
+                if cols_config_online[0].form_submit_button("Restore online source"):
+                    os.remove(st.session_state.ss_dat_loc_urls)
+                    dstn = st.session_state.ss_dat_loc_urls.rsplit("/", 1)
+                    fact_def_file = str(self.dict_fac_defs.get("url")).rsplit("/", 1)
+                    st.session_state.ss_dat_loc_urls = str(dstn[0]) + "/" + str(fact_def_file[1])
+                    shutil.copy(self.dict_fac_defs.get("url"), str(dstn[0]))
+                    config_data = self.load_ini_config()
+                    config_data["data locations"]["urls"] = st.session_state.ss_dat_loc_urls
+                    self.write_ini_config(config_data)
                     st.rerun()

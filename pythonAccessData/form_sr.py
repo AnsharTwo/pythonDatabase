@@ -16,6 +16,11 @@ class FORM:
         "toml_config_def": "config_toml.ini"
     }
 
+    dict_fac_defs = {
+        "bk": "data_srcs/fact_defs/book.mdb",
+        "url": "data_srcs/fact_defs/online.xlsx"
+    }
+
     dict_list_annt_wrkr = {
         "header": "Edit annotations data",
         "title": "Select data activity"
