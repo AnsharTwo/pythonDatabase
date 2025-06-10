@@ -1,12 +1,15 @@
 import streamlit as st
-import form_sr
+import streamlit_authenticator as stauth
 import os
 import shutil
+import form_sr
+import form_auth
 
 class CONFIG_FORM (form_sr.FORM):
 
-    def __init__(self):
+    def __init__(self, authenticator):
         super().__init__()
+        self.authenticator = authenticator
 
     form_config = {
         "wdgt_specs": {
@@ -42,6 +45,10 @@ class CONFIG_FORM (form_sr.FORM):
         }
     }
 
+    dict_pwd_chng = {
+        "length": 16
+    }
+
     def set_config_flow_theme(self):
         st.session_state.form_config_flow_theme = "config settings - theme"
 
@@ -57,8 +64,11 @@ class CONFIG_FORM (form_sr.FORM):
     def set_config_flow_shw_msgs(self):
         st.session_state.form_config_flow_shw_msgs = "config settings - show messages"
 
-    def set_config_flow_dtsrc_fct_defs(self):
-        st.session_state.form_config_flow_shw_msgs = "config settings - source file factory defaults"
+    def set_config_flow_bk_fct_defs(self):
+        st.session_state.form_bk_fct_defs = "config settings - book source file factory defaults"
+
+    def set_config_flow_url_fct_defs(self):
+        st.session_state.form_url_fct_defs = "config settings - url source file factory defaults"
 
     def edt_sttngs(self):
         if "form_config_flow_theme" not in st.session_state:
@@ -107,6 +117,14 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.val_inpt_shw_drdg_msg = ""
         if "inpt_shw_drdg_msg" not in st.session_state:
             st.session_state.inpt_shw_drdg_msg = ""
+        if "form_bk_fct_defs" not in st.session_state:
+            st.session_state.form_bk_fct_defs = ""
+        if "form_url_fct_defs" not in st.session_state:
+            st.session_state.form_url_fct_defs = ""
+        if "fac_bk_def_sbmttd" not in st.session_state:
+            st.session_state.fac_bk_def_sbmttd = False
+        if "fac_url_def_sbmttd" not in st.session_state:
+            st.session_state.fac_url_def_sbmttd = False
         self.set_config_flow_theme()
         if st.session_state.form_config_flow_theme == "config settings - theme":
             config_toml_data = self.load_toml_config()
@@ -335,7 +353,7 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state.val_inpt_drdg_timeout = config_def_data["dredge"]["response_timeout"]
                     st.session_state.val_inpt_drdg_max_wbpgs = config_def_data["dredge"]["max_web_pages"]
                     st.rerun()
-        self.set_config_flow_shw_msgs()
+        self.set_config_flow_shw_msgs() # now inited in if.. at top
         if st.session_state.form_config_flow_shw_msgs == "config settings - show messages":
             config_data = self.load_ini_config()
             if st.session_state.val_inpt_shw_drdg_msg == "":
@@ -371,36 +389,87 @@ class CONFIG_FORM (form_sr.FORM):
                     config_def_data = self.load_ini_config()
                     st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
                     st.rerun()
-        self.set_config_flow_dtsrc_fct_defs()
-        if st.session_state.form_config_flow_shw_msgs == "config settings - source file factory defaults":
-            with (st.form("config_settings_src_fac_defs")):
-                st.markdown(f"**:blue[Restore data sources to factory defaults]**")
-                st.markdown(":orange[Current book database location:] " + str(st.session_state.ss_dat_loc_annots))
-                st.markdown(""":red[WARNING. Restoring your data source files to empty default source data files will 
-                                                        delete all of your existing saved data.]""")
-                cols_config_bk = st.columns(2, gap="small", vertical_alignment="center")
-                if cols_config_bk[0].form_submit_button("Restore book source"):
-                    os.remove(st.session_state.ss_dat_loc_annots)
-                    dstn = st.session_state.ss_dat_loc_annots.rsplit("/", 1)
-                    fact_def_file = str(self.dict_fac_defs.get("bk")).rsplit("/", 1)
-                    st.session_state.ss_dat_loc_annots = str(dstn[0]) + "/" + str(fact_def_file[1])
-                    shutil.copy(self.dict_fac_defs.get("bk"), str(dstn[0]))
-                    config_data = self.load_ini_config()
-                    config_data["data locations"]["annotations"] = st.session_state.ss_dat_loc_annots
-                    self.write_ini_config(config_data)
-                    st.rerun()
-                st.divider()
-                st.markdown(":orange[Current online URLS sheets location:] " + str(st.session_state.ss_dat_loc_urls))
-                st.markdown(""":red[WARNING. Restoring your data source files to empty default source data files will 
-                                                        delete all of your existing saved data.]""")
-                cols_config_online = st.columns(2, gap="small", vertical_alignment="center")
-                if cols_config_online[0].form_submit_button("Restore online source"):
-                    os.remove(st.session_state.ss_dat_loc_urls)
-                    dstn = st.session_state.ss_dat_loc_urls.rsplit("/", 1)
-                    fact_def_file = str(self.dict_fac_defs.get("url")).rsplit("/", 1)
-                    st.session_state.ss_dat_loc_urls = str(dstn[0]) + "/" + str(fact_def_file[1])
-                    shutil.copy(self.dict_fac_defs.get("url"), str(dstn[0]))
-                    config_data = self.load_ini_config()
-                    config_data["data locations"]["urls"] = st.session_state.ss_dat_loc_urls
-                    self.write_ini_config(config_data)
-                    st.rerun()
+        self.set_config_flow_bk_fct_defs()
+        if st.session_state.form_bk_fct_defs == "config settings - book source file factory defaults":
+            if st.session_state.fac_bk_def_sbmttd:
+                sttngs_auth_obj = form_auth.LOGIN()
+                auth_config = sttngs_auth_obj.create_auth_ojb()
+                pwd_hashed_curr = auth_config["credentials"]["usernames"][st.session_state.username]["password"]
+                with st.form("Enter book password"):
+                    st.markdown(f"**:blue[Restore book data source to factory default]**")
+                    st.write("Enter your password to restore your book data source file to factory default.")
+                    pwd_sttngs = st.text_input("Password", type="password",
+                                                                 max_chars=self.dict_pwd_chng.get("length")) # max chars in profile too - add to Super
+                    cols_config_pwd = st.columns(2, gap="small", vertical_alignment="center")
+                    if cols_config_pwd[0].form_submit_button("Submit password"):
+                        can_change = True
+                        if not stauth.Hasher.check_pw(pwd_sttngs, pwd_hashed_curr):
+                            st.markdown(":red[Enter current password.]")
+                            can_change = False
+                        if can_change:
+                            os.remove(st.session_state.ss_dat_loc_annots)
+                            dstn = st.session_state.ss_dat_loc_annots.rsplit("/", 1)
+                            fact_def_file = str(self.dict_fac_defs.get("bk")).rsplit("/", 1)
+                            st.session_state.ss_dat_loc_annots = str(dstn[0]) + "/" + str(fact_def_file[1])
+                            shutil.copy(self.dict_fac_defs.get("bk"), str(dstn[0]))
+                            config_data = self.load_ini_config()
+                            config_data["data locations"]["annotations"] = st.session_state.ss_dat_loc_annots
+                            self.write_ini_config(config_data)
+                            st.session_state.fac_bk_def_sbmttd = False
+                            st.rerun()
+                    if cols_config_pwd[1].form_submit_button("Cancel"):
+                        st.session_state.fac_bk_def_sbmttd = False
+                        self.set_config_flow_bk_fct_defs()
+                        st.rerun()
+            else:
+                with (st.form("config_settings_bk_fac_defs")):
+                    st.markdown(f"**:blue[Restore book data source to factory default]**")
+                    st.markdown(":orange[Current book database location:] " + str(st.session_state.ss_dat_loc_annots))
+                    st.markdown(""":red[WARNING. Restoring your data source files to empty default source data files will 
+                                                            delete all of your existing saved data.]""")
+                    cols_config_bk = st.columns(2, gap="small", vertical_alignment="center")
+                    if cols_config_bk[0].form_submit_button("Restore book source"):
+                        st.session_state.fac_bk_def_sbmttd = True
+                        st.rerun()
+        self.set_config_flow_url_fct_defs()
+        if st.session_state.form_url_fct_defs == "config settings - url source file factory defaults":
+            if st.session_state.fac_url_def_sbmttd:
+                sttngs_auth_obj = form_auth.LOGIN()
+                auth_config = sttngs_auth_obj.create_auth_ojb()
+                pwd_hashed_curr = auth_config["credentials"]["usernames"][st.session_state.username]["password"]
+                with st.form("Enter url password"):
+                    st.markdown(f"**:blue[Restore online url data source to factory default]**")
+                    st.write("Enter your password to restore your online url data source file to factory default.")
+                    pwd_sttngs = st.text_input("Password", type="password",
+                                                                 max_chars=self.dict_pwd_chng.get("length")) # max chars in profile too - add to Super
+                    cols_config_pwd = st.columns(2, gap="small", vertical_alignment="center")
+                    if cols_config_pwd[0].form_submit_button("Submit password"):
+                        can_change = True
+                        if not stauth.Hasher.check_pw(pwd_sttngs, pwd_hashed_curr):
+                            st.markdown(":red[Enter current password.]")
+                            can_change = False
+                        if can_change:
+                            os.remove(st.session_state.ss_dat_loc_urls)
+                            dstn = st.session_state.ss_dat_loc_urls.rsplit("/", 1)
+                            fact_def_file = str(self.dict_fac_defs.get("url")).rsplit("/", 1)
+                            st.session_state.ss_dat_loc_urls = str(dstn[0]) + "/" + str(fact_def_file[1])
+                            shutil.copy(self.dict_fac_defs.get("url"), str(dstn[0]))
+                            config_data = self.load_ini_config()
+                            config_data["data locations"]["urls"] = st.session_state.ss_dat_loc_urls
+                            st.session_state.fac_url_def_sbmttd = False
+                            self.write_ini_config(config_data)
+                            st.rerun()
+                    if cols_config_pwd[1].form_submit_button("Cancel"):
+                        st.session_state.fac_url_def_sbmttd = False
+                        self.set_config_flow_url_fct_defs()
+                        st.rerun()
+            else:
+                with (st.form("config_settings_url_fac_defs")):
+                    st.markdown(f"**:blue[Restore online url data source to factory default]**")
+                    st.markdown(":orange[Current url data location:] " + str(st.session_state.ss_dat_loc_urls))
+                    st.markdown(""":red[WARNING. Restoring your data source files to empty default source data files will 
+                                                            delete all of your existing saved data.]""")
+                    cols_config_url = st.columns(2, gap="small", vertical_alignment="center")
+                    if cols_config_url[0].form_submit_button("Restore online url source"):
+                        st.session_state.fac_url_def_sbmttd = True
+                        st.rerun()
