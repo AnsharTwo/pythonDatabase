@@ -6,10 +6,6 @@ class DATA_SOURCE():
     def __init__(self, connectString):
         self.connStr = connectString
 
-    dict_err_gener_msgs = {
-        "cursor_exec": "Error executing data query (Is your data source file a valid one?)"
-    }
-
     def is_ms_access_driver(self):
         found = False
         for i in pyodbc.drivers():

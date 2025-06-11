@@ -1,12 +1,13 @@
 [client]
-showSidebarNavigation = false
+showsidebarnavigation = false
 
 [browser]
-serverAddress = "localhost"
+serveraddress = "localhost"
 
 [theme]
 base = "dark"
 font = "sans serif"
 
 [server]
-runOnSave = true
+runonsave = true
+
