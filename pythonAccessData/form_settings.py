@@ -454,16 +454,21 @@ class CONFIG_FORM (form_sr.FORM):
                             st.markdown(":red[Enter current password.]")
                             can_change = False
                         if can_change:
-                            os.remove(st.session_state.ss_dat_loc_urls)
-                            dstn = st.session_state.ss_dat_loc_urls.rsplit("/", 1)
-                            fact_def_file = str(self.dict_fac_defs.get("url")).rsplit("/", 1)
-                            st.session_state.ss_dat_loc_urls = str(dstn[0]) + "/" + str(fact_def_file[1])
-                            shutil.copy(self.dict_fac_defs.get("url"), str(dstn[0]))
-                            config_data = self.load_ini_config()
-                            config_data["data locations"]["urls"] = st.session_state.ss_dat_loc_urls
-                            st.session_state.fac_url_def_sbmttd = False
-                            self.write_ini_config(config_data)
-                            st.rerun()
+                            try:
+                                dstn = st.session_state.ss_dat_loc_urls.rsplit("/", 1)
+                                fact_def_file = str(self.dict_fac_defs.get("url")).rsplit("/", 1)
+                                if not os.path.exists(str(dstn[0]) + "/" + str(fact_def_file[1])):
+                                    self.__fac_def_url_switch(str(dstn[0]),str(fact_def_file[1]))
+                                    st.rerun()
+                                else:
+                                    st.write("The file " + ":red[" + str(dstn[0]) + "/" + str(fact_def_file[1]) + "] already exists.")
+                                    btn_fac_def_url_overwrite = st.checkbox("Overwrite URLs file")
+                                    if btn_fac_def_url_overwrite:
+                                        self.__fac_def_url_switch(str(dstn[0]), str(fact_def_file[1]))
+                                        st.rerun()
+                            except Exception as ex:
+                                st.markdown(":red[The operation could not be performed.]")
+                                st.write(str(ex))
                     if cols_config_pwd[1].form_submit_button("Cancel"):
                         st.session_state.fac_url_def_sbmttd = False
                         self.set_config_flow_url_fct_defs()
@@ -487,3 +492,12 @@ class CONFIG_FORM (form_sr.FORM):
         config_data["data locations"]["annotations"] = st.session_state.ss_dat_loc_annots
         self.write_ini_config(config_data)
         st.session_state.fac_bk_def_sbmttd = False
+
+    def __fac_def_url_switch(self, dest_path, dest_file):
+        os.remove(st.session_state.ss_dat_loc_urls)
+        st.session_state.ss_dat_loc_urls = dest_path + "/" + dest_file
+        shutil.copy(self.dict_fac_defs.get("url"), dest_path)
+        config_data = self.load_ini_config()
+        config_data["data locations"]["urls"] = st.session_state.ss_dat_loc_urls
+        self.write_ini_config(config_data)
+        st.session_state.fac_url_def_sbmttd = False

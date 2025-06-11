@@ -29,10 +29,8 @@ class PROF_FORM (form_sr.FORM):
     def edt_prfl(self):
         if "form_prof_flow" not in st.session_state:
             st.session_state.form_prof_flow = ""
-
         #if "dt_lcs_run" not in st.session_state:
         #    st.session_state.dt_lcs_run = False
-
         if "pwd_changed" not in st.session_state:
             st.session_state.pwd_changed = False
         if "pwd_current" not in st.session_state:

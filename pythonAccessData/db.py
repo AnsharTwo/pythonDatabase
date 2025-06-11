@@ -1,5 +1,4 @@
 import pyodbc
-import streamlit as st
 
 class DATA_SOURCE():
 
