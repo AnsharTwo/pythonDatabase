@@ -39,6 +39,11 @@ class LOGIN(form_sr.FORM):
         authenticator.login(location='main', max_concurrent_users=100, captcha=False, single_session=False, clear_on_submit=False,
                             key="lbrtt_auth_01")
         if st.session_state["authentication_status"]:
+            config_data = self.load_ini_config()
+            if "ss_dat_loc_annots" not in st.session_state:
+                st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
+            if "ss_dat_loc_urls" not in st.session_state:
+                st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
             sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
             sbar.init_sidebars()
             authenticator.logout(location="sidebar")

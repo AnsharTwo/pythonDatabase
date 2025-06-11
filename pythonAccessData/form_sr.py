@@ -1,12 +1,8 @@
-import sys
 from datetime import datetime
 import streamlit as st
 import configparser
 import pandas as pd
-import sys
 import db
-
-import random
 
 class FORM:
 
@@ -18,6 +14,11 @@ class FORM:
         "ini_config_def": "config_def.ini",
         "toml_config": ".streamlit/config.toml",
         "toml_config_def": "config_toml.ini"
+    }
+
+    dict_fac_defs = {
+        "bk": "data_srcs/fact_defs/book.mdb",
+        "url": "data_srcs/fact_defs/online.xlsx"
     }
 
     dict_list_annt_wrkr = {
@@ -82,8 +83,13 @@ class FORM:
         "upr": "upper"
     }
 
+    dict_err_msgs = {
+        "cursor_exec": "Error executing data query (Is your data source file a valid one?)",
+        "form_no_display": "Form can't be displayed."
+    }
+
     def get_data_source(self):
-        dbPath = sys.argv[1] + sys.argv[2]
+        dbPath = st.session_state.ss_dat_loc_annots
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)
         sourceData.is_ms_access_driver()
         return sourceData
@@ -113,27 +119,47 @@ class FORM:
 
     @st.cache_data(show_spinner="Loading data from sheet...")
     def load_book_sheet(_self, sheet):
-        sheetbook_path = sys.argv[1] + sys.argv[3]
-        dict_sheets = pd.read_excel(sheetbook_path, index_col=None, engine="openpyxl", sheet_name=None)
-        sheet_loaded = dict_sheets[sheet]
-        return sheet_loaded
+        cls = []
+        if sheet == _self.dict_book_sheets.get("web_pages"):
+            cls = [_self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                   _self.dict_book_sheets_spec.get("web_pages").get("read"),
+                   _self.dict_book_sheets_spec.get("web_pages").get("url"),
+                   _self.dict_book_sheets_spec.get("web_pages").get("note")]
+        elif sheet == _self.dict_book_sheets.get("videos"):
+            cls = [_self.dict_book_sheets_spec.get("videos").get("desc"),
+                   _self.dict_book_sheets_spec.get("videos").get("watched"),
+                   _self.dict_book_sheets_spec.get("videos").get("url"),
+                   _self.dict_book_sheets_spec.get("videos").get("note")]
+        elif sheet == _self.dict_book_sheets.get("sites"):
+            cls = [_self.dict_book_sheets_spec.get("videos").get("desc"),
+                   _self.dict_book_sheets_spec.get("videos").get("url")]
+        try:
+            sheetbook_path = st.session_state.ss_dat_loc_urls
+            sheet_loaded = pd.read_excel(sheetbook_path, index_col=None, engine="openpyxl", sheet_name=str(sheet), usecols=cls)
+        except Exception as ex:
+            raise ex
+        else:
+            return sheet_loaded
 
     def write_book_sheet(self, sheet_web_pages, sheet_videos, sheet_sites):
-        sheetbook_path = sys.argv[1] + sys.argv[3]
-        with pd.ExcelWriter(sheetbook_path) as writer:
-            sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"), index=False,
-                                     columns=[self.dict_book_sheets_spec.get("web_pages").get("desc"),
-                                              self.dict_book_sheets_spec.get("web_pages").get("read"),
-                                              self.dict_book_sheets_spec.get("web_pages").get("url"),
-                                              self.dict_book_sheets_spec.get("web_pages").get("note")])
-            sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"), index=False,
-                                     columns=[self.dict_book_sheets_spec.get("videos").get("desc"),
-                                              self.dict_book_sheets_spec.get("videos").get("watched"),
-                                              self.dict_book_sheets_spec.get("videos").get("url"),
-                                              self.dict_book_sheets_spec.get("videos").get("note")])
-            sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"), index=False,
-                                     columns=[self.dict_book_sheets_spec.get("sites").get("desc"),
-                                              self.dict_book_sheets_spec.get("sites").get("url")])
+        sheetbook_path = st.session_state.ss_dat_loc_urls
+        try:
+            with pd.ExcelWriter(sheetbook_path) as writer:
+                sheet_web_pages.to_excel(writer, sheet_name=self.dict_book_sheets.get("web_pages"), index=False,
+                                         columns=[self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                  self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                  self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                                  self.dict_book_sheets_spec.get("web_pages").get("note")])
+                sheet_videos.to_excel(writer, sheet_name=self.dict_book_sheets.get("videos"), index=False,
+                                         columns=[self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                  self.dict_book_sheets_spec.get("videos").get("watched"),
+                                                  self.dict_book_sheets_spec.get("videos").get("url"),
+                                                  self.dict_book_sheets_spec.get("videos").get("note")])
+                sheet_sites.to_excel(writer, sheet_name=self.dict_book_sheets.get("sites"), index=False,
+                                         columns=[self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                  self.dict_book_sheets_spec.get("sites").get("url")])
+        except Exception as ex:
+            raise ex
 
     def select_edit_form(self, listHeader, listTitle, selectListDict):
         values_list = list(selectListDict.values())

@@ -81,7 +81,7 @@ class HOME_FORM (form_sr.FORM):
             editSheetForm.select_edt_sht_sites()
 
     def select_sttngs(self):
-        configForm = form_settings.CONFIG_FORM()
+        configForm = form_settings.CONFIG_FORM(self.auth)
         configForm.edt_sttngs()
 
     def select_prfl(self):

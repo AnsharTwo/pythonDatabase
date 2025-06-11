@@ -4,7 +4,6 @@ from pandasql import sqldf
 from bs4 import BeautifulSoup
 import requests
 import form_sr
-import form_settings
 
 class SHEET_FORM(form_sr.FORM):
 
@@ -59,59 +58,86 @@ class SHEET_FORM(form_sr.FORM):
             st.session_state.vw_webpages_form_flow = "vw_webpages"
         self.webpages_vw_new_entry()
         if st.session_state.vw_webpages_form_flow == "vw_webpages":
-            sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-            sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
-                                                                                                len(sheet_web_pages) + 1)
-            st.dataframe(sheet_web_pages, hide_index=True,
-                                            column_order=(
-                                                self.dict_book_sheets_spec.get("web_pages").get("page_no"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("desc"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("read"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("url"),
-                                                          self.dict_book_sheets_spec.get("web_pages").get("note")),
-                                            column_config={
-                                                  self.dict_book_sheets_spec.get("web_pages").get("url"): \
-                                                      st.column_config.LinkColumn(
-                                                      self.dict_book_sheets_spec.get("web_pages").get("url")),
-                                              })
+            try:
+                sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+            except Exception as ex:
+                st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                st.write(str(ex))
+            else:
+                if len(sheet_web_pages) == 0:
+                    st.write("No web pages have been added.")
+                else:
+                    sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
+                                                                                                        len(sheet_web_pages) + 1)
+
+
+
+                    st.dataframe(sheet_web_pages, hide_index=True,
+                                                    column_order=(
+                                                        self.dict_book_sheets_spec.get("web_pages").get("page_no"),
+                                                                  self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                                  self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                                  self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                                                  self.dict_book_sheets_spec.get("web_pages").get("note")),
+                                                    column_config={
+                                                          self.dict_book_sheets_spec.get("web_pages").get("url"): \
+                                                              st.column_config.LinkColumn(
+                                                              self.dict_book_sheets_spec.get("web_pages").get("url")),
+                                                      })
 
     def select_vw_sht_videos(self):
         if "vw_videos_form_flow" not in st.session_state:
             st.session_state.vw_videos_form_flow = "vw_videos"
         self.videos_vw_new_entry()
         if st.session_state.vw_videos_form_flow == "vw_videos":
-            sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
-            sheet_videos[self.dict_book_sheets_spec.get("videos").get("video_no")] = range(1,
-                                                                                                len(sheet_videos) + 1)
-            st.dataframe(sheet_videos, hide_index=True,
-                                          column_order=(self.dict_book_sheets_spec.get("videos").get("video_no"),
-                                                        self.dict_book_sheets_spec.get("videos").get("desc"),
-                                                        self.dict_book_sheets_spec.get("videos").get("watched"),
-                                                        self.dict_book_sheets_spec.get("videos").get("url"),
-                                                        self.dict_book_sheets_spec.get("videos").get("note")),
-                                          column_config={
-                                                self.dict_book_sheets_spec.get("videos").get("url"): \
-                                                    st.column_config.LinkColumn(
-                                                    self.dict_book_sheets_spec.get("videos").get("url")),
-                                            })
+            try:
+                sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
+            except Exception as ex:
+                st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                st.write(str(ex))
+            else:
+                if len(sheet_videos) == 0:
+                    st.write("No videos have been added.")
+                else:
+                    sheet_videos[self.dict_book_sheets_spec.get("videos").get("video_no")] = range(1,
+                                                                                                        len(sheet_videos) + 1)
+                    st.dataframe(sheet_videos, hide_index=True,
+                                                  column_order=(self.dict_book_sheets_spec.get("videos").get("video_no"),
+                                                                self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                                self.dict_book_sheets_spec.get("videos").get("watched"),
+                                                                self.dict_book_sheets_spec.get("videos").get("url"),
+                                                                self.dict_book_sheets_spec.get("videos").get("note")),
+                                                  column_config={
+                                                        self.dict_book_sheets_spec.get("videos").get("url"): \
+                                                            st.column_config.LinkColumn(
+                                                            self.dict_book_sheets_spec.get("videos").get("url")),
+                                                    })
 
     def select_vw_sht_sites(self):
         if "vw_sites_form_flow" not in st.session_state:
             st.session_state.vw_sites_form_flow = "vw_sites"
         self.sites_vw_new_entry()
         if st.session_state.vw_sites_form_flow == "vw_sites":
-            sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-            sheet_sites[self.dict_book_sheets_spec.get("sites").get("site_no")] = range(1,
-                                                                                                len(sheet_sites) + 1)
-            st.dataframe(sheet_sites, hide_index=True,
-                                            column_order=(self.dict_book_sheets_spec.get("sites").get("site_no"),
-                                                          self.dict_book_sheets_spec.get("sites").get("desc"),
-                                                          self.dict_book_sheets_spec.get("sites").get("url")),
-                                            column_config={
-                                                  self.dict_book_sheets_spec.get("sites").get("url"): \
-                                                      st.column_config.LinkColumn(
-                                                      self.dict_book_sheets_spec.get("sites").get("url")),
-                                              })
+            try:
+                sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
+            except Exception as ex:
+                st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                st.write(str(ex))
+            else:
+                if len(sheet_sites) == 0:
+                    st.write("No websites have been added.")
+                else:
+                    sheet_sites[self.dict_book_sheets_spec.get("sites").get("site_no")] = range(1,
+                                                                                                        len(sheet_sites) + 1)
+                    st.dataframe(sheet_sites, hide_index=True,
+                                                    column_order=(self.dict_book_sheets_spec.get("sites").get("site_no"),
+                                                                  self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                                  self.dict_book_sheets_spec.get("sites").get("url")),
+                                                    column_config={
+                                                          self.dict_book_sheets_spec.get("sites").get("url"): \
+                                                              st.column_config.LinkColumn(
+                                                              self.dict_book_sheets_spec.get("sites").get("url")),
+                                                      })
 
     def select_srch_webpages(self):
         if "webpages_st_srch" not in st.session_state:
@@ -137,28 +163,34 @@ class SHEET_FORM(form_sr.FORM):
                     if st.session_state.webpages_st_srch_str == "":
                         st.markdown(":red[no search text given.]")
                     else:
-                        sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-                        if not st.session_state.webpages_st_srch_inc_url:
-                            df_srch = sqldf(self.sql_web_pages(st.session_state.webpages_st_srch_str,
-                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages")), env=None)
-                            row_sum = sqldf(self.sql_web_pages(st.session_state.webpages_st_srch_str,
-                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages_count")), env=None)
+                        try:
+                            sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                        except Exception as ex:
+                            st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.write(str(ex))
+                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
                         else:
-                            df_srch = sqldf(self.sql_web_pages_url(st.session_state.webpages_st_srch_str,
-                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url")), env=None)
-                            row_sum = sqldf(self.sql_web_pages_url(st.session_state.webpages_st_srch_str,
-                                            self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url_count")), env=None)
-                        if self.write_srch_row_sum(row_sum) != "0":
-                            st.header("Sheet rows")
-                            st.dataframe(df_srch, hide_index=True,
-                                         column_order=(self.dict_book_sheets_spec.get("web_pages").get("desc"),
-                                                       self.dict_book_sheets_spec.get("web_pages").get("read"),
-                                                       self.dict_book_sheets_spec.get("web_pages").get("url"),
-                                                       self.dict_book_sheets_spec.get("web_pages").get("note")),
-                                         column_config={
-                                             "URL": st.column_config.LinkColumn(
-                                                 self.dict_book_sheets_spec.get("web_pages").get("url")),
-                                         })
+                            if not st.session_state.webpages_st_srch_inc_url:
+                                df_srch = sqldf(self.sql_web_pages(st.session_state.webpages_st_srch_str,
+                                                self.dict_sql_df.get("web_pages_sheet").get("web_pages")), env=None)
+                                row_sum = sqldf(self.sql_web_pages(st.session_state.webpages_st_srch_str,
+                                                self.dict_sql_df.get("web_pages_sheet").get("web_pages_count")), env=None)
+                            else:
+                                df_srch = sqldf(self.sql_web_pages_url(st.session_state.webpages_st_srch_str,
+                                                self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url")), env=None)
+                                row_sum = sqldf(self.sql_web_pages_url(st.session_state.webpages_st_srch_str,
+                                                self.dict_sql_df.get("web_pages_sheet").get("web_pages_and_url_count")), env=None)
+                            if self.write_srch_row_sum(row_sum) != "0":
+                                st.header("Sheet rows")
+                                st.dataframe(df_srch, hide_index=True,
+                                             column_order=(self.dict_book_sheets_spec.get("web_pages").get("desc"),
+                                                           self.dict_book_sheets_spec.get("web_pages").get("read"),
+                                                           self.dict_book_sheets_spec.get("web_pages").get("url"),
+                                                           self.dict_book_sheets_spec.get("web_pages").get("note")),
+                                             column_config={
+                                                 "URL": st.column_config.LinkColumn(
+                                                     self.dict_book_sheets_spec.get("web_pages").get("url")),
+                                             })
 
     def select_srch_videos(self):
         if "videos_st_srch" not in st.session_state:
@@ -184,28 +216,34 @@ class SHEET_FORM(form_sr.FORM):
                     if st.session_state.videos_st_srch_str == "":
                         st.markdown(":red[no search text given.]")
                     else:
-                        sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
-                        if not st.session_state.videos_st_srch_inc_url:
-                            df_srch = sqldf(self.sql_videos(st.session_state.videos_st_srch_str,
-                                            self.dict_sql_df.get("videos_sheet").get("videos")), env=None)
-                            row_sum = sqldf(self.sql_videos(st.session_state.videos_st_srch_str,
-                                            self.dict_sql_df.get("videos_sheet").get("videos_count")), env=None)
+                        try:
+                            sheet_videos = self.load_book_sheet(self.dict_book_sheets.get("videos"))
+                        except Exception as ex:
+                            st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.write(str(ex))
+                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
                         else:
-                            df_srch = sqldf(self.sql_videos_url(st.session_state.videos_st_srch_str,
-                                            self.dict_sql_df.get("videos_sheet").get("videos_and_url")), env=None)
-                            row_sum = sqldf(self.sql_videos_url(st.session_state.videos_st_srch_str,
-                                            self.dict_sql_df.get("videos_sheet").get("videos_and_url_count")), env=None)
-                        if self.write_srch_row_sum(row_sum) != "0":
-                            st.header("Sheet rows")
-                            st.dataframe(df_srch, hide_index=True,
-                                         column_order=(self.dict_book_sheets_spec.get("videos").get("desc"),
-                                                       self.dict_book_sheets_spec.get("videos").get("watched"),
-                                                       self.dict_book_sheets_spec.get("videos").get("url"),
-                                                       self.dict_book_sheets_spec.get("videos").get("note")),
-                                         column_config={
-                                             "URL": st.column_config.LinkColumn(
-                                                 self.dict_book_sheets_spec.get("videos").get("url")),
-                                         })
+                            if not st.session_state.videos_st_srch_inc_url:
+                                df_srch = sqldf(self.sql_videos(st.session_state.videos_st_srch_str,
+                                                self.dict_sql_df.get("videos_sheet").get("videos")), env=None)
+                                row_sum = sqldf(self.sql_videos(st.session_state.videos_st_srch_str,
+                                                self.dict_sql_df.get("videos_sheet").get("videos_count")), env=None)
+                            else:
+                                df_srch = sqldf(self.sql_videos_url(st.session_state.videos_st_srch_str,
+                                                self.dict_sql_df.get("videos_sheet").get("videos_and_url")), env=None)
+                                row_sum = sqldf(self.sql_videos_url(st.session_state.videos_st_srch_str,
+                                                self.dict_sql_df.get("videos_sheet").get("videos_and_url_count")), env=None)
+                            if self.write_srch_row_sum(row_sum) != "0":
+                                st.header("Sheet rows")
+                                st.dataframe(df_srch, hide_index=True,
+                                             column_order=(self.dict_book_sheets_spec.get("videos").get("desc"),
+                                                           self.dict_book_sheets_spec.get("videos").get("watched"),
+                                                           self.dict_book_sheets_spec.get("videos").get("url"),
+                                                           self.dict_book_sheets_spec.get("videos").get("note")),
+                                             column_config={
+                                                 "URL": st.column_config.LinkColumn(
+                                                     self.dict_book_sheets_spec.get("videos").get("url")),
+                                             })
 
     def select_srch_sites(self):
         if "sites_st_srch" not in st.session_state:
@@ -231,26 +269,32 @@ class SHEET_FORM(form_sr.FORM):
                     if st.session_state.sites_st_srch_str == "":
                         st.markdown(":red[no search text given.]")
                     else:
-                        sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
-                        if not st.session_state.sites_st_srch_inc_url:
-                            df_srch = sqldf(self.sql_sites(st.session_state.sites_st_srch_str,
-                                            self.dict_sql_df.get("sites_sheet").get("sites")), env=None)
-                            row_sum = sqldf(self.sql_sites(st.session_state.sites_st_srch_str,
-                                            self.dict_sql_df.get("sites_sheet").get("sites_count")), env=None)
+                        try:
+                            sheet_sites = self.load_book_sheet(self.dict_book_sheets.get("sites"))
+                        except Exception as ex:
+                            st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                            st.write(str(ex))
+                            st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
                         else:
-                            df_srch = sqldf(self.sql_sites_url(st.session_state.sites_st_srch_str,
-                                            self.dict_sql_df.get("sites_sheet").get("sites_and_url")), env=None)
-                            row_sum = sqldf(self.sql_sites_url(st.session_state.sites_st_srch_str,
-                                            self.dict_sql_df.get("sites_sheet").get("sites_and_url_count")), env=None)
-                        if self.write_srch_row_sum(row_sum) != "0":
-                            st.header("Sheet rows")
-                            st.dataframe(df_srch, hide_index=True,
-                                         column_order=(self.dict_book_sheets_spec.get("sites").get("desc"),
-                                                       self.dict_book_sheets_spec.get("sites").get("url"),),
-                                         column_config={
-                                             "URL": st.column_config.LinkColumn(
-                                                 self.dict_book_sheets_spec.get("sites").get("url")),
-                                         })
+                            if not st.session_state.sites_st_srch_inc_url:
+                                df_srch = sqldf(self.sql_sites(st.session_state.sites_st_srch_str,
+                                                self.dict_sql_df.get("sites_sheet").get("sites")), env=None)
+                                row_sum = sqldf(self.sql_sites(st.session_state.sites_st_srch_str,
+                                                self.dict_sql_df.get("sites_sheet").get("sites_count")), env=None)
+                            else:
+                                df_srch = sqldf(self.sql_sites_url(st.session_state.sites_st_srch_str,
+                                                self.dict_sql_df.get("sites_sheet").get("sites_and_url")), env=None)
+                                row_sum = sqldf(self.sql_sites_url(st.session_state.sites_st_srch_str,
+                                                self.dict_sql_df.get("sites_sheet").get("sites_and_url_count")), env=None)
+                            if self.write_srch_row_sum(row_sum) != "0":
+                                st.header("Sheet rows")
+                                st.dataframe(df_srch, hide_index=True,
+                                             column_order=(self.dict_book_sheets_spec.get("sites").get("desc"),
+                                                           self.dict_book_sheets_spec.get("sites").get("url"),),
+                                             column_config={
+                                                 "URL": st.column_config.LinkColumn(
+                                                     self.dict_book_sheets_spec.get("sites").get("url")),
+                                             })
 
     def select_drdg_webpages(self):
         if "webpages_web_drdg" not in st.session_state:
@@ -305,46 +349,60 @@ class SHEET_FORM(form_sr.FORM):
                                                                            key="xcel_vw_drdg+pgs",
                                                                            value=st.session_state.web_drdg_srch_exclsv_in_row_value)
                 st.write("Select web pages to search for :blue[ " + st.session_state.web_drdg_srch_str + "]")
-                st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
-                st.session_state.drdg_sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
-                                                                                     len(st.session_state.drdg_sheet_web_pages) + 1)
-                st.session_state.rows_selected_dredge = st.dataframe(st.session_state.drdg_sheet_web_pages,
-                                                                     on_select="rerun", hide_index=True, selection_mode="multi-row",
-                                                                     column_order=(
-                                                                         self.dict_book_sheets_spec.get(
-                                                                             "web_pages").get("page_no"),
-                                                                         self.dict_book_sheets_spec.get(
-                                                                             "web_pages").get("desc"),
-                                                                         self.dict_book_sheets_spec.get(
-                                                                             "web_pages").get("read"),
-                                                                         self.dict_book_sheets_spec.get(
-                                                                             "web_pages").get("url"),
-                                                                         self.dict_book_sheets_spec.get(
-                                                                             "web_pages").get("note")),
-                                                                     column_config=({
-                                                                         self.dict_book_sheets_spec.get(
-                                                                                 "web_pages").get("url"): st.column_config.LinkColumn(
-                                                                             self.dict_book_sheets_spec.get(
-                                                                                 "web_pages").get("url")),
-                                                                     }))
-                cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
-                if cols_pages_btns[0].form_submit_button("Start dredge search"):
-                    st.session_state.run_dredge = True
-                    st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
-                    if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
-                        st.markdown(":red[Select at least one row to continue.]")
-                    elif len(st.session_state.rows_selected_dredge.selection.rows) > st.session_state.ant_drdg_max_pages:
-                        st.markdown(""":red[Too many rows selected. The maximum number of rows runnable is defined in the 
-                        Settings tab, Dredge web pages panel. This is currently set to] :blue[""" +
-                                    str(st.session_state.ant_drdg_max_pages) + "] :red[rows.]")
+                try:
+                    st.session_state.drdg_sheet_web_pages = self.load_book_sheet(self.dict_book_sheets.get("web_pages"))
+                except Exception as ex:
+                    st.write(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
+                    st.write(str(ex))
+                    st.form_submit_button(str(self.dict_err_msgs.get("form_no_display")), disabled=True)
+                else:
+                    if len(st.session_state.drdg_sheet_web_pages) == 0:
+                        st.write(":red[No websites have been added.]")
+                        if st.form_submit_button("Back"):
+                            st.session_state.web_drdg_srch_exclsv_in_row = False
+                            st.session_state.web_drdg_srch_exclsv_in_row_value = False
+                            self.webpages_web_dredge()
+                            st.rerun()
                     else:
-                        self.webpages_web_dredge_sel_results()
-                        st.rerun()
-                if cols_pages_btns[1].form_submit_button("Back to add search text"):
-                    st.session_state.web_drdg_srch_exclsv_in_row = False
-                    st.session_state.web_drdg_srch_exclsv_in_row_value = False
-                    self.webpages_web_dredge()
-                    st.rerun()
+                        st.session_state.drdg_sheet_web_pages[self.dict_book_sheets_spec.get("web_pages").get("page_no")] = range(1,
+                                                                                             len(st.session_state.drdg_sheet_web_pages) + 1)
+                        st.session_state.rows_selected_dredge = st.dataframe(st.session_state.drdg_sheet_web_pages,
+                                                                             on_select="rerun", hide_index=True, selection_mode="multi-row",
+                                                                             column_order=(
+                                                                                 self.dict_book_sheets_spec.get(
+                                                                                     "web_pages").get("page_no"),
+                                                                                 self.dict_book_sheets_spec.get(
+                                                                                     "web_pages").get("desc"),
+                                                                                 self.dict_book_sheets_spec.get(
+                                                                                     "web_pages").get("read"),
+                                                                                 self.dict_book_sheets_spec.get(
+                                                                                     "web_pages").get("url"),
+                                                                                 self.dict_book_sheets_spec.get(
+                                                                                     "web_pages").get("note")),
+                                                                             column_config=({
+                                                                                 self.dict_book_sheets_spec.get(
+                                                                                         "web_pages").get("url"): st.column_config.LinkColumn(
+                                                                                     self.dict_book_sheets_spec.get(
+                                                                                         "web_pages").get("url")),
+                                                                             }))
+                        cols_pages_btns = st.columns(2, gap="small", vertical_alignment="center")
+                        if cols_pages_btns[0].form_submit_button("Start dredge search"):
+                            st.session_state.run_dredge = True
+                            st.session_state.web_drdg_srch_exclsv_in_row_value = st.session_state.web_drdg_srch_exclsv_in_row
+                            if len(st.session_state.rows_selected_dredge.selection.rows) == 0:
+                                st.markdown(":red[Select at least one row to continue.]")
+                            elif len(st.session_state.rows_selected_dredge.selection.rows) > st.session_state.ant_drdg_max_pages:
+                                st.markdown(""":red[Too many rows selected. The maximum number of rows runnable is defined in the 
+                                Settings tab, Dredge web pages panel. This is currently set to] :blue[""" +
+                                            str(st.session_state.ant_drdg_max_pages) + "] :red[rows.]")
+                            else:
+                                self.webpages_web_dredge_sel_results()
+                                st.rerun()
+                        if cols_pages_btns[1].form_submit_button("Back to add search text"):
+                            st.session_state.web_drdg_srch_exclsv_in_row = False
+                            st.session_state.web_drdg_srch_exclsv_in_row_value = False
+                            self.webpages_web_dredge()
+                            st.rerun()
         elif st.session_state.webpages_web_drdg == "webpages_web_drdg_sel_results":
             with (st.form("Dredge internet pages saved - result")):
                 config_data = self.load_ini_config()
