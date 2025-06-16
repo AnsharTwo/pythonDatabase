@@ -125,6 +125,8 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.fac_bk_def_sbmttd = False
         if "fac_url_def_sbmttd" not in st.session_state:
             st.session_state.fac_url_def_sbmttd = False
+        if "loc_db_chng" not in st.session_state:
+            st.session_state.loc_db_chng = False
         self.set_config_flow_theme()
         if st.session_state.form_config_flow_theme == "config settings - theme":
             config_toml_data = self.load_toml_config()
@@ -396,36 +398,41 @@ class CONFIG_FORM (form_sr.FORM):
                 auth_config = sttngs_auth_obj.create_auth_ojb()
                 pwd_hashed_curr = auth_config["credentials"]["usernames"][st.session_state.username]["password"]
                 with st.form("Enter book password"):
-                    st.markdown(f"**:blue[Restore book data source to factory default]**")
-                    st.write("Enter your password to restore your book data source file to factory default.")
-                    pwd_sttngs = st.text_input("Password", type="password",
-                                                                 max_chars=self.dict_pwd_chng.get("length")) # max chars in profile too - add to Super
-                    cols_config_pwd = st.columns(2, gap="small", vertical_alignment="center")
-                    if cols_config_pwd[0].form_submit_button("Submit password"):
-                        can_change = True
-                        if not stauth.Hasher.check_pw(pwd_sttngs, pwd_hashed_curr):
-                            st.markdown(":red[Enter current password.]")
-                            can_change = False
-                        if can_change:
-                            try:
-                                dstn = st.session_state.ss_dat_loc_annots.rsplit("/", 1)
-                                fact_def_file = str(self.dict_fac_defs.get("bk")).rsplit("/", 1)
-                                if not os.path.exists(str(dstn[0]) + "/" + str(fact_def_file[1])):
-                                    self.__fac_def_bk_switch(str(dstn[0]),str(fact_def_file[1]))
-                                    st.rerun()
-                                else:
-                                    st.write("The file " + ":red[" + str(dstn[0]) + "/" + str(fact_def_file[1]) + "] already exists.")
-                                    btn_fac_def_bk_overwrite = st.checkbox("Overwrite book file")
-                                    if btn_fac_def_bk_overwrite:
-                                        self.__fac_def_bk_switch(str(dstn[0]), str(fact_def_file[1]))
-                                        st.rerun()
-                            except Exception as ex:
-                                st.markdown(":red[The operation could not be performed.]")
-                                st.write(str(ex))
-                    if cols_config_pwd[1].form_submit_button("Cancel"):
+                    if st.session_state.loc_db_chng:
+                        st.write(self.dict_err_msgs.get("db_locked_in_changes"))
+                        st.form_submit_button("Locked", disabled=True)
                         st.session_state.fac_bk_def_sbmttd = False
-                        self.set_config_flow_bk_fct_defs()
-                        st.rerun()
+                    else:
+                        st.markdown(f"**:blue[Restore book data source to factory default]**")
+                        st.write("Enter your password to restore your book data source file to factory default.")
+                        pwd_sttngs = st.text_input("Password", type="password",
+                                                                     max_chars=self.dict_pwd_chng.get("length")) # max chars in profile too - add to Super
+                        cols_config_pwd = st.columns(2, gap="small", vertical_alignment="center")
+                        if cols_config_pwd[0].form_submit_button("Submit password"):
+                            can_change = True
+                            if not stauth.Hasher.check_pw(pwd_sttngs, pwd_hashed_curr):
+                                st.markdown(":red[Enter current password.]")
+                                can_change = False
+                            if can_change:
+                                try:
+                                    dstn = st.session_state.ss_dat_loc_annots.rsplit("/", 1)
+                                    fact_def_file = str(self.dict_fac_defs.get("bk")).rsplit("/", 1)
+                                    if not os.path.exists(str(dstn[0]) + "/" + str(fact_def_file[1])):
+                                        self.__fac_def_bk_switch(str(dstn[0]),str(fact_def_file[1]))
+                                        st.rerun()
+                                    else:
+                                        st.write("The file " + ":red[" + str(dstn[0]) + "/" + str(fact_def_file[1]) + "] already exists.")
+                                        btn_fac_def_bk_overwrite = st.checkbox("Overwrite book file")
+                                        if btn_fac_def_bk_overwrite:
+                                            self.__fac_def_bk_switch(str(dstn[0]), str(fact_def_file[1]))
+                                            st.rerun()
+                                except Exception as ex:
+                                    st.markdown(":red[The operation could not be performed.]")
+                                    st.write(str(ex))
+                        if cols_config_pwd[1].form_submit_button("Cancel"):
+                            st.session_state.fac_bk_def_sbmttd = False
+                            self.set_config_flow_bk_fct_defs()
+                            st.rerun()
             else:
                 with (st.form("config_settings_bk_fac_defs")):
                     st.markdown(f"**:blue[Restore book data source to factory default]**")

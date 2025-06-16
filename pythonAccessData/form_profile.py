@@ -39,6 +39,8 @@ class PROF_FORM (form_sr.FORM):
             st.session_state.pwd_new = ""
         if "pwd_new_confirm" not in st.session_state:
             st.session_state.pwd_new_confirm = ""
+        if "loc_db_chng" not in st.session_state:
+            st.session_state.loc_db_chng = False
         authent = self.authenticator
         prf_auth_obj = form_auth.LOGIN()
         st.header("Manage Profile")
@@ -49,37 +51,52 @@ class PROF_FORM (form_sr.FORM):
                 config_data = self.load_ini_config()
                 st.markdown(f"**:blue[Data locations]**")
                 st.write("Annotations database")
-                st.markdown(":orange[(Current: ]" + str(
-                    st.session_state.ss_dat_loc_annots).title() + ":orange[)]  ")
-                if st.form_submit_button("Browse annotations files"):
-                    root = tk.Tk()
-                    tk.Button(root, text="Confirm data source file selection", font=("Arial", 12), command=root.destroy).pack()
-                    tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
-                    pth = self.ds_file_dialog("Access", ".mdb")
-                    if pth != "":
-                        config_data["data locations"]["annotations"] = pth
-                        st.session_state.ss_dat_loc_annots = pth
-                        self.write_ini_config(config_data)
-                    root.after(1000)
-                    root.mainloop()
-                    st.rerun()
+                if st.session_state.loc_db_chng:
+                    st.write(self.dict_err_msgs.get("db_locked_in_changes"))
+                    st.markdown(":red[ENSURE YOU CLOSE THE FILE SELECTION AND CONFIRM BOXES] if they are open.]")
+                    st.form_submit_button("Locked", disabled=True)
+                else:
+                    st.markdown(":orange[(Current: ]" + str(
+                        st.session_state.ss_dat_loc_annots).title() + ":orange[)]  ")
+                    if st.form_submit_button("Browse annotations files"):
+                        try:
+                            root = tk.Tk()
+                            tk.Button(root, text="Confirm data source file selection", font=("Arial", 12), command=root.destroy).pack()
+                            tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
+                            pth = self.ds_file_dialog("Access", ".mdb")
+                            if pth != "":
+                                config_data["data locations"]["annotations"] = pth
+                                st.session_state.ss_dat_loc_annots = pth
+                                self.write_ini_config(config_data)
+                            root.after(1000)
+                            root.mainloop()
+                            st.rerun()
+                        except Exception as ex:
+                            st.write(""":red[An error has occured with the file selection dialog. Was it already open, 
+                                        or did you attempt to edit data while it was open?]""")
+                            st.markdown(ex)
                 st.divider()
                 st.write("URL sheets")
                 st.markdown(":orange[(Current: ]" + str(
                     st.session_state.ss_dat_loc_urls).title() + ":orange[)]  ")
                 if st.form_submit_button("Browse URLs files"):
-                    root = tk.Tk()
-                    tk.Button(root, text="Confirm data source file selection", font=("Arial", 12), command=root.destroy).pack()
-                    tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
-                    pth = self.ds_file_dialog("Excel", ".xlsx")
-                    if pth != "":
-                        config_data["data locations"]["urls"] = pth
-                        st.session_state.ss_dat_loc_urls = pth
-                        self.write_ini_config(config_data)
-                        self.load_book_sheet.clear() # clear cache or new data will not show
-                    root.after(1000)
-                    root.mainloop()
-                    st.rerun()
+                    try:
+                        root = tk.Tk()
+                        tk.Button(root, text="Confirm data source file selection", font=("Arial", 12), command=root.destroy).pack()
+                        tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
+                        pth = self.ds_file_dialog("Excel", ".xlsx")
+                        if pth != "":
+                            config_data["data locations"]["urls"] = pth
+                            st.session_state.ss_dat_loc_urls = pth
+                            self.write_ini_config(config_data)
+                            self.load_book_sheet.clear() # clear cache or new data will not show
+                        root.after(1000)
+                        root.mainloop()
+                        st.rerun()
+                    except Exception as ex:
+                        st.write(""":red[An error has occured with the file selection dialog. Was it already open, 
+                                     or did you attempt to edit data while it was open?]""")
+                        st.markdown(ex)
         self.set_prof_flow_chang_pwd()
         if st.session_state.form_prof_flow == "profile settings - change password":
             if st.session_state["authentication_status"]:

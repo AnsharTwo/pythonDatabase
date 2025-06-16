@@ -85,7 +85,9 @@ class FORM:
 
     dict_err_msgs = {
         "cursor_exec": "Error executing data query (Is your data source file a valid one?)",
-        "form_no_display": "Form can't be displayed."
+        "form_no_display": "Form can't be displayed.",
+        "db_locked_in_changes": """The data source cannot be changed because book or annotations data is in the process of being edited. 
+                                   Complete or abandon your changes in order to amend the data location."""
     }
 
     def get_data_source(self):
