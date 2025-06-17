@@ -125,8 +125,10 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.fac_bk_def_sbmttd = False
         if "fac_url_def_sbmttd" not in st.session_state:
             st.session_state.fac_url_def_sbmttd = False
-        if "loc_db_chng" not in st.session_state:
-            st.session_state.loc_db_chng = False
+        if "loc_db_ant_chng" not in st.session_state:
+            st.session_state.loc_db_ant_chng = False
+        if "loc_db_bk_chng" not in st.session_state:
+            st.session_state.loc_db_bk_chng = False
         self.set_config_flow_theme()
         if st.session_state.form_config_flow_theme == "config settings - theme":
             config_toml_data = self.load_toml_config()
@@ -398,7 +400,7 @@ class CONFIG_FORM (form_sr.FORM):
                 auth_config = sttngs_auth_obj.create_auth_ojb()
                 pwd_hashed_curr = auth_config["credentials"]["usernames"][st.session_state.username]["password"]
                 with st.form("Enter book password"):
-                    if st.session_state.loc_db_chng:
+                    if st.session_state.loc_db_ant_chng or st.session_state.loc_db_bk_chng:
                         st.write(self.dict_err_msgs.get("db_locked_in_changes"))
                         st.form_submit_button("Locked", disabled=True)
                         st.session_state.fac_bk_def_sbmttd = False
