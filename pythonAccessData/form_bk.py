@@ -122,7 +122,11 @@ class EDIT_BOOK(form_sr.FORM):
             st.session_state["res1_bk_first_edition_publisher"] = ""
         if "bk_orig_title" not in st.session_state:
             st.session_state["bk_orig_title"] = ""
+        if "loc_db_bk_chng" not in st.session_state:
+            st.session_state.loc_db_bk_chng = False
         if st.session_state["form_flow_bk"] == "add_update_book_search":
+            if st.session_state.loc_db_bk_chng:
+                st.session_state.loc_db_bk_chng = False
             with st.form("Add or search for book to update"):
                 bk_lookup = False
                 st.write(":green[Add or update book]")
@@ -140,6 +144,8 @@ class EDIT_BOOK(form_sr.FORM):
                         self.add_updt_bk()
                         st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book":
+            if not st.session_state.loc_db_bk_chng:
+                st.session_state.loc_db_bk_chng = True
             bk_title = []
             bk_title.append(self.formatSQLSpecialChars(st.session_state["srch_book_title"])) # i.e. without padding with % (need exact mtch)
             st.session_state["bk_srch_sum"] = self.db_records(self.dict_flow_flags.get("bk_add_edit_is_full_match"),
@@ -278,6 +284,8 @@ class EDIT_BOOK(form_sr.FORM):
             else:
                 st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
         if st.session_state["form_flow_bk"] == "add_update_book_edit":
+            if not st.session_state.loc_db_bk_chng:
+                st.session_state.loc_db_bk_chng = True
             with st.form("Add or update book"):
                 sbmt_bk = False
                 if st.session_state["bk_is_editing"]:
@@ -358,6 +366,8 @@ class EDIT_BOOK(form_sr.FORM):
                         self.add_updt_bk_sbmttd()
                         st.rerun()
         if st.session_state["form_flow_bk"] == "add_update_book_sbmttd":
+            if not st.session_state.loc_db_bk_chng:
+                st.session_state.loc_db_bk_chng = True
             with st.form("Book submission"):
                 if not st.session_state["del_bk"]:
                     book = []
@@ -487,15 +497,19 @@ class EDIT_BOOK(form_sr.FORM):
             with st.form("Book added"):
                 if not st.session_state["bk_is_editing"]:
                     st.success("New book added.")
+                    st.session_state.loc_db_bk_chng = False
                 else:
                     if st.session_state["del_bk"]:
                         if st.session_state["del_bk_has_annots"] == 0:
                             st.info("Book deleted.")
+                            st.session_state.loc_db_bk_chng = False
                         else:
                             st.info("""Book deleted (""" + str(st.session_state["del_bk_has_annots"]) + """ annotations 
                                     associated with this book were also deleted)""")
+                            st.session_state.loc_db_bk_chng = False
                     else:
                         st.success("Book updated.")
+                        st.session_state.loc_db_bk_chng = False
                         self.show_book_entered("blue", st.session_state["bk_book_title"], st.session_state["bk_author"],
                                                  st.session_state["bk_publisher"], st.session_state["bk_date_pub"],
                                                  st.session_state["bk_year_read"], st.session_state["bk_pub_location"],

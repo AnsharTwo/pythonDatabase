@@ -108,7 +108,11 @@ class EDIT_ANNOT(form_sr.FORM):
             st.session_state["wdgt_ant_edt_hght"] = ""
         if "ant_spllchck_dstnc" not in st.session_state:
             st.session_state["ant_spllchck_dstnc"] = ""
+        if "loc_db_ant_chng" not in st.session_state:
+            st.session_state["loc_db_ant_chng"] = False
         if st.session_state["form_flow"] == "search_for_book_to_annotate":
+            if st.session_state["loc_db_ant_chng"]:
+                st.session_state["loc_db_ant_chng"] = False
             with st.form("Create a new annotation"):
                 st.write(":green[Add new annotation]")
                 st.session_state["book_title"] = st.text_input("Book title:red[*]",
@@ -133,6 +137,8 @@ class EDIT_ANNOT(form_sr.FORM):
                         self.annot_srch_bk_res()
                         st.rerun()
         elif st.session_state["form_flow"] == "search_results_for_book_to_annotate":
+            if not st.session_state["loc_db_ant_chng"]:
+                st.session_state["loc_db_ant_chng"] = True
             with st.form("Search book results"):
                 book_search = []
                 book_search.append(st.session_state["book_no"]) # not used but needed to set correct index
@@ -226,6 +232,8 @@ class EDIT_ANNOT(form_sr.FORM):
                     st.markdown(":red[" + self.dict_err_msgs.get("cursor_exec") + "]")
                     st.form_submit_button("Form can't be displayed.", disabled=True)
         elif st.session_state["form_flow"] == "create_the_new_annotation":
+            if not st.session_state["loc_db_ant_chng"]:
+                st.session_state["loc_db_ant_chng"] = True
             with st.form("New annotation"):
                 self.__show_bk_srch_res()
                 annot_page_no = st.text_input("Page number:red[*]", max_chars=4)
@@ -242,6 +250,8 @@ class EDIT_ANNOT(form_sr.FORM):
                         self.annot_do_new_annot()
                         st.rerun()
         elif st.session_state["form_flow"] == "action_the_new_annotation":
+            if not st.session_state["loc_db_ant_chng"]:
+                st.session_state["loc_db_ant_chng"] = True
             config_data = self.load_ini_config()
             st.session_state.wdgt_ant_edt_hght = int(config_data.get('widget_dims', 'textarea_annot_height'))
             with st.form("New annotation"):
@@ -490,9 +500,11 @@ class EDIT_ANNOT(form_sr.FORM):
                     if st.session_state["del_annot_yes"]:
                         st.session_state["annot_changes_done"] = True
                         st.info("Annotation deleted.")
+                        st.session_state["loc_db_ant_chng"] = False
                 else:
                     st.success("Annotation added.")
                     st.session_state["annot_changes_done"] = True
+                    st.session_state["loc_db_ant_chng"] = False
                 if st.session_state["annot_changes_done"]:
                     btn_add_anoth_annot = st.form_submit_button("Add edit or delete a new annotation")
                     btn_not_add_annot = st.form_submit_button("Done")
