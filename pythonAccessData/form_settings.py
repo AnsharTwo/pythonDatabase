@@ -129,6 +129,10 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.loc_db_ant_chng = False
         if "loc_db_bk_chng" not in st.session_state:
             st.session_state.loc_db_bk_chng = False
+        if "shw_data_loc_msg" not in st.session_state:
+            st.session_state.shw_data_loc_msg = False
+        if "val_shw_data_loc_msg" not in st.session_state:
+            st.session_state.val_shw_data_loc_msg = ""
         self.set_config_flow_theme()
         if st.session_state.form_config_flow_theme == "config settings - theme":
             config_toml_data = self.load_toml_config()
@@ -175,7 +179,7 @@ class CONFIG_FORM (form_sr.FORM):
                     config_toml_data["theme"]["font"] = str('"' + st.session_state.sel_thm_fnt + '"')
                     self.write_toml_config(config_toml_data)
                     st.rerun()
-                if cols_config[1].form_submit_button("Reset"):
+                if cols_config[1].form_submit_button("Reset all settings"):
                     os.remove(self.dict_config.get("toml_config"))
                     shutil.copy(self.dict_config.get("toml_config_def"), self.dict_config.get("toml_config"))
                     st.session_state[sel_opt_bscol] = self.form_config.get("wdgt_specs").get("basic_clr_def_index")
@@ -215,7 +219,7 @@ class CONFIG_FORM (form_sr.FORM):
                             st.session_state.val_inpt_annt_hght = st.session_state.inpt_annt_hght
                         self.write_ini_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset"):
+                if cols_config[1].form_submit_button("Reset all settings"):
                     os.remove(self.dict_config.get("ini_config"))
                     shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
                     config_def_data = self.load_ini_config()
@@ -256,7 +260,7 @@ class CONFIG_FORM (form_sr.FORM):
                             st.session_state.val_inpt_spell_dstnc = st.session_state.inpt_spell_dstnc
                         self.write_ini_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset"):
+                if cols_config[1].form_submit_button("Reset all settings"):
                     os.remove(self.dict_config.get("ini_config"))
                     shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
                     config_def_data = self.load_ini_config()
@@ -349,7 +353,7 @@ class CONFIG_FORM (form_sr.FORM):
                             st.session_state.val_inpt_drdg_max_wbpgs = st.session_state.inpt_drdg_max_wbpgs
                         self.write_ini_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset"):
+                if cols_config[1].form_submit_button("Reset all settings"):
                     os.remove(self.dict_config.get("ini_config"))
                     shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
                     config_def_data = self.load_ini_config()
@@ -365,6 +369,11 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state.val_inpt_shw_drdg_msg = True
                 else:
                     st.session_state.val_inpt_shw_drdg_msg = False
+            if st.session_state.val_shw_data_loc_msg == "":
+                if config_data['show_messages']['profile_note'] == "1":
+                    st.session_state.val_shw_data_loc_msg = True
+                else:
+                    st.session_state.val_shw_data_loc_msg = False
             with (st.form("config_settings_shw_msgs")):
                 st.markdown(f"**:blue[Show/hide user messages]**")
                 cols_shw_msgs_drdge = st.columns(2, gap="small", vertical_alignment="center")
@@ -372,6 +381,15 @@ class CONFIG_FORM (form_sr.FORM):
                                                                 value=int(st.session_state.val_inpt_shw_drdg_msg),
                                                                 key="shw_drdg_msg_wfs543")
                 if st.session_state.val_inpt_shw_drdg_msg:
+                    st.markdown(":orange[(Current: ]" + "Showing" + ":orange[)]  ")
+                else:
+                    st.markdown(":orange[(Current: ]" + "Not showing" + ":orange[)]  ")
+                st.divider()
+                cols_shw_msgs_dt_lc = st.columns(2, gap="small", vertical_alignment="center")
+                st.session_state.shw_data_loc_msg = cols_shw_msgs_dt_lc[0].checkbox("Data locations selection notification",
+                                                                value=int(st.session_state.val_shw_data_loc_msg),
+                                                                key="shw_drdg_msg_tky982")
+                if st.session_state.val_shw_data_loc_msg:
                     st.markdown(":orange[(Current: ]" + "Showing" + ":orange[)]  ")
                 else:
                     st.markdown(":orange[(Current: ]" + "Not showing" + ":orange[)]  ")
@@ -385,13 +403,24 @@ class CONFIG_FORM (form_sr.FORM):
                             config_data["show_messages"]["dredge_note"] = "0"
                     if st.session_state.val_inpt_shw_drdg_msg != st.session_state.inpt_shw_drdg_msg:
                         st.session_state.val_inpt_shw_drdg_msg = st.session_state.inpt_shw_drdg_msg
+                    if st.session_state.shw_data_loc_msg:
+                        if config_data["show_messages"]["profile_note"] == "0":
+                            config_data["show_messages"]["profile_note"] = "1"
+                    else:
+                        if config_data["show_messages"]["profile_note"] == "1":
+                            config_data["show_messages"]["profile_note"] = "0"
+                    if st.session_state.val_shw_data_loc_msg != st.session_state.shw_data_loc_msg:
+                        st.session_state.val_shw_data_loc_msg = st.session_state.shw_data_loc_msg
                     self.write_ini_config(config_data)
                     st.rerun()
                 if cols_config[1].form_submit_button("Reset"):
-                    os.remove(self.dict_config.get("ini_config"))
-                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
-                    config_def_data = self.load_ini_config()
+                    config_def_data = self.load_ini_config_def()
+                    config_data = self.load_ini_config()
+                    config_data["show_messages"]["dredge_note"] = config_def_data["show_messages"]["dredge_note"]
+                    config_data["show_messages"]["profile_note"] = config_def_data["show_messages"]["profile_note"]
                     st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
+                    st.session_state.val_shw_data_loc_msg = config_def_data["show_messages"]["profile_note"]
+                    self.write_ini_config(config_data)
                     st.rerun()
         self.set_config_flow_bk_fct_defs()
         if st.session_state.form_bk_fct_defs == "config settings - book source file factory defaults":

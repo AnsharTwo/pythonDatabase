@@ -29,8 +29,6 @@ class PROF_FORM (form_sr.FORM):
     def edt_prfl(self):
         if "form_prof_flow" not in st.session_state:
             st.session_state.form_prof_flow = ""
-        #if "dt_lcs_run" not in st.session_state:
-        #    st.session_state.dt_lcs_run = False
         if "pwd_changed" not in st.session_state:
             st.session_state.pwd_changed = False
         if "pwd_current" not in st.session_state:
@@ -43,6 +41,8 @@ class PROF_FORM (form_sr.FORM):
             st.session_state.loc_db_ant_chng = False
         if "loc_db_bk_chng" not in st.session_state:
             st.session_state.loc_db_bk_chng = False
+        if "val_shw_data_loc_msg" not in st.session_state:
+            st.session_state.val_shw_data_loc_msg = False
         authent = self.authenticator
         prf_auth_obj = form_auth.LOGIN()
         st.header("Manage Profile")
@@ -151,12 +151,12 @@ class PROF_FORM (form_sr.FORM):
     @st.dialog("When selecting your data source file", width="small")
     def __data_loc_modal(self):
         st.write(self.dict_data_locs.get("librotate_close_msg"))
-        cbx_data_loc_no_show = st.checkbox(label="Don't show this message again", key="lbrtt_dt_lc_swe")
+        cbx_data_loc_no_show = st.checkbox(label="OK, got it", key="lbrtt_dt_lc_swe")
         if cbx_data_loc_no_show:
             config_data = self.load_ini_config()
             config_data["show_messages"]["profile_note"] = "0"
-            # if st.session_state.val_inpt_shw_drdg_msg:  # val of Settings > show messages > dredge web note
-            #     st.session_state.val_inpt_shw_drdg_msg = False
+            if st.session_state.val_shw_data_loc_msg:  # val of Settings > show messages > dredge web note
+                st.session_state.val_shw_data_loc_msg = False
             self.write_ini_config(config_data)
             st.rerun()
 

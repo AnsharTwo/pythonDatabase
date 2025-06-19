@@ -119,6 +119,11 @@ class FORM:
         config.read(self.dict_config.get("ini_config"))
         return config
 
+    def load_ini_config_def(self):
+        config = configparser.ConfigParser()
+        config.read(self.dict_config.get("ini_config_def"))
+        return config
+
     def write_ini_config(self, config_data):
         with open(self.dict_config.get("ini_config"), 'w') as configfile:
             config_data.write(configfile)
