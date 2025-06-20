@@ -179,7 +179,7 @@ class CONFIG_FORM (form_sr.FORM):
                     config_toml_data["theme"]["font"] = str('"' + st.session_state.sel_thm_fnt + '"')
                     self.write_toml_config(config_toml_data)
                     st.rerun()
-                if cols_config[1].form_submit_button("Reset all settings"):
+                if cols_config[1].form_submit_button("Reset"):
                     os.remove(self.dict_config.get("toml_config"))
                     shutil.copy(self.dict_config.get("toml_config_def"), self.dict_config.get("toml_config"))
                     st.session_state[sel_opt_bscol] = self.form_config.get("wdgt_specs").get("basic_clr_def_index")
@@ -219,11 +219,12 @@ class CONFIG_FORM (form_sr.FORM):
                             st.session_state.val_inpt_annt_hght = st.session_state.inpt_annt_hght
                         self.write_ini_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset all settings"):
-                    os.remove(self.dict_config.get("ini_config"))
-                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
-                    config_def_data = self.load_ini_config()
+                if cols_config[1].form_submit_button("Reset"):
+                    config_def_data = self.load_ini_config_def()
+                    config_data = self.load_ini_config()
+                    config_data["widget_dims"]["textarea_annot_height"] = config_def_data["widget_dims"]["textarea_annot_height"]
                     st.session_state.val_inpt_annt_hght = config_def_data["widget_dims"]["textarea_annot_height"]
+                    self.write_ini_config(config_data)
                     st.rerun()
         self.set_config_flow_spell()
         if st.session_state.form_config_flow_spell == "config settings - spell":
@@ -260,11 +261,12 @@ class CONFIG_FORM (form_sr.FORM):
                             st.session_state.val_inpt_spell_dstnc = st.session_state.inpt_spell_dstnc
                         self.write_ini_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset all settings"):
-                    os.remove(self.dict_config.get("ini_config"))
-                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
-                    config_def_data = self.load_ini_config()
+                if cols_config[1].form_submit_button("Reset"):
+                    config_def_data = self.load_ini_config_def()
+                    config_data = self.load_ini_config()
+                    config_data["spellcheck"]["distance"] = config_def_data["spellcheck"]["distance"]
                     st.session_state.val_inpt_spell_dstnc = config_def_data["spellcheck"]["distance"]
+                    self.write_ini_config(config_data)
                     st.rerun()
         self.set_config_flow_dredge()
         if st.session_state.form_config_flow_dredge == "config settings - dredge":
@@ -353,13 +355,16 @@ class CONFIG_FORM (form_sr.FORM):
                             st.session_state.val_inpt_drdg_max_wbpgs = st.session_state.inpt_drdg_max_wbpgs
                         self.write_ini_config(config_data)
                         st.rerun()
-                if cols_config[1].form_submit_button("Reset all settings"):
-                    os.remove(self.dict_config.get("ini_config"))
-                    shutil.copy(self.dict_config.get("ini_config_def"), self.dict_config.get("ini_config"))
-                    config_def_data = self.load_ini_config()
+                if cols_config[1].form_submit_button("Reset"):
+                    config_def_data = self.load_ini_config_def()
+                    config_data = self.load_ini_config()
+                    config_data["dredge"]["result_distance"] = config_def_data["dredge"]["result_distance"]
+                    config_data["dredge"]["response_timeout"] = config_def_data["dredge"]["response_timeout"]
+                    config_data["dredge"]["max_web_pages"] = config_def_data["dredge"]["max_web_pages"]
                     st.session_state.val_inpt_drdge_dstnc = config_def_data["dredge"]["result_distance"]
                     st.session_state.val_inpt_drdg_timeout = config_def_data["dredge"]["response_timeout"]
                     st.session_state.val_inpt_drdg_max_wbpgs = config_def_data["dredge"]["max_web_pages"]
+                    self.write_ini_config(config_data)
                     st.rerun()
         self.set_config_flow_shw_msgs() # now inited in if.. at top
         if st.session_state.form_config_flow_shw_msgs == "config settings - show messages":
@@ -393,6 +398,7 @@ class CONFIG_FORM (form_sr.FORM):
                     st.markdown(":orange[(Current: ]" + "Showing" + ":orange[)]  ")
                 else:
                     st.markdown(":orange[(Current: ]" + "Not showing" + ":orange[)]  ")
+                st.divider()
                 cols_config = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_config[0].form_submit_button("Save"):
                     if st.session_state.inpt_shw_drdg_msg:
