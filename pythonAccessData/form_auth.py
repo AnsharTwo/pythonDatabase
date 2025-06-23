@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
+import smtplib
 import form_sr
 import sidebar
 
@@ -33,6 +34,8 @@ class LOGIN(form_sr.FORM):
         return authent
 
     def login_to_app(self):
+        if "show_frgt_psswd" not in st.session_state:
+            st.session_state.show_frgt_psswd = True
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -44,6 +47,7 @@ class LOGIN(form_sr.FORM):
                 st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
             if "ss_dat_loc_urls" not in st.session_state:
                 st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
+            st.session_state.show_frgt_psswd = False
             sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
             sbar.init_sidebars()
             authenticator.logout(location="sidebar")
@@ -54,3 +58,23 @@ class LOGIN(form_sr.FORM):
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
             st.error('Username/password is incorrect')
+        if st.session_state.show_frgt_psswd:
+            chkbx_frgt_pwd = st.checkbox("Forgot password?")
+            if chkbx_frgt_pwd:
+                try:
+                    username_forgot_pw, email_forgot_password, random_password = authenticator.forgot_password(location="main")
+                    if username_forgot_pw:
+                        st.success('New password sent securely')
+                        hashed_password = stauth.Hasher.hash(random_password)
+                        auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
+                        self.write_auth_obj(auth_config)
+                        # TODO - send the email with the new password
+                        print("pwd " + random_password)
+                    elif username_forgot_pw == False:
+                        st.error('Username not found')
+                except Exception as e:
+                    st.error(e)
+
+        # if st.button("generate pwd"):
+        #     hashed_passwords = stauth.Hasher.hash("")
+        #     print("hash pwd is " + hashed_passwords)
