@@ -3,7 +3,8 @@ import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import form_sr
 import sidebar
 
@@ -83,17 +84,35 @@ class LOGIN(form_sr.FORM):
         #     print("hash pwd is " + hashed_passwords)
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
-        msg = EmailMessage()
-        msg.set_content(self.dict_frgt_pwd_txts.get("frgt_pwd_email_msg").format(
-                                                    name=auth_config["credentials"]["usernames"][username_forgot_pw]["name"],
-                                                    pwd=str(random_password)))
-        msg['Subject'] = 'Your password reset from Librotate'
-        msg['From'] = self.LIBROTATE_ADMIN_EMAIL
-        msg['To'] = auth_config["credentials"]["usernames"][username_forgot_pw]["email"]
-        s = smtplib.SMTP('localhost') # Send the message via our own SMTP server.
-        #s.connect(host="localhost")
-        s.send_message(msg)
-        s.quit()
+        message = MIMEMultipart()
+        message['From'] = "robert.annexe@gmail.com"
+        message['To'] = "robert.tomsett@btinternet.com"
+        message['Subject'] = "Forgot password - your new password from Librotate"
+        body = "This is the email body."
+        message.attach(MIMEText(body, 'plain'))
+        server = None
+        try:
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Or use smtp.gmail.com for port 587 and .starttls()
+            server.login("robert.annexe@gmail.com", "rhnf fvyl wmsk fxit")
+            server.sendmail("robert.annexe@gmail.com", "robert.tomsett@btinternet.com", message.as_string())
+            print("Email sent successfully!")
+        except Exception as ex:
+            st.write("Error sending email: " + str(ex))
+        finally:
+            server.quit()
+
+
+        # msg = EmailMessage()
+        # msg.set_content(self.dict_frgt_pwd_txts.get("frgt_pwd_email_msg").format(
+        #                                             name=auth_config["credentials"]["usernames"][username_forgot_pw]["name"],
+        #                                             pwd=str(random_password)))
+        # msg['Subject'] = 'Your password reset from Librotate'
+        # msg['From'] = self.LIBROTATE_ADMIN_EMAIL
+        # msg['To'] = auth_config["credentials"]["usernames"][username_forgot_pw]["email"]
+        # s = smtplib.SMTP('localhost') # Send the message via our own SMTP server.
+        # #s.connect(host="localhost")
+        # s.send_message(msg)
+        # s.quit()
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
