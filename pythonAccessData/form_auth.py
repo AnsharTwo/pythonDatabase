@@ -5,6 +5,12 @@ from yaml.loader import SafeLoader
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+#################################
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+#################################
+
 import form_sr
 import sidebar
 
@@ -64,14 +70,25 @@ class LOGIN(form_sr.FORM):
             chkbx_frgt_pwd = st.checkbox("Forgot password?")
             if chkbx_frgt_pwd:
                 try:
+
+                    ########################
+                    # BLOCK_SIZE = 32  # Bytes
+                    # key = 'abcdefghijklmnop'
+                    # cipher = AES.new(key.encode('utf8'), AES.MODE_ECB)
+                    # msg = cipher.encrypt(pad(b'myPassword99', BLOCK_SIZE))
+                    # print("encrypted is: " + msg.hex())
+                    # decipher = AES.new(key.encode('utf8'), AES.MODE_ECB)
+                    # msg_dec = decipher.decrypt(msg)
+                    # print("decrypted is:")
+                    # print(unpad(msg_dec, BLOCK_SIZE))
+                    ########################
+
                     st.write(self.dict_frgt_pwd_txts.get("frgt_pwd_info"))
                     username_forgot_pw, email_forgot_password, random_password = authenticator.forgot_password(location="main")
                     if username_forgot_pw:
-                        st.success('New password sent securely')
                         hashed_password = stauth.Hasher.hash(random_password)
                         auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
                         self.write_auth_obj(auth_config)
-                        # TODO - send the email with the new password
                         print("pwd " + random_password) # TEMP ####################################
                         self.send_pwd_msg(auth_config, username_forgot_pw, random_password)
                     elif username_forgot_pw == False:
@@ -79,40 +96,26 @@ class LOGIN(form_sr.FORM):
                 except Exception as e:
                     st.error(e)
 
-        # if st.button("generate pwd"):
-        #     hashed_passwords = stauth.Hasher.hash("")
-        #     print("hash pwd is " + hashed_passwords)
-
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
-        message['From'] = "robert.annexe@gmail.com"
-        message['To'] = "robert.tomsett@btinternet.com"
+        message['From'] = self.LIBROTATE_ADMIN_EMAIL
+        message['To'] = auth_config["credentials"]["usernames"][username_forgot_pw]["email"]
         message['Subject'] = "Forgot password - your new password from Librotate"
-        body = "This is the email body."
+        body = self.dict_frgt_pwd_txts.get("frgt_pwd_email_msg").format(
+                                                     name=auth_config["credentials"]["usernames"][username_forgot_pw]["name"],
+                                                     pwd=str(random_password))
         message.attach(MIMEText(body, 'plain'))
         server = None
         try:
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Or use smtp.gmail.com for port 587 and .starttls()
-            server.login("robert.annexe@gmail.com", "rhnf fvyl wmsk fxit")
-            server.sendmail("robert.annexe@gmail.com", "robert.tomsett@btinternet.com", message.as_string())
-            print("Email sent successfully!")
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Or can use smtp.gmail.com for port 587 and .starttls()
+            server.login(self.LIBROTATE_ADMIN_EMAIL, "oepp zezu xudh cxqp") # THIS PASSWORD IS PROTECTED BY MFA
+            server.sendmail(self.LIBROTATE_ADMIN_EMAIL,
+                            auth_config["credentials"]["usernames"][username_forgot_pw]["email"], message.as_string())
+            st.success('New password sent securely')
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
         finally:
             server.quit()
-
-
-        # msg = EmailMessage()
-        # msg.set_content(self.dict_frgt_pwd_txts.get("frgt_pwd_email_msg").format(
-        #                                             name=auth_config["credentials"]["usernames"][username_forgot_pw]["name"],
-        #                                             pwd=str(random_password)))
-        # msg['Subject'] = 'Your password reset from Librotate'
-        # msg['From'] = self.LIBROTATE_ADMIN_EMAIL
-        # msg['To'] = auth_config["credentials"]["usernames"][username_forgot_pw]["email"]
-        # s = smtplib.SMTP('localhost') # Send the message via our own SMTP server.
-        # #s.connect(host="localhost")
-        # s.send_message(msg)
-        # s.quit()
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
@@ -124,4 +127,4 @@ class LOGIN(form_sr.FORM):
                               \r\rThe Librotate team."""
     }
 
-    LIBROTATE_ADMIN_EMAIL = "robert.tomsett@btinternet.com"
+    LIBROTATE_ADMIN_EMAIL = "no.reply.librotate@gmail.com"
