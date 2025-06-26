@@ -5,12 +5,11 @@ from yaml.loader import SafeLoader
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-#################################
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
-#################################
-
+from Cryptodome.Cipher import AES
+from Cryptodome.Util.Padding import pad, unpad
+import base64
+import os
+from dotenv import load_dotenv
 import form_sr
 import sidebar
 
@@ -70,26 +69,12 @@ class LOGIN(form_sr.FORM):
             chkbx_frgt_pwd = st.checkbox("Forgot password?")
             if chkbx_frgt_pwd:
                 try:
-
-                    ########################
-                    # BLOCK_SIZE = 32  # Bytes
-                    # key = 'abcdefghijklmnop'
-                    # cipher = AES.new(key.encode('utf8'), AES.MODE_ECB)
-                    # msg = cipher.encrypt(pad(b'myPassword99', BLOCK_SIZE))
-                    # print("encrypted is: " + msg.hex())
-                    # decipher = AES.new(key.encode('utf8'), AES.MODE_ECB)
-                    # msg_dec = decipher.decrypt(msg)
-                    # print("decrypted is:")
-                    # print(unpad(msg_dec, BLOCK_SIZE))
-                    ########################
-
                     st.write(self.dict_frgt_pwd_txts.get("frgt_pwd_info"))
                     username_forgot_pw, email_forgot_password, random_password = authenticator.forgot_password(location="main")
                     if username_forgot_pw:
                         hashed_password = stauth.Hasher.hash(random_password)
                         auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
                         self.write_auth_obj(auth_config)
-                        print("pwd " + random_password) # TEMP ####################################
                         self.send_pwd_msg(auth_config, username_forgot_pw, random_password)
                     elif username_forgot_pw == False:
                         st.error('Username not found')
@@ -98,7 +83,7 @@ class LOGIN(form_sr.FORM):
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
-        message['From'] = self.LIBROTATE_ADMIN_EMAIL
+        message['From'] = self.__Load_lib_adr()
         message['To'] = auth_config["credentials"]["usernames"][username_forgot_pw]["email"]
         message['Subject'] = "Forgot password - your new password from Librotate"
         body = self.dict_frgt_pwd_txts.get("frgt_pwd_email_msg").format(
@@ -107,15 +92,40 @@ class LOGIN(form_sr.FORM):
         message.attach(MIMEText(body, 'plain'))
         server = None
         try:
+            ########################
+            #enc_gmail_server_pwd = self.encrypt(gmail_server_pwd)
+            ########################
             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Or can use smtp.gmail.com for port 587 and .starttls()
-            server.login(self.LIBROTATE_ADMIN_EMAIL, "oepp zezu xudh cxqp") # THIS PASSWORD IS PROTECTED BY MFA
-            server.sendmail(self.LIBROTATE_ADMIN_EMAIL,
+            server.login(self.__Load_lib_adr(), self.decrypt(self.__Load_lib_server_creds()))  # THIS ACCOUNT IS ALSO PROTECTED BY MFA
+            server.sendmail(self.__Load_lib_adr(),
                             auth_config["credentials"]["usernames"][username_forgot_pw]["email"], message.as_string())
             st.success('New password sent securely')
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
         finally:
             server.quit()
+
+    # def encrypt(self, text):
+    #     text = str(text).encode("utf-8")
+    #     E_CIPHER = AES.new(self.__Load_s_key(), AES.MODE_ECB)
+    #     return base64.b64encode(E_CIPHER.encrypt(pad(text, self.BLOCK_SIZE))).decode("utf-8")
+
+    def decrypt(self, encoded_text):
+        D_CIPHER = AES.new(self.__Load_s_key(), AES.MODE_ECB)
+        return unpad(D_CIPHER.decrypt(base64.b64decode(encoded_text)), self.BLOCK_SIZE).decode(
+            "utf-8")
+
+    def __Load_s_key(self):
+        load_dotenv()
+        return str(os.getenv("FRGT_PSSWRD_SRVR_CRYPT_KEY")).encode("utf-8")
+
+    def __Load_lib_server_creds(self):
+        load_dotenv()
+        return os.getenv("FRGT_PSSWD_SRVR_PSSWRD")
+
+    def __Load_lib_adr(self):
+        load_dotenv()
+        return os.getenv("LIBROTATE_ADMIN_EMAIL")
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
@@ -127,4 +137,4 @@ class LOGIN(form_sr.FORM):
                               \r\rThe Librotate team."""
     }
 
-    LIBROTATE_ADMIN_EMAIL = "no.reply.librotate@gmail.com"
+    BLOCK_SIZE = 32  # Bytes
