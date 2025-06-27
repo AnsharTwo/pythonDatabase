@@ -6,7 +6,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from Cryptodome.Cipher import AES
-from Cryptodome.Util.Padding import pad, unpad
+from Cryptodome.Util.Padding import unpad
 import base64
 import os
 from dotenv import load_dotenv
@@ -92,10 +92,7 @@ class LOGIN(form_sr.FORM):
         message.attach(MIMEText(body, 'plain'))
         server = None
         try:
-            ########################
-            #enc_gmail_server_pwd = self.encrypt(gmail_server_pwd)
-            ########################
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Or can use smtp.gmail.com for port 587 and .starttls()
+            server = smtplib.SMTP_SSL(self.__Load_lib_server_nm(), self.__Load_lib_server_prt())  # Or can use smtp.gmail.com for port 587 and .starttls()
             server.login(self.__Load_lib_adr(), self.decrypt(self.__Load_lib_server_creds()))  # THIS ACCOUNT IS ALSO PROTECTED BY MFA
             server.sendmail(self.__Load_lib_adr(),
                             auth_config["credentials"]["usernames"][username_forgot_pw]["email"], message.as_string())
@@ -104,11 +101,6 @@ class LOGIN(form_sr.FORM):
             st.write("Error sending email: " + str(ex))
         finally:
             server.quit()
-
-    # def encrypt(self, text):
-    #     text = str(text).encode("utf-8")
-    #     E_CIPHER = AES.new(self.__Load_s_key(), AES.MODE_ECB)
-    #     return base64.b64encode(E_CIPHER.encrypt(pad(text, self.BLOCK_SIZE))).decode("utf-8")
 
     def decrypt(self, encoded_text):
         D_CIPHER = AES.new(self.__Load_s_key(), AES.MODE_ECB)
@@ -126,6 +118,14 @@ class LOGIN(form_sr.FORM):
     def __Load_lib_adr(self):
         load_dotenv()
         return os.getenv("LIBROTATE_ADMIN_EMAIL")
+
+    def __Load_lib_server_nm(self):
+        load_dotenv()
+        return os.getenv("LIBROTATE_EMAIL_SERVER")
+
+    def __Load_lib_server_prt(self):
+        load_dotenv()
+        return int(os.getenv("LIBROTATE_EMAIL_SERVER_PORT"))
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
