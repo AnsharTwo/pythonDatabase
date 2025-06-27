@@ -6,5 +6,5 @@ streamlit-authenticator
 openpyxl
 pandasql
 bs4
-Crypto
+Cryptodome
 AES
