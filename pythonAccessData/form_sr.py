@@ -94,6 +94,13 @@ class FORM:
                                      to continue."""
     }
 
+    dict_chng_pwd_err_msgs = {
+        "valid_curr_pwd": "Enter current password.",
+        "valid_new_pwd": """New password must be between 8 and 20 characters long, contain at least: one uppercase letter,
+                            one lowercase letter, one number, and one special character from the set @$!%*?&.""",
+        "valid_conf_new_pwd": "New and confirmed passwords don't match."
+    }
+
     dict_pwd_chng = {
         "length": 16
     }
