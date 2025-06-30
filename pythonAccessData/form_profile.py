@@ -16,10 +16,6 @@ class PROF_FORM (form_sr.FORM):
         "tkinter_close_msg": "PLEASE CLOSE THIS WINDOW AFTER YOU HAVE FINISHED SELECTING YOUR DATA SOURCE FILE."
     }
 
-    dict_pwd_chng = {
-        "length": 16
-    }
-
     def set_prof_flow_data_locs(self):
         st.session_state.form_prof_flow = "profile settings - data locations"
 

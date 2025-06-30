@@ -94,6 +94,10 @@ class FORM:
                                      to continue."""
     }
 
+    dict_pwd_chng = {
+        "length": 16
+    }
+
     def get_data_source(self):
         dbPath = st.session_state.ss_dat_loc_annots
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)

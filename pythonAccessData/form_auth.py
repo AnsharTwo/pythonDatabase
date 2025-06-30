@@ -43,6 +43,16 @@ class LOGIN(form_sr.FORM):
     def login_to_app(self):
         if "show_frgt_psswd" not in st.session_state:
             st.session_state.show_frgt_psswd = True
+
+        if "pwd_current" not in st.session_state:
+            st.session_state.pwd_current = ""
+        if "pwd_new" not in st.session_state:
+            st.session_state.pwd_new = ""
+        if "pwd_new_confirm" not in st.session_state:
+            st.session_state.pwd_new_confirm = ""
+        if "pwd_tmp_changed" not in st.session_state:
+            st.session_state.pwd_tmp_changed = False
+
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -55,8 +65,20 @@ class LOGIN(form_sr.FORM):
             if "ss_dat_loc_urls" not in st.session_state:
                 st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
             st.session_state.show_frgt_psswd = False
-            sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
-            sbar.init_sidebars()
+
+            if not st.session_state.pwd_tmp_changed:
+                sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
+                sbar.init_sidebars()
+
+            else:
+                if self.chng_tmp_pwd(authenticator, auth_config,
+                                  auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
+                    st.session_state.pwd_tmp_changed = False
+                    st.session_state.pwd_current = ""
+                    st.session_state.pwd_new = ""
+                    st.session_state.pwd_new_confirm = ""
+                    st.rerun()
+
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
                 st.session_state.clear()
@@ -80,6 +102,40 @@ class LOGIN(form_sr.FORM):
                         st.error('Username not found')
                 except Exception as e:
                     st.error(e)
+
+
+
+
+    def chng_tmp_pwd(self, authenticator, auth_config, pwd_hashed_curr):
+        st.markdown(f"**:blue[Change one-time password]**")
+        st.session_state.pwd_current = st.text_input("Current password", type="password",
+                                                     max_chars=self.dict_pwd_chng.get("length"))
+        st.session_state.pwd_new = st.text_input("New password", type="password",
+                                                 max_chars=self.dict_pwd_chng.get("length"))
+        st.session_state.pwd_new_confirm = st.text_input("Confirm new password", type="password",
+                                                         max_chars=self.dict_pwd_chng.get("length"))
+        btn_chng_pwd = st.button("Change")
+        if btn_chng_pwd:
+            can_change = True
+            if not stauth.Hasher.check_pw(st.session_state.pwd_current, pwd_hashed_curr):
+                st.markdown(":red[Enter current password.]")
+                can_change = False
+            elif not authenticator.authentication_controller.validator.validate_password(st.session_state.pwd_new):
+                st.markdown(
+                    """:red[New password must be between 8 and 20 characters long, contain at least: one uppercase letter,
+                     one lowercase letter, one number, and one special chararcter from the set @$!%*?&.]""")
+                can_change = False
+            elif st.session_state.pwd_new != st.session_state.pwd_new_confirm:
+                st.markdown(":red[New and confirmed passwords don't match.]")
+                can_change = False
+            if can_change:
+                hashed_password = stauth.Hasher.hash(st.session_state.pwd_new)
+                auth_config["credentials"]["usernames"][st.session_state.username]["password"] = hashed_password
+                self.write_auth_obj(auth_config)
+                return True
+
+
+
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
