@@ -98,7 +98,8 @@ class FORM:
         "valid_curr_pwd": "Enter current password.",
         "valid_new_pwd": """New password must be between 8 and 20 characters long, contain at least: one uppercase letter,
                             one lowercase letter, one number, and one special character from the set @$!%*?&.""",
-        "valid_conf_new_pwd": "New and confirmed passwords don't match."
+        "valid_conf_new_pwd": "New and confirmed passwords don't match.",
+        "valid_uniq_new_pwd": "New password must be different from old."
     }
 
     dict_pwd_chng = {

@@ -133,6 +133,9 @@ class PROF_FORM (form_sr.FORM):
                                 st.markdown(
                                     ":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                                 can_change = False
+                            elif st.session_state.pwd_new == st.session_state.pwd_current:
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
+                                can_change = False
                             elif st.session_state.pwd_new != st.session_state.pwd_new_confirm:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                                 can_change = False

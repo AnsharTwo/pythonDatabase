@@ -62,18 +62,9 @@ class LOGIN(form_sr.FORM):
                 st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
             if "ss_dat_loc_urls" not in st.session_state:
                 st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
+            if str(config_data["forgot_password"]["one_time_login"]) == "1":
+                st.session_state.pwd_tmp_changed = True
             st.session_state.show_frgt_psswd = False
-
-            #######################
-            # if "ran_1" not in st.session_state:
-            #     st.session_state.ran_1 = False
-            #
-            # if not st.session_state.ran_1:
-            #     st.session_state.ran_1 = True
-            #     st.session_state.pwd_tmp_changed = True
-                ######################
-
-            # TODO - load is-one-time login from file here and assign ss below to it
             if not st.session_state.pwd_tmp_changed:
                 sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
                 sbar.init_sidebars()
@@ -81,7 +72,8 @@ class LOGIN(form_sr.FORM):
                 if self.chng_tmp_pwd(authenticator, auth_config,
                                   auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
                     st.session_state.pwd_tmp_changed = False
-                    # TODO - write is-no longer-one-time login to file
+                    config_data["forgot_password"]["one_time_login"] = "0"
+                    self.write_ini_config(config_data)
                     st.session_state.pwd_current = "" # these 3 ss are used in change password too.
                     st.session_state.pwd_new = ""
                     st.session_state.pwd_new_confirm = ""
@@ -105,6 +97,9 @@ class LOGIN(form_sr.FORM):
                         auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
                         self.write_auth_obj(auth_config)
                         self.send_pwd_msg(auth_config, username_forgot_pw, random_password)
+                        config_data = self.load_ini_config()
+                        config_data["forgot_password"]["one_time_login"] = "1"
+                        self.write_ini_config(config_data)
                     elif username_forgot_pw == False:
                         st.error('Username not found')
                 except Exception as e:
@@ -173,6 +168,9 @@ class LOGIN(form_sr.FORM):
             elif not authenticator.authentication_controller.validator.validate_password(st.session_state.pwd_new):
                 st.markdown(
                     ":red["  + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
+                can_change = False
+            elif st.session_state.pwd_new == st.session_state.pwd_current:
+                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
                 can_change = False
             elif st.session_state.pwd_new != st.session_state.pwd_new_confirm:
                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
