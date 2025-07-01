@@ -43,6 +43,14 @@ class LOGIN(form_sr.FORM):
     def login_to_app(self):
         if "show_frgt_psswd" not in st.session_state:
             st.session_state.show_frgt_psswd = True
+        if "pwd_current" not in st.session_state:
+            st.session_state.pwd_current = ""
+        if "pwd_new" not in st.session_state:
+            st.session_state.pwd_new = ""
+        if "pwd_new_confirm" not in st.session_state:
+            st.session_state.pwd_new_confirm = ""
+        if "pwd_tmp_changed" not in st.session_state:
+            st.session_state.pwd_tmp_changed = False
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -54,9 +62,22 @@ class LOGIN(form_sr.FORM):
                 st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
             if "ss_dat_loc_urls" not in st.session_state:
                 st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
+            if str(config_data["forgot_password"]["one_time_login"]) == "1":
+                st.session_state.pwd_tmp_changed = True
             st.session_state.show_frgt_psswd = False
-            sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
-            sbar.init_sidebars()
+            if not st.session_state.pwd_tmp_changed:
+                sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
+                sbar.init_sidebars()
+            else:
+                if self.chng_tmp_pwd(authenticator, auth_config,
+                                  auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
+                    st.session_state.pwd_tmp_changed = False
+                    config_data["forgot_password"]["one_time_login"] = "0"
+                    self.write_ini_config(config_data)
+                    st.session_state.pwd_current = "" # these 3 ss are used in change password too.
+                    st.session_state.pwd_new = ""
+                    st.session_state.pwd_new_confirm = ""
+                    st.rerun()
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
                 st.session_state.clear()
@@ -76,6 +97,9 @@ class LOGIN(form_sr.FORM):
                         auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
                         self.write_auth_obj(auth_config)
                         self.send_pwd_msg(auth_config, username_forgot_pw, random_password)
+                        config_data = self.load_ini_config()
+                        config_data["forgot_password"]["one_time_login"] = "1"
+                        self.write_ini_config(config_data)
                     elif username_forgot_pw == False:
                         st.error('Username not found')
                 except Exception as e:
@@ -126,6 +150,36 @@ class LOGIN(form_sr.FORM):
     def __Load_lib_server_prt(self):
         load_dotenv()
         return int(os.getenv("LIBROTATE_EMAIL_SERVER_PORT"))
+
+    def chng_tmp_pwd(self, authenticator, auth_config, pwd_hashed_curr):
+        st.markdown(f"**:blue[Change one-time password]**")
+        st.session_state.pwd_current = st.text_input("Current password", type="password",
+                                                     max_chars=self.dict_pwd_chng.get("length"))
+        st.session_state.pwd_new = st.text_input("New password", type="password",
+                                                 max_chars=self.dict_pwd_chng.get("length"))
+        st.session_state.pwd_new_confirm = st.text_input("Confirm new password", type="password",
+                                                         max_chars=self.dict_pwd_chng.get("length"))
+        btn_chng_pwd = st.button("Change")
+        if btn_chng_pwd:
+            can_change = True
+            if not stauth.Hasher.check_pw(st.session_state.pwd_current, pwd_hashed_curr):
+                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_curr_pwd") + "]")
+                can_change = False
+            elif not authenticator.authentication_controller.validator.validate_password(st.session_state.pwd_new):
+                st.markdown(
+                    ":red["  + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
+                can_change = False
+            elif st.session_state.pwd_new == st.session_state.pwd_current:
+                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
+                can_change = False
+            elif st.session_state.pwd_new != st.session_state.pwd_new_confirm:
+                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
+                can_change = False
+            if can_change:
+                hashed_password = stauth.Hasher.hash(st.session_state.pwd_new)
+                auth_config["credentials"]["usernames"][st.session_state.username]["password"] = hashed_password
+                self.write_auth_obj(auth_config)
+                return True
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address

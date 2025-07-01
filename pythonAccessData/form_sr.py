@@ -94,6 +94,18 @@ class FORM:
                                      to continue."""
     }
 
+    dict_chng_pwd_err_msgs = {
+        "valid_curr_pwd": "Enter current password.",
+        "valid_new_pwd": """New password must be between 8 and 20 characters long, contain at least: one uppercase letter,
+                            one lowercase letter, one number, and one special character from the set @$!%*?&.""",
+        "valid_conf_new_pwd": "New and confirmed passwords don't match.",
+        "valid_uniq_new_pwd": "New password must be different from old."
+    }
+
+    dict_pwd_chng = {
+        "length": 16
+    }
+
     def get_data_source(self):
         dbPath = st.session_state.ss_dat_loc_annots
         sourceData = db.DATA_SOURCE(self.connStr % dbPath)

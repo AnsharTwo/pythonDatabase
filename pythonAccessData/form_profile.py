@@ -16,10 +16,6 @@ class PROF_FORM (form_sr.FORM):
         "tkinter_close_msg": "PLEASE CLOSE THIS WINDOW AFTER YOU HAVE FINISHED SELECTING YOUR DATA SOURCE FILE."
     }
 
-    dict_pwd_chng = {
-        "length": 16
-    }
-
     def set_prof_flow_data_locs(self):
         st.session_state.form_prof_flow = "profile settings - data locations"
 
@@ -131,15 +127,17 @@ class PROF_FORM (form_sr.FORM):
                         if btn_chng_pwd:
                             can_change = True
                             if not stauth.Hasher.check_pw(st.session_state.pwd_current, pwd_hashed_curr):
-                                st.markdown(":red[Enter current password.]")
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_curr_pwd") + "]")
                                 can_change = False
                             elif not authent.authentication_controller.validator.validate_password(st.session_state.pwd_new):
                                 st.markdown(
-                                    """:red[New password must be between 8 and 20 characters long, contain at least: one uppercase letter,
-                                     one lowercase letter, one number, and one special chararcter from the set @$!%*?&.]""")
+                                    ":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
+                                can_change = False
+                            elif st.session_state.pwd_new == st.session_state.pwd_current:
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
                                 can_change = False
                             elif st.session_state.pwd_new != st.session_state.pwd_new_confirm:
-                                st.markdown(":red[New and confirmed passwords don't match.]")
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                                 can_change = False
                             if can_change:
                                 hashed_password = stauth.Hasher.hash(st.session_state.pwd_new)
