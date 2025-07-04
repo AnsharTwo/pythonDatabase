@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit_authenticator as stauth
 from tkinter import filedialog as fd
 import tkinter as tk
+import email_validator
 import form_sr
 import form_auth
 
@@ -10,6 +11,12 @@ class PROF_FORM (form_sr.FORM):
     def __init__(self, authenticator):
         super().__init__()
         self.authenticator = authenticator
+
+    dict_user_details = {
+        "name": 75,
+        "email_addr": 75,
+        "confirm_email_addr": 75
+    }
 
     dict_data_locs = {
         "librotate_close_msg": "NOTE: Please quit the background popup window after you have selected your file.",
@@ -21,6 +28,9 @@ class PROF_FORM (form_sr.FORM):
 
     def set_prof_flow_chang_pwd(self):
         st.session_state.form_prof_flow = "profile settings - change password"
+
+    def set_prof_flow_updt_usr(self):
+        st.session_state.form_prof_flow = "profile settings - update user details"
 
     def edt_prfl(self):
         if "form_prof_flow" not in st.session_state:
@@ -39,6 +49,12 @@ class PROF_FORM (form_sr.FORM):
             st.session_state.loc_db_bk_chng = False
         if "val_shw_data_loc_msg" not in st.session_state:
             st.session_state.val_shw_data_loc_msg = False
+        if "usr_name" not in st.session_state:
+            st.session_state.usr_name = ""
+        if "usr_email" not in st.session_state:
+            st.session_state.usr_email = ""
+        if "usr_conf_email" not in st.session_state:
+            st.session_state.usr_conf_email = ""
         authent = self.authenticator
         prf_auth_obj = form_auth.LOGIN()
         st.header("Manage Profile")
@@ -145,6 +161,38 @@ class PROF_FORM (form_sr.FORM):
                                 prf_auth_obj.write_auth_obj(auth_config)
                                 st.session_state.pwd_changed = True
                                 st.rerun()
+        self.set_prof_flow_updt_usr()
+        if st.session_state.form_prof_flow == "profile settings - update user details":
+            if st.session_state["authentication_status"]:
+                    with st.form("Update details"):
+                        st.markdown(f"**:blue[Update details]**")
+                        st.session_state.usr_name = st.text_input("Name",
+                                                                     max_chars=self.dict_user_details.get("name"))
+                        st.session_state.usr_email = st.text_input("Email address",
+                                                                     max_chars=self.dict_user_details.get("email_addr"))
+                        st.session_state.usr_conf_email = st.text_input("Confirm email address",
+                                                                     max_chars=self.dict_user_details.get("confirm_email_addr"))
+                        btn_updt_usr = st.form_submit_button("Update")
+                        if btn_updt_usr:
+                            can_change = True
+                            if st.session_state.usr_name == "":
+                                st.markdown(":red[Enter a name.]")
+                                can_change = False
+                            elif st.session_state.usr_email == "":
+                                st.markdown(":red[Enter your email address.]")
+                                can_change = False
+                            elif not self.is_valid_eml_addr(st.session_state.usr_email):
+                                st.markdown(":red[Enter a valid email address.]")
+                                can_change = False
+                            elif st.session_state.usr_conf_email == "":
+                                st.markdown(":red[Enter your confirmation email address.]")
+                                can_change = False
+                            elif not self.is_valid_eml_addr(st.session_state.usr_conf_email):
+                                st.markdown(":red[Enter a valid confirmation email address.]")
+                                can_change = False
+                            elif st.session_state.usr_email != st.session_state.usr_conf_email:
+                                st.markdown(":red[email and confirmation email addresses do not match.]")
+                                can_change = False
 
     @st.dialog("When selecting your data source file", width="small")
     def __data_loc_modal(self):
@@ -161,3 +209,12 @@ class PROF_FORM (form_sr.FORM):
     def ds_file_dialog(self, file_brand, file_type):
         input_path = fd.askopenfilename(title="Select a data location", filetypes=[(file_brand, file_type)])
         return str(input_path)
+
+    def is_valid_eml_addr(self, email_addrr):
+        val_em = False
+        try:
+            val_em = email_validator.validate_email(email_addrr)
+        except Exception as e:
+            st.write(":gray[" + str(e) + "]")
+        finally:
+            return val_em
