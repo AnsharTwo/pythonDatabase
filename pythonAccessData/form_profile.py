@@ -164,11 +164,25 @@ class PROF_FORM (form_sr.FORM):
         self.set_prof_flow_updt_usr()
         if st.session_state.form_prof_flow == "profile settings - update user details":
             if st.session_state["authentication_status"]:
+                # TODO - continue the below
+                if st.session_state.pwd_changed:
+                    with st.form("Updated user details"):
+                        st.success("Password has been changed.")
+                        # st.session_state.pwd_changed = False
+                        # btn_pwd_changed = st.form_submit_button("Done")
+                        # if btn_pwd_changed:
+                        #     st.rerun()
+                else:
+                    auth_config = prf_auth_obj.create_auth_ojb()
                     with st.form("Update details"):
                         st.markdown(f"**:blue[Update details]**")
                         st.session_state.usr_name = st.text_input("Name",
-                                                                     max_chars=self.dict_user_details.get("name"))
+                                                                  value=auth_config["credentials"]["usernames"][
+                                                                      st.session_state.username]["name"],
+                                                                  max_chars=self.dict_user_details.get("name"))
                         st.session_state.usr_email = st.text_input("Email address",
+                                                                   value=auth_config["credentials"]["usernames"][
+                                                                       st.session_state.username]["email"],
                                                                      max_chars=self.dict_user_details.get("email_addr"))
                         st.session_state.usr_conf_email = st.text_input("Confirm email address",
                                                                      max_chars=self.dict_user_details.get("confirm_email_addr"))
@@ -193,6 +207,13 @@ class PROF_FORM (form_sr.FORM):
                             elif st.session_state.usr_email != st.session_state.usr_conf_email:
                                 st.markdown(":red[email and confirmation email addresses do not match.]")
                                 can_change = False
+                            # TODO - check is email exists with other users
+                            if can_change:
+                                # TODO - continue from here
+                                # auth_config["credentials"]["usernames"][st.session_state.username]["password"] = hashed_password
+                                # prf_auth_obj.write_auth_obj(auth_config)
+                                # st.session_state.pwd_changed = True
+                                st.rerun()
 
     @st.dialog("When selecting your data source file", width="small")
     def __data_loc_modal(self):
