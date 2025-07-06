@@ -55,6 +55,8 @@ class PROF_FORM (form_sr.FORM):
             st.session_state.usr_email = ""
         if "usr_conf_email" not in st.session_state:
             st.session_state.usr_conf_email = ""
+            if "usr_dtls_changed" not in st.session_state:
+                st.session_state.usr_dtls_changed = False
         authent = self.authenticator
         prf_auth_obj = form_auth.LOGIN()
         st.header("Manage Profile")
@@ -164,14 +166,13 @@ class PROF_FORM (form_sr.FORM):
         self.set_prof_flow_updt_usr()
         if st.session_state.form_prof_flow == "profile settings - update user details":
             if st.session_state["authentication_status"]:
-                # TODO - continue the below
-                if st.session_state.pwd_changed:
+                if st.session_state.usr_dtls_changed:
                     with st.form("Updated user details"):
-                        st.success("Password has been changed.")
-                        # st.session_state.pwd_changed = False
-                        # btn_pwd_changed = st.form_submit_button("Done")
-                        # if btn_pwd_changed:
-                        #     st.rerun()
+                        st.success("Your profile details has been updated.")
+                        st.session_state.usr_dtls_changed = False
+                        btn_usr_dtls_changed = st.form_submit_button("Done")
+                        if btn_usr_dtls_changed:
+                            st.rerun()
                 else:
                     auth_config = prf_auth_obj.create_auth_ojb()
                     with st.form("Update details"):
@@ -207,12 +208,20 @@ class PROF_FORM (form_sr.FORM):
                             elif st.session_state.usr_email != st.session_state.usr_conf_email:
                                 st.markdown(":red[email and confirmation email addresses do not match.]")
                                 can_change = False
-                            # TODO - check is email exists with other users
+                            else:
+                                for users in auth_config["credentials"]["usernames"]:
+                                    if auth_config["credentials"]["usernames"][
+                                        users]["email"] == st.session_state.usr_email and users != st.session_state.username:
+                                        st.markdown(":red[The email address is already in use. Please specify another email address.]")
+                                        can_change = False
                             if can_change:
-                                # TODO - continue from here
-                                # auth_config["credentials"]["usernames"][st.session_state.username]["password"] = hashed_password
-                                # prf_auth_obj.write_auth_obj(auth_config)
-                                # st.session_state.pwd_changed = True
+                                auth_config["credentials"]["usernames"][
+                                    st.session_state.username]["name"] = st.session_state.usr_name
+                                # TODO - if ss email != auth config email then ask for password. rerun with "you have opted to change email"
+                                auth_config["credentials"]["usernames"][
+                                    st.session_state.username]["email"] = st.session_state.usr_email
+                                prf_auth_obj.write_auth_obj(auth_config)
+                                st.session_state.usr_dtls_changed = True
                                 st.rerun()
 
     @st.dialog("When selecting your data source file", width="small")
