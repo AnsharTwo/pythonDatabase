@@ -55,8 +55,10 @@ class PROF_FORM (form_sr.FORM):
             st.session_state.usr_email = ""
         if "usr_conf_email" not in st.session_state:
             st.session_state.usr_conf_email = ""
-            if "usr_dtls_changed" not in st.session_state:
-                st.session_state.usr_dtls_changed = False
+        if "usr_dtls_changed" not in st.session_state:
+            st.session_state.usr_dtls_changed = False
+        if "usr_dtls_pwd_conf" not in st.session_state:
+            st.session_state.usr_dtls_pwd_conf = False
         authent = self.authenticator
         prf_auth_obj = form_auth.LOGIN()
         st.header("Manage Profile")
@@ -173,6 +175,26 @@ class PROF_FORM (form_sr.FORM):
                         btn_usr_dtls_changed = st.form_submit_button("Done")
                         if btn_usr_dtls_changed:
                             st.rerun()
+                elif st.session_state.usr_dtls_pwd_conf:
+                    with st.form("Enter user details password"):
+                        pwd_hashed_curr = \
+                            auth_config["credentials"]["usernames"][st.session_state.username]["password"]
+                        st.write(":orange[You have opted to change your email address. Please enter your password.]")
+                        usr_dtls_pwd = st.text_input("Enter your plassword", type="password", key="usr_dtls_edt_e3c",
+                                                     max_chars=self.dict_pwd_chng.get("length"))
+                        btn_usr_dtls_submit_pwd = st.form_submit_button("Enter password")
+                        if btn_usr_dtls_submit_pwd:
+                            if not stauth.Hasher.check_pw(usr_dtls_pwd, pwd_hashed_curr):
+                                st.markdown(":red[Enter current password.]")
+                            else:
+                                auth_config["credentials"]["usernames"][
+                                    st.session_state.username]["name"] = st.session_state.usr_name
+                                auth_config["credentials"]["usernames"][
+                                    st.session_state.username]["email"] = st.session_state.usr_email
+                                prf_auth_obj.write_auth_obj(auth_config)
+                                st.session_state.usr_dtls_pwd_conf = False
+                                st.session_state.usr_dtls_changed = True
+                                st.rerun()
                 else:
                     auth_config = prf_auth_obj.create_auth_ojb()
                     with st.form("Update details"):
@@ -215,14 +237,18 @@ class PROF_FORM (form_sr.FORM):
                                         st.markdown(":red[The email address is already in use. Please specify another email address.]")
                                         can_change = False
                             if can_change:
-                                auth_config["credentials"]["usernames"][
-                                    st.session_state.username]["name"] = st.session_state.usr_name
-                                # TODO - if ss email != auth config email then ask for password. rerun with "you have opted to change email"
-                                auth_config["credentials"]["usernames"][
-                                    st.session_state.username]["email"] = st.session_state.usr_email
-                                prf_auth_obj.write_auth_obj(auth_config)
-                                st.session_state.usr_dtls_changed = True
-                                st.rerun()
+                                if auth_config["credentials"]["usernames"][st.session_state.username][
+                                               "email"] != st.session_state.usr_email:
+                                    st.session_state.usr_dtls_pwd_conf = True
+                                    st.rerun()
+                                else:
+                                    auth_config["credentials"]["usernames"][
+                                        st.session_state.username]["name"] = st.session_state.usr_name
+                                    auth_config["credentials"]["usernames"][
+                                        st.session_state.username]["email"] = st.session_state.usr_email
+                                    prf_auth_obj.write_auth_obj(auth_config)
+                                    st.session_state.usr_dtls_changed = True
+                                    st.rerun()
 
     @st.dialog("When selecting your data source file", width="small")
     def __data_loc_modal(self):

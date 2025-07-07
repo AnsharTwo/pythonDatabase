@@ -45,10 +45,6 @@ class CONFIG_FORM (form_sr.FORM):
         }
     }
 
-    dict_pwd_chng = {
-        "length": 16
-    }
-
     def set_config_flow_theme(self):
         st.session_state.form_config_flow_theme = "config settings - theme"
 
