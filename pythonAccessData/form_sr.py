@@ -14,6 +14,7 @@ class FORM:
         "ini_config_usr": "prfs/config_",
         "ini_config_def": "config_def.ini",
         "toml_config": ".streamlit/config.toml",
+        "toml_config_usr": "prfs/config_",
         "toml_config_def": "config_toml.ini"
     }
 

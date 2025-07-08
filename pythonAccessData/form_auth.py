@@ -56,6 +56,8 @@ class LOGIN(form_sr.FORM):
             st.session_state.swapped_ini = False
         if "usrs_ini" not in st.session_state:
             st.session_state.usrs_ini = ""
+        if "usrs_toml" not in st.session_state:
+            st.session_state.usrs_toml = ""
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -66,6 +68,9 @@ class LOGIN(form_sr.FORM):
                 st.session_state.usrs_ini = str(self.dict_config.get("ini_config_usr")) + st.session_state.username + "_.ini"
                 os.remove(self.dict_config.get("ini_config"))
                 shutil.copy(st.session_state.usrs_ini, str(self.dict_config.get("ini_config")))
+                st.session_state.usrs_toml = str(self.dict_config.get("toml_config_usr")) + st.session_state.username + "_.toml"
+                os.remove(self.dict_config.get("toml_config"))
+                shutil.copy(st.session_state.usrs_toml, str(self.dict_config.get("toml_config")))
                 st.session_state.swapped_ini = True
             config_data = self.load_ini_config()
             if "ss_dat_loc_annots" not in st.session_state:
@@ -92,6 +97,8 @@ class LOGIN(form_sr.FORM):
             if st.session_state["authentication_status"] is None:
                 os.remove(st.session_state.usrs_ini)
                 shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
+                os.remove(st.session_state.usrs_toml)
+                shutil.copy(str(self.dict_config.get("toml_config")), st.session_state.usrs_toml)
                 st.session_state.clear()
                 st.rerun()
         elif st.session_state["authentication_status"] is None:
