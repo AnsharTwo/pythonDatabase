@@ -182,8 +182,8 @@ class PROF_FORM (form_sr.FORM):
                         st.write(":orange[You have opted to change your email address. Please enter your password.]")
                         usr_dtls_pwd = st.text_input("Enter your plassword", type="password", key="usr_dtls_edt_e3c",
                                                      max_chars=self.dict_pwd_chng.get("length"))
-                        btn_usr_dtls_submit_pwd = st.form_submit_button("Enter password")
-                        if btn_usr_dtls_submit_pwd:
+                        cols_config_usr_dtls = st.columns(2, gap="small", vertical_alignment="center")
+                        if cols_config_usr_dtls[0].form_submit_button("Enter password"):
                             if not stauth.Hasher.check_pw(usr_dtls_pwd, pwd_hashed_curr):
                                 st.markdown(":red[Enter current password.]")
                             else:
@@ -195,6 +195,9 @@ class PROF_FORM (form_sr.FORM):
                                 st.session_state.usr_dtls_pwd_conf = False
                                 st.session_state.usr_dtls_changed = True
                                 st.rerun()
+                        if cols_config_usr_dtls[1].form_submit_button("Cancel"):
+                            st.session_state.usr_dtls_pwd_conf = False
+                            st.rerun()
                 else:
                     auth_config = prf_auth_obj.create_auth_ojb()
                     with st.form("Update details"):

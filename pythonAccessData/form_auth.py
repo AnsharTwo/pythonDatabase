@@ -9,6 +9,7 @@ from Cryptodome.Cipher import AES
 from Cryptodome.Util.Padding import unpad
 import base64
 import os
+import shutil
 from dotenv import load_dotenv
 import form_sr
 import sidebar
@@ -51,12 +52,21 @@ class LOGIN(form_sr.FORM):
             st.session_state.pwd_new_confirm = ""
         if "pwd_tmp_changed" not in st.session_state:
             st.session_state.pwd_tmp_changed = False
+        if "swapped_ini" not in st.session_state:
+            st.session_state.swapped_ini = False
+        if "usrs_ini" not in st.session_state:
+            st.session_state.usrs_ini = ""
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
         authenticator.login(location='main', max_concurrent_users=100, captcha=False, single_session=False, clear_on_submit=False,
                             key="lbrtt_auth_01")
         if st.session_state["authentication_status"]:
+            if not st.session_state.swapped_ini:
+                st.session_state.usrs_ini = str(self.dict_config.get("ini_config_usr")) + st.session_state.username + "_.ini"
+                os.remove(self.dict_config.get("ini_config"))
+                shutil.copy(st.session_state.usrs_ini, str(self.dict_config.get("ini_config")))
+                st.session_state.swapped_ini = True
             config_data = self.load_ini_config()
             if "ss_dat_loc_annots" not in st.session_state:
                 st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
@@ -80,6 +90,8 @@ class LOGIN(form_sr.FORM):
                     st.rerun()
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
+                os.remove(st.session_state.usrs_ini)
+                shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
                 st.session_state.clear()
                 st.rerun()
         elif st.session_state["authentication_status"] is None:
