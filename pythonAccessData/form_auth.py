@@ -123,6 +123,16 @@ class LOGIN(form_sr.FORM):
                         st.error('Username not found')
                 except Exception as e:
                     st.error(e)
+        cckb_reg_usr = st.checkbox("No account? Register")
+        if cckb_reg_usr:
+            with st.form("Register as new user"):
+                reg_username = st.text_input("User name")
+                reg_name = st.text_input("Name")
+                reg_email = st.text_input("Email address")
+                reg_pwd = reg_username = st.text_input("Password", type="password")
+                reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password")
+                st.image("C:/Users/rober/OneDrive/Pictures/Trumpclock.jpg", caption="Enter the number of clocks", width=125)
+                btn_reg_new_usr = st.form_submit_button("Register")
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
