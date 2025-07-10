@@ -58,6 +58,12 @@ class LOGIN(form_sr.FORM):
             st.session_state.usrs_ini = ""
         if "usrs_toml" not in st.session_state:
             st.session_state.usrs_toml = ""
+        if "reg_username" not in st.session_state:
+            st.session_state.reg_username = ""
+        if "reg_name" not in st.session_state:
+            st.session_state.reg_name = ""
+        if "reg_email" not in st.session_state:
+            st.session_state.reg_email = ""
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -126,13 +132,57 @@ class LOGIN(form_sr.FORM):
         cckb_reg_usr = st.checkbox("No account? Register")
         if cckb_reg_usr:
             with st.form("Register as new user"):
-                reg_username = st.text_input("User name")
-                reg_name = st.text_input("Name")
-                reg_email = st.text_input("Email address")
-                reg_pwd = reg_username = st.text_input("Password", type="password")
-                reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password")
-                st.image("C:/Users/rober/OneDrive/Pictures/Trumpclock.jpg", caption="Enter the number of clocks", width=125)
+                st.session_state.reg_username = st.text_input("User name", max_chars=self.dict_user_details.get("username"))
+                st.session_state.reg_name = st.text_input("Name", max_chars=self.dict_user_details.get("name"))
+                st.session_state.reg_email = st.text_input("Email address", max_chars=self.dict_user_details.get("name"))
+                reg_conf_email = st.text_input("Confirm email address", max_chars=self.dict_user_details.get("email_addr"))
+                reg_pwd = reg_username = st.text_input("Password", type="password",
+                                                       max_chars=self.dict_pwd_chng.get("length"))
+                reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password",
+                                                            max_chars=self.dict_pwd_chng.get("length"))
+                # TODO - captcha below
+                cols_reg_cap = st.columns(2, gap="small", vertical_alignment="center")
+                cols_reg_cap[0].image("C:/Users/rober/OneDrive/Pictures/Trumpclock.jpg", caption="Enter the number of clocks", width=125)
+                cols_reg_cap[1].text_input("Answer")
                 btn_reg_new_usr = st.form_submit_button("Register")
+                if btn_reg_new_usr:
+                    can_reg_usr = True
+                    if st.session_state.reg_username == "":
+                        st.markdown(":red[Enter a user name.]")
+                        can_reg_usr = False
+                    elif not self.is_unique_username(auth_config, st.session_state.reg_username):
+                        st.markdown(":[The user name already exists. Please specify another user name.]")
+                        can_reg_usr = False
+                    elif st.session_state.reg_name == "":
+                        st.markdown(":red[Enter a name.]")
+                        can_reg_usr = False
+                    elif st.session_state.reg_email == "":
+                        st.markdown(":red[Enter your email address.]")
+                        can_reg_usr = False
+                    elif not self.is_valid_eml_addr(st.session_state.reg_email):
+                        st.markdown(":red[Enter a valid email address.]")
+                        can_reg_usr = False
+                    # TODO - add this to super class and use in profile user details edit, also add unique username def below
+                    elif not self.is_unique_em_addr(auth_config, st.session_state.reg_email, False):
+                        st.markdown(":red[The email address is already in use. Please specify another email address.]")
+                        can_reg_usr = False
+                    elif reg_conf_email == "":
+                        st.markdown(":red[Enter your confirmation email address.]")
+                        can_reg_usr = False
+                    elif reg_conf_email != st.session_state.reg_email:
+                        st.markdown(":red[email and confirmation email addresses do not match.]")
+                        can_reg_usr = False
+                    elif not authenticator.authentication_controller.validator.validate_password(reg_pwd):
+                        st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
+                        can_reg_usr = False
+                    elif reg_pwd != reg_conf_pwd:
+                        st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
+                        can_reg_usr = False
+                    if can_reg_usr:
+
+                        # TODO - continue, this line writes username but overwrites all other users
+                        print("here")
+                        #self.write_auth_obj(auth_config)
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
@@ -209,6 +259,26 @@ class LOGIN(form_sr.FORM):
                 auth_config["credentials"]["usernames"][st.session_state.username]["password"] = hashed_password
                 self.write_auth_obj(auth_config)
                 return True
+
+    def is_unique_em_addr(self, auth_config, eml_addr, chk_usrnm):
+        is_unique_eml = True
+        for users in auth_config["credentials"]["usernames"]:
+            if chk_usrnm:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr and users != st.session_state.username:
+                    is_unique_eml = False
+            else:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr:
+                    is_unique_eml = False
+        return is_unique_eml
+
+    def is_unique_username(self, auth_config, usrname):
+        is_unique_usrnm = True
+        for usernames in auth_config["credentials"]["usernames"]:
+            if usernames == usrname:
+                is_unique_usrnm = False
+        return is_unique_usrnm
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address

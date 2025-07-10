@@ -2,6 +2,7 @@ from datetime import datetime
 import streamlit as st
 import configparser
 import pandas as pd
+import email_validator
 import db
 
 class FORM:
@@ -106,6 +107,13 @@ class FORM:
 
     dict_pwd_chng = {
         "length": 16
+    }
+
+    dict_user_details = {
+        "username": 75,
+        "name": 75,
+        "email_addr": 75,
+        "confirm_email_addr": 75
     }
 
     def get_data_source(self):
@@ -305,6 +313,15 @@ class FORM:
             for txt in searchTxt:
                 searchArr.append(txt)
         return searchArr
+
+    def is_valid_eml_addr(self, email_addrr):
+        val_em = False
+        try:
+            val_em = email_validator.validate_email(email_addrr)
+        except Exception as e:
+            st.write(":gray[" + str(e) + "]")
+        finally:
+            return val_em
 
     def show_book_entered(self, colour, bk_title, bk_author, bk_publisher, bk_date_pub, bk_year_read, bk_pub_location, bk_edition,
                             bk_first_edition, bk_first_edition_locale, bk_first_edition_name, bk_first_edition_publisher):
