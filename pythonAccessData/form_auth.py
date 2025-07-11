@@ -119,11 +119,14 @@ class LOGIN(form_sr.FORM):
                     username_forgot_pw, email_forgot_password, random_password = authenticator.forgot_password(location="main")
                     if username_forgot_pw:
                         hashed_password = stauth.Hasher.hash(random_password)
+
+                        # TODO - bug 21 - use username below to write to user's ini file, NOT the config.ini.
                         auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
                         self.write_auth_obj(auth_config)
                         self.send_pwd_msg(auth_config, username_forgot_pw, random_password)
                         config_data = self.load_ini_config()
                         config_data["forgot_password"]["one_time_login"] = "1"
+
                         self.write_ini_config(config_data)
                     elif username_forgot_pw == False:
                         st.error('Username not found')
