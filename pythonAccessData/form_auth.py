@@ -179,10 +179,18 @@ class LOGIN(form_sr.FORM):
                         st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                         can_reg_usr = False
                     if can_reg_usr:
-
-                        # TODO - continue, this line writes username but overwrites all other users
-                        print("here")
-                        #self.write_auth_obj(auth_config)
+                        new_user = {
+                            st.session_state.reg_username.lower(): {
+                                "email": st.session_state.reg_email,
+                                "name": st.session_state.reg_name,
+                                "password": stauth.Hasher.hash(reg_pwd)
+                            }
+                        }
+                        auth_config["credentials"]["usernames"].update(new_user)
+                        self.write_auth_obj(auth_config)
+                        # TODO - test this is working - new user's config profile ini
+                        shutil.copy(str(self.dict_config.get("ini_config")),
+                                    str(self.dict_config.get("ini_config_usr")) + st.session_state.reg_username.lower() + "_.ini")
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
