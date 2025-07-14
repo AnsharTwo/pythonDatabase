@@ -44,6 +44,8 @@ class LOGIN(form_sr.FORM):
     def login_to_app(self):
         if "show_frgt_psswd" not in st.session_state:
             st.session_state.show_frgt_psswd = True
+        if "show_reg_usr" not in st.session_state:
+            st.session_state.show_reg_usr = True
         if "pwd_current" not in st.session_state:
             st.session_state.pwd_current = ""
         if "pwd_new" not in st.session_state:
@@ -64,6 +66,8 @@ class LOGIN(form_sr.FORM):
             st.session_state.reg_name = ""
         if "reg_email" not in st.session_state:
             st.session_state.reg_email = ""
+        if "usr_registered" not in st.session_state:
+            st.session_state.usr_registered = False
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -86,6 +90,7 @@ class LOGIN(form_sr.FORM):
             if str(config_data["forgot_password"]["one_time_login"]) == "1":
                 st.session_state.pwd_tmp_changed = True
             st.session_state.show_frgt_psswd = False
+            st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
                 sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
                 sbar.init_sidebars()
@@ -119,81 +124,99 @@ class LOGIN(form_sr.FORM):
                     username_forgot_pw, email_forgot_password, random_password = authenticator.forgot_password(location="main")
                     if username_forgot_pw:
                         hashed_password = stauth.Hasher.hash(random_password)
-
-                        # TODO - bug 21 - use username below to write to user's ini file, NOT the config.ini.
                         auth_config["credentials"]["usernames"][username_forgot_pw]["password"] = hashed_password
                         self.write_auth_obj(auth_config)
                         self.send_pwd_msg(auth_config, username_forgot_pw, random_password)
+                        os.remove(self.dict_config.get("ini_config"))
+                        shutil.copy(str(self.dict_config.get("ini_config_usr")) + username_forgot_pw + "_.ini",
+                                    str(self.dict_config.get("ini_config")))
                         config_data = self.load_ini_config()
                         config_data["forgot_password"]["one_time_login"] = "1"
-
                         self.write_ini_config(config_data)
+                        os.remove(str(self.dict_config.get("ini_config_usr")) + username_forgot_pw + "_.ini")
+                        shutil.copy(str(self.dict_config.get("ini_config")),
+                                    str(self.dict_config.get("ini_config_usr")) + username_forgot_pw + "_.ini")
                     elif username_forgot_pw == False:
                         st.error('Username not found')
                 except Exception as e:
                     st.error(e)
-        cckb_reg_usr = st.checkbox("No account? Register")
-        if cckb_reg_usr:
-            with st.form("Register as new user"):
-                st.session_state.reg_username = st.text_input("User name", max_chars=self.dict_user_details.get("username"))
-                st.session_state.reg_name = st.text_input("Name", max_chars=self.dict_user_details.get("name"))
-                st.session_state.reg_email = st.text_input("Email address", max_chars=self.dict_user_details.get("name"))
-                reg_conf_email = st.text_input("Confirm email address", max_chars=self.dict_user_details.get("email_addr"))
-                reg_pwd = reg_username = st.text_input("Password", type="password",
-                                                       max_chars=self.dict_pwd_chng.get("length"))
-                reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password",
-                                                            max_chars=self.dict_pwd_chng.get("length"))
-                # TODO - captcha below
-                cols_reg_cap = st.columns(2, gap="small", vertical_alignment="center")
-                cols_reg_cap[0].image("C:/Users/rober/OneDrive/Pictures/Trumpclock.jpg", caption="Enter the number of clocks", width=125)
-                cols_reg_cap[1].text_input("Answer")
-                btn_reg_new_usr = st.form_submit_button("Register")
-                if btn_reg_new_usr:
-                    can_reg_usr = True
-                    if st.session_state.reg_username == "":
-                        st.markdown(":red[Enter a user name.]")
-                        can_reg_usr = False
-                    elif not self.is_unique_username(auth_config, st.session_state.reg_username):
-                        st.markdown(":[The user name already exists. Please specify another user name.]")
-                        can_reg_usr = False
-                    elif st.session_state.reg_name == "":
-                        st.markdown(":red[Enter a name.]")
-                        can_reg_usr = False
-                    elif st.session_state.reg_email == "":
-                        st.markdown(":red[Enter your email address.]")
-                        can_reg_usr = False
-                    elif not self.is_valid_eml_addr(st.session_state.reg_email):
-                        st.markdown(":red[Enter a valid email address.]")
-                        can_reg_usr = False
-                    # TODO - add this to super class and use in profile user details edit, also add unique username def below
-                    elif not self.is_unique_em_addr(auth_config, st.session_state.reg_email, False):
-                        st.markdown(":red[The email address is already in use. Please specify another email address.]")
-                        can_reg_usr = False
-                    elif reg_conf_email == "":
-                        st.markdown(":red[Enter your confirmation email address.]")
-                        can_reg_usr = False
-                    elif reg_conf_email != st.session_state.reg_email:
-                        st.markdown(":red[email and confirmation email addresses do not match.]")
-                        can_reg_usr = False
-                    elif not authenticator.authentication_controller.validator.validate_password(reg_pwd):
-                        st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
-                        can_reg_usr = False
-                    elif reg_pwd != reg_conf_pwd:
-                        st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
-                        can_reg_usr = False
-                    if can_reg_usr:
-                        new_user = {
-                            st.session_state.reg_username.lower(): {
-                                "email": st.session_state.reg_email,
-                                "name": st.session_state.reg_name,
-                                "password": stauth.Hasher.hash(reg_pwd)
-                            }
-                        }
-                        auth_config["credentials"]["usernames"].update(new_user)
-                        self.write_auth_obj(auth_config)
-                        # TODO - test this is working - new user's config profile ini
-                        shutil.copy(str(self.dict_config.get("ini_config")),
-                                    str(self.dict_config.get("ini_config_usr")) + st.session_state.reg_username.lower() + "_.ini")
+        if st.session_state.show_reg_usr:
+            if st.session_state.usr_registered:
+                with st.form("Register success"):
+                    st.success("You are now registered as a Librotate user.")
+                    st.write("User name: :green[" + st.session_state.reg_username + "]")
+                    st.write("Name: :green[" + st.session_state.reg_name + "]")
+                    st.write("Email address: :green[" + st.session_state.reg_email + "]")
+                    st.session_state.usr_registered = False
+                    btn_registered_ok = st.form_submit_button("Done")
+                    if btn_registered_ok:
+                        st.rerun()
+            else:
+                cckb_reg_usr = st.checkbox("No account? Register")
+                if cckb_reg_usr:
+                    with st.form("Register as new user"):
+                        st.session_state.reg_username = st.text_input("User name", max_chars=self.dict_user_details.get("username"))
+                        st.session_state.reg_name = st.text_input("Name", max_chars=self.dict_user_details.get("name"))
+                        st.session_state.reg_email = st.text_input("Email address", max_chars=self.dict_user_details.get("name"))
+                        reg_conf_email = st.text_input("Confirm email address", max_chars=self.dict_user_details.get("email_addr"))
+                        reg_pwd = reg_username = st.text_input("Password", type="password",
+                                                               max_chars=self.dict_pwd_chng.get("length"))
+                        reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password",
+                                                                    max_chars=self.dict_pwd_chng.get("length"))
+                        # TODO - captcha below
+                        cols_reg_cap = st.columns(2, gap="small", vertical_alignment="center")
+                        #cols_reg_cap[0].image("", caption="Enter the number of clocks", width=125)
+                        cols_reg_cap[1].text_input("Answer")
+                        btn_reg_new_usr = st.form_submit_button("Register")
+                        if btn_reg_new_usr:
+                            can_reg_usr = True
+                            if st.session_state.reg_username == "":
+                                st.markdown(":red[Enter a user name.]")
+                                can_reg_usr = False
+                            elif not self.is_unique_username(auth_config, st.session_state.reg_username):
+                                st.markdown(":[The user name already exists. Please specify another user name.]")
+                                can_reg_usr = False
+                            elif st.session_state.reg_name == "":
+                                st.markdown(":red[Enter a name.]")
+                                can_reg_usr = False
+                            elif st.session_state.reg_email == "":
+                                st.markdown(":red[Enter your email address.]")
+                                can_reg_usr = False
+                            elif not self.is_valid_eml_addr(st.session_state.reg_email):
+                                st.markdown(":red[Enter a valid email address.]")
+                                can_reg_usr = False
+                            # TODO - add this to super class and use in profile user details edit, also add unique username def below
+                            elif not self.is_unique_em_addr(auth_config, st.session_state.reg_email, False):
+                                st.markdown(":red[The email address is already in use. Please specify another email address.]")
+                                can_reg_usr = False
+                            elif reg_conf_email == "":
+                                st.markdown(":red[Enter your confirmation email address.]")
+                                can_reg_usr = False
+                            elif reg_conf_email != st.session_state.reg_email:
+                                st.markdown(":red[email and confirmation email addresses do not match.]")
+                                can_reg_usr = False
+                            elif not authenticator.authentication_controller.validator.validate_password(reg_pwd):
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
+                                can_reg_usr = False
+                            elif reg_pwd != reg_conf_pwd:
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
+                                can_reg_usr = False
+                            if can_reg_usr:
+                                new_user = {
+                                    st.session_state.reg_username.lower(): {
+                                        "email": st.session_state.reg_email,
+                                        "name": st.session_state.reg_name,
+                                        "password": stauth.Hasher.hash(reg_pwd)
+                                    }
+                                }
+                                auth_config["credentials"]["usernames"].update(new_user)
+                                self.write_auth_obj(auth_config)
+                                shutil.copy(str(self.dict_config.get("ini_config_def")),
+                                            str(self.dict_config.get("ini_config_usr")) + st.session_state.reg_username.lower() + "_.ini")
+                                shutil.copy(str(self.dict_config.get("toml_config_def")),
+                                            str(self.dict_config.get("toml_config_usr")) + st.session_state.reg_username.lower() + "_.toml")
+                                st.session_state.usr_registered = True
+                                st.rerun()
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
