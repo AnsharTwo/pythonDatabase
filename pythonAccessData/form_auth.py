@@ -11,6 +11,7 @@ import base64
 import os
 import shutil
 from dotenv import load_dotenv
+from random import randint
 import form_sr
 import sidebar
 
@@ -20,7 +21,9 @@ class LOGIN(form_sr.FORM):
         super().__init__()
 
     dict_auth = {
-        "auth_path": "auth/auths.YAML"
+        "auth_path": "auth/auths.YAML",
+        "cap_len": 5,
+        "cap_path": "caps/"
     }
 
     def create_auth_ojb(self):
@@ -68,6 +71,16 @@ class LOGIN(form_sr.FORM):
             st.session_state.reg_email = ""
         if "usr_registered" not in st.session_state:
             st.session_state.usr_registered = False
+
+        ##################################
+        if "randomize_cap" not in st.session_state:
+            st.session_state.randomize_cap = True
+        if "random_cap" not in st.session_state:
+            st.session_state.random_cap = ""
+        if "reg_disabled" not in st.session_state:
+            st.session_state.reg_disabled = False
+        ##################################
+
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -155,19 +168,37 @@ class LOGIN(form_sr.FORM):
                 cckb_reg_usr = st.checkbox("No account? Register")
                 if cckb_reg_usr:
                     with st.form("Register as new user"):
-                        st.session_state.reg_username = st.text_input("User name", max_chars=self.dict_user_details.get("username"))
-                        st.session_state.reg_name = st.text_input("Name", max_chars=self.dict_user_details.get("name"))
-                        st.session_state.reg_email = st.text_input("Email address", max_chars=self.dict_user_details.get("name"))
+                        st.session_state.reg_username = st.text_input("User name", value=st.session_state.reg_username,
+                                                                      max_chars=self.dict_user_details.get("username"))
+                        st.session_state.reg_name = st.text_input("Name", value=st.session_state.reg_name,
+                                                                  max_chars=self.dict_user_details.get("name"))
+                        st.session_state.reg_email = st.text_input("Email address", value=st.session_state.reg_email,
+                                                                   max_chars=self.dict_user_details.get("name"))
                         reg_conf_email = st.text_input("Confirm email address", max_chars=self.dict_user_details.get("email_addr"))
                         reg_pwd = reg_username = st.text_input("Password", type="password",
                                                                max_chars=self.dict_pwd_chng.get("length"))
                         reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password",
                                                                     max_chars=self.dict_pwd_chng.get("length"))
-                        # TODO - captcha below
-                        cols_reg_cap = st.columns(2, gap="small", vertical_alignment="center")
-                        #cols_reg_cap[0].image("", caption="Enter the number of clocks", width=125)
-                        cols_reg_cap[1].text_input("Answer")
-                        btn_reg_new_usr = st.form_submit_button("Register")
+
+                        #################################
+                        st.divider()
+                        cap_files = []
+                        if st.session_state.randomize_cap:
+                            cap_files = os.listdir(self.dict_auth.get("cap_path"))
+                            st.session_state.random_cap = str(cap_files[randint(1, len(cap_files))])
+                            st.session_state.randomize_cap = False
+                        st.image(self.dict_auth.get("cap_path") + st.session_state.random_cap,
+                                 caption="Enter the code shown in the image", width=125)
+                        cols_reg_cap = st.columns(8, gap="small", vertical_alignment="center")
+                        cap_files.clear()
+                        cap_ans = ""
+                        cap_ans = cols_reg_cap[0].text_input("Answer", max_chars=self.dict_auth.get("cap_len"))
+                        st.divider()
+                        #print("cap ans " + cap_ans)
+                        #print("cap " + st.session_state.random_cap[0:5])
+                        ##################################
+
+                        btn_reg_new_usr = st.form_submit_button("Register", disabled=st.session_state.reg_disabled)
                         if btn_reg_new_usr:
                             can_reg_usr = True
                             if st.session_state.reg_username == "":
@@ -201,6 +232,21 @@ class LOGIN(form_sr.FORM):
                             elif reg_pwd != reg_conf_pwd:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                                 can_reg_usr = False
+
+                            ###########################################
+                            elif cap_ans == "":
+                                st.markdown(":red[Enter the captcha value]")
+                                can_reg_usr = False
+                            elif str(cap_ans) != str(st.session_state.random_cap[0:5]):
+                                st.markdown(":red[The captcha answer is incorrect]")
+                                can_reg_usr = False
+                                st.session_state.randomize_cap = True
+                                btn_cap_try_again = st.form_submit_button("Try again")
+                                if btn_cap_try_again:
+                                    st.session_state.reg_disabled = False
+                                    st.rerun()
+                            ############################################
+
                             if can_reg_usr:
                                 new_user = {
                                     st.session_state.reg_username.lower(): {
