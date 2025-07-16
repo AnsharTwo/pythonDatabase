@@ -226,12 +226,10 @@ class PROF_FORM (form_sr.FORM):
                             elif st.session_state.usr_email != st.session_state.usr_conf_email:
                                 st.markdown(":red[email and confirmation email addresses do not match.]")
                                 can_change = False
-                            else:
-                                for users in auth_config["credentials"]["usernames"]:
-                                    if auth_config["credentials"]["usernames"][
-                                        users]["email"] == st.session_state.usr_email and users != st.session_state.username:
-                                        st.markdown(":red[The email address is already in use. Please specify another email address.]")
-                                        can_change = False
+                            elif not self.is_unique_em_addr(auth_config, st.session_state.usr_email,
+                                                            st.session_state.username,True):
+                                st.markdown(":red[The email address is already in use. Please specify another email address.]")
+                                can_change = False
                             if can_change:
                                 if auth_config["credentials"]["usernames"][st.session_state.username][
                                                "email"] != st.session_state.usr_email:

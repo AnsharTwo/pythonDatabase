@@ -71,16 +71,14 @@ class LOGIN(form_sr.FORM):
             st.session_state.reg_email = ""
         if "usr_registered" not in st.session_state:
             st.session_state.usr_registered = False
-
-        ##################################
         if "randomize_cap" not in st.session_state:
             st.session_state.randomize_cap = True
         if "random_cap" not in st.session_state:
             st.session_state.random_cap = ""
-        if "reg_disabled" not in st.session_state:
-            st.session_state.reg_disabled = False
-        ##################################
-
+        if "cap_ans" not in st.session_state:
+            st.session_state.cap_ans = ""
+        if "cap_ans_val" not in st.session_state:
+            st.session_state.cap_ans_val = ""
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -161,6 +159,13 @@ class LOGIN(form_sr.FORM):
                     st.write("Name: :green[" + st.session_state.reg_name + "]")
                     st.write("Email address: :green[" + st.session_state.reg_email + "]")
                     st.session_state.usr_registered = False
+                    st.session_state.cap_ans = ""
+                    st.session_state.cap_ans_val = ""
+                    st.session_state.reg_username = ""
+                    st.session_state.reg_name = ""
+                    st.session_state.reg_email = ""
+                    st.session_state.randomize_cap = True
+                    st.session_state.random_cap = ""
                     btn_registered_ok = st.form_submit_button("Done")
                     if btn_registered_ok:
                         st.rerun()
@@ -175,37 +180,31 @@ class LOGIN(form_sr.FORM):
                         st.session_state.reg_email = st.text_input("Email address", value=st.session_state.reg_email,
                                                                    max_chars=self.dict_user_details.get("name"))
                         reg_conf_email = st.text_input("Confirm email address", max_chars=self.dict_user_details.get("email_addr"))
-                        reg_pwd = reg_username = st.text_input("Password", type="password",
+                        reg_pwd = st.text_input("Password", type="password",
                                                                max_chars=self.dict_pwd_chng.get("length"))
-                        reg_conf_pwd = reg_username = st.text_input("Confirm password", type="password",
+                        reg_conf_pwd = st.text_input("Confirm password", type="password",
                                                                     max_chars=self.dict_pwd_chng.get("length"))
-
-                        #################################
                         st.divider()
                         cap_files = []
                         if st.session_state.randomize_cap:
                             cap_files = os.listdir(self.dict_auth.get("cap_path"))
-                            st.session_state.random_cap = str(cap_files[randint(1, len(cap_files))])
+                            st.session_state.random_cap = str(cap_files[randint(0, len(cap_files) - 1)])
                             st.session_state.randomize_cap = False
-                        st.image(self.dict_auth.get("cap_path") + st.session_state.random_cap,
-                                 caption="Enter the code shown in the image", width=125)
-                        cols_reg_cap = st.columns(8, gap="small", vertical_alignment="center")
+                        cols_reg_cap = st.columns(4, gap="small", vertical_alignment="center")
+                        cols_reg_cap[0].image(self.dict_auth.get("cap_path") + st.session_state.random_cap,
+                                              caption="Enter the code shown in the image", width=125)
                         cap_files.clear()
-                        cap_ans = ""
-                        cap_ans = cols_reg_cap[0].text_input("Answer", max_chars=self.dict_auth.get("cap_len"))
+                        st.session_state.cap_ans = cols_reg_cap[1].text_input("Answer", max_chars=self.dict_auth.get("cap_len"),
+                                                                              key="ticpns", value=st.session_state.cap_ans_val)
                         st.divider()
-                        #print("cap ans " + cap_ans)
-                        #print("cap " + st.session_state.random_cap[0:5])
-                        ##################################
-
-                        btn_reg_new_usr = st.form_submit_button("Register", disabled=st.session_state.reg_disabled)
+                        btn_reg_new_usr = st.form_submit_button("Register")
                         if btn_reg_new_usr:
                             can_reg_usr = True
                             if st.session_state.reg_username == "":
                                 st.markdown(":red[Enter a user name.]")
                                 can_reg_usr = False
                             elif not self.is_unique_username(auth_config, st.session_state.reg_username):
-                                st.markdown(":[The user name already exists. Please specify another user name.]")
+                                st.markdown(":red[The user name already exists. Please specify another user name.]")
                                 can_reg_usr = False
                             elif st.session_state.reg_name == "":
                                 st.markdown(":red[Enter a name.]")
@@ -216,8 +215,8 @@ class LOGIN(form_sr.FORM):
                             elif not self.is_valid_eml_addr(st.session_state.reg_email):
                                 st.markdown(":red[Enter a valid email address.]")
                                 can_reg_usr = False
-                            # TODO - add this to super class and use in profile user details edit, also add unique username def below
-                            elif not self.is_unique_em_addr(auth_config, st.session_state.reg_email, False):
+                            elif not self.is_unique_em_addr(auth_config, st.session_state.reg_email,
+                                                            st.session_state.reg_username,False):
                                 st.markdown(":red[The email address is already in use. Please specify another email address.]")
                                 can_reg_usr = False
                             elif reg_conf_email == "":
@@ -232,21 +231,14 @@ class LOGIN(form_sr.FORM):
                             elif reg_pwd != reg_conf_pwd:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                                 can_reg_usr = False
-
-                            ###########################################
-                            elif cap_ans == "":
+                            elif st.session_state.cap_ans == "":
                                 st.markdown(":red[Enter the captcha value]")
                                 can_reg_usr = False
-                            elif str(cap_ans) != str(st.session_state.random_cap[0:5]):
-                                st.markdown(":red[The captcha answer is incorrect]")
-                                can_reg_usr = False
+                            elif st.session_state.cap_ans != st.session_state.random_cap[0:5]:
                                 st.session_state.randomize_cap = True
-                                btn_cap_try_again = st.form_submit_button("Try again")
-                                if btn_cap_try_again:
-                                    st.session_state.reg_disabled = False
-                                    st.rerun()
-                            ############################################
-
+                                st.session_state.cap_ans = ""
+                                st.session_state.cap_ans_val = ""
+                                st.rerun()
                             if can_reg_usr:
                                 new_user = {
                                     st.session_state.reg_username.lower(): {
@@ -263,6 +255,7 @@ class LOGIN(form_sr.FORM):
                                             str(self.dict_config.get("toml_config_usr")) + st.session_state.reg_username.lower() + "_.toml")
                                 st.session_state.usr_registered = True
                                 st.rerun()
+
 
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
@@ -339,19 +332,6 @@ class LOGIN(form_sr.FORM):
                 auth_config["credentials"]["usernames"][st.session_state.username]["password"] = hashed_password
                 self.write_auth_obj(auth_config)
                 return True
-
-    def is_unique_em_addr(self, auth_config, eml_addr, chk_usrnm):
-        is_unique_eml = True
-        for users in auth_config["credentials"]["usernames"]:
-            if chk_usrnm:
-                if auth_config["credentials"]["usernames"][
-                    users]["email"] == eml_addr and users != st.session_state.username:
-                    is_unique_eml = False
-            else:
-                if auth_config["credentials"]["usernames"][
-                    users]["email"] == eml_addr:
-                    is_unique_eml = False
-        return is_unique_eml
 
     def is_unique_username(self, auth_config, usrname):
         is_unique_usrnm = True

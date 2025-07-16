@@ -323,6 +323,19 @@ class FORM:
         finally:
             return val_em
 
+    def is_unique_em_addr(self, auth_config, eml_addr, usrnm, chk_usrnm):
+        is_unique_eml = True
+        for users in auth_config["credentials"]["usernames"]:
+            if chk_usrnm:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr and users != usrnm:
+                    is_unique_eml = False
+            else:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr:
+                    is_unique_eml = False
+        return is_unique_eml
+
     def show_book_entered(self, colour, bk_title, bk_author, bk_publisher, bk_date_pub, bk_year_read, bk_pub_location, bk_edition,
                             bk_first_edition, bk_first_edition_locale, bk_first_edition_name, bk_first_edition_publisher):
         st.markdown(":{}[Title:] {}".format(colour, bk_title))
