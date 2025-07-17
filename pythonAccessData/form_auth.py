@@ -120,6 +120,7 @@ class LOGIN(form_sr.FORM):
                 else:
                     #TODO this is rerun when submit btn clocked, add ss to do once (unless resend with btn to be added)
                     nw_usr_cd = randint(100000, 999999)
+                    # TODO use new process_msg() in def below for forgot pwd email also
                     self.send_verify_email_msg(auth_config, nw_usr_cd)
                     with st.form("Verify new user email"):
                         # TODO use cols to shorten input
@@ -292,7 +293,6 @@ class LOGIN(form_sr.FORM):
                                 st.session_state.usr_registered = True
                                 st.rerun()
 
-
     def send_pwd_msg(self, auth_config, username_forgot_pw, random_password):
         message = MIMEMultipart()
         message['From'] = self.__Load_lib_adr()
@@ -304,7 +304,6 @@ class LOGIN(form_sr.FORM):
         message.attach(MIMEText(body, 'plain'))
         server = None
         try:
-            # TODO use new process_msg for next 4 lines to st.success
             server = smtplib.SMTP_SSL(self.__Load_lib_server_nm(), self.__Load_lib_server_prt())  # Or can use smtp.gmail.com for port 587 and .starttls()
             server.login(self.__Load_lib_adr(), self.decrypt(self.__Load_lib_server_creds()))  # THIS ACCOUNT IS ALSO PROTECTED BY MFA
             server.sendmail(self.__Load_lib_adr(),
@@ -324,12 +323,12 @@ class LOGIN(form_sr.FORM):
                                                      code=str(verify_code))
         message.attach(MIMEText(body, 'plain'))
         try:
-            self.process_msg(auth_config["credentials"]["usernames"][st.session_state.username]["email"], message)
+            self.__process_msg(auth_config["credentials"]["usernames"][st.session_state.username]["email"], message)
             st.success('Verification code sent securely')
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
 
-    def process_msg(self, email, message):
+    def __process_msg(self, email, message):
         server = None
         try:
             server = smtplib.SMTP_SSL(self.__Load_lib_server_nm(),
