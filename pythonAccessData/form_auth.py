@@ -57,6 +57,10 @@ class LOGIN(form_sr.FORM):
             st.session_state.pwd_new_confirm = ""
         if "pwd_tmp_changed" not in st.session_state:
             st.session_state.pwd_tmp_changed = False
+
+        if "new_user_login" not in st.session_state:
+            st.session_state.new_user_login = False
+
         if "swapped_ini" not in st.session_state:
             st.session_state.swapped_ini = False
         if "usrs_ini" not in st.session_state:
@@ -100,11 +104,42 @@ class LOGIN(form_sr.FORM):
                 st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
             if str(config_data["forgot_password"]["one_time_login"]) == "1":
                 st.session_state.pwd_tmp_changed = True
+
+            if str(config_data["new_user"]["first_time_login"]) == "1":
+                st.session_state.new_user_login = True
+
             st.session_state.show_frgt_psswd = False
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
-                sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
-                sbar.init_sidebars()
+
+                if not st.session_state.new_user_login:
+
+                    sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
+                    sbar.init_sidebars()
+
+                else:
+                    #TODO this is rerun when submit btn clocked, add ss to do once (unless resend with btn to be added)
+                    nw_usr_cd = randint(100000, 999999)
+                    self.send_verify_email_msg(auth_config, nw_usr_cd)
+                    with st.form("Verify new user email"):
+                        # TODO use cols to shorten input
+                        verify_code = st.text_input("Enter the six-digit code sent (just now) to your registered email address.",
+                                                    max_chars=6)
+                        btn_ver_eml = st.form_submit_button("Verify")
+                        if btn_ver_eml:
+
+                            st.write(verify_code)
+                            st.write(nw_usr_cd)
+
+                            if verify_code == "":
+                                st.markdown(":red[Enter the verification code to continue.]")
+                            else:
+                                if int(verify_code) != nw_usr_cd:
+                                    st.markdown(":red[The verification code you entered does not match the code sent to you by email.]")
+                                else:
+                                    st.write("HERE###########")
+
+
             else:
                 if self.chng_tmp_pwd(authenticator, auth_config,
                                   auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
@@ -195,7 +230,8 @@ class LOGIN(form_sr.FORM):
                                               caption="Enter the code shown in the image", width=125)
                         cap_files.clear()
                         st.session_state.cap_ans = cols_reg_cap[1].text_input("Answer", max_chars=self.dict_auth.get("cap_len"),
-                                                                              key="ticpns", value=st.session_state.cap_ans_val)
+                                                                              key="ticpns", value=st.session_state.cap_ans_val,
+                                                                              help=self.captcha_help_msg)
                         st.divider()
                         btn_reg_new_usr = st.form_submit_button("Register")
                         if btn_reg_new_usr:
@@ -268,6 +304,7 @@ class LOGIN(form_sr.FORM):
         message.attach(MIMEText(body, 'plain'))
         server = None
         try:
+            # TODO use new process_msg for next 4 lines to st.success
             server = smtplib.SMTP_SSL(self.__Load_lib_server_nm(), self.__Load_lib_server_prt())  # Or can use smtp.gmail.com for port 587 and .starttls()
             server.login(self.__Load_lib_adr(), self.decrypt(self.__Load_lib_server_creds()))  # THIS ACCOUNT IS ALSO PROTECTED BY MFA
             server.sendmail(self.__Load_lib_adr(),
@@ -275,6 +312,33 @@ class LOGIN(form_sr.FORM):
             st.success('New password sent securely')
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
+        finally:
+            server.quit()
+
+    def send_verify_email_msg(self, auth_config, verify_code):
+        message = MIMEMultipart()
+        message['From'] = self.__Load_lib_adr()
+        message['To'] = auth_config["credentials"]["usernames"][st.session_state.username]["email"]
+        message['Subject'] = "Verify your email address - your new account with Librotate"
+        body = self.dict_verify_email_msg.format(name=auth_config["credentials"]["usernames"][st.session_state.username]["name"],
+                                                     code=str(verify_code))
+        message.attach(MIMEText(body, 'plain'))
+        try:
+            self.process_msg(auth_config["credentials"]["usernames"][st.session_state.username]["email"], message)
+            st.success('Verification code sent securely')
+        except Exception as ex:
+            st.write("Error sending email: " + str(ex))
+
+    def process_msg(self, email, message):
+        server = None
+        try:
+            server = smtplib.SMTP_SSL(self.__Load_lib_server_nm(),
+                                      self.__Load_lib_server_prt())  # Or can use smtp.gmail.com for port 587 and .starttls()
+            server.login(self.__Load_lib_adr(),
+                         self.decrypt(self.__Load_lib_server_creds()))  # THIS ACCOUNT IS ALSO PROTECTED BY MFA
+            server.sendmail(self.__Load_lib_adr(), email, message.as_string())
+        except Exception as ex:
+            raise ex
         finally:
             server.quit()
 
@@ -350,4 +414,13 @@ class LOGIN(form_sr.FORM):
                               \r\rThe Librotate team."""
     }
 
+    dict_verify_email_msg = """Hello, {name}. Your one-time six-digit code to verify your Librotate email address is:
+                              \r\r{code}
+                              \r\rRegards,
+                              \r\rThe Librotate team."""
+
     BLOCK_SIZE = 32  # Bytes
+
+    captcha_help_msg = """Enter the 5-character code you see in the image to the left. If you are not directed 
+                          to the confrmation-new-user-created page, then the code you entered did not match 
+                          the code shown in the image. So you need to try again."""
