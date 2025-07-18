@@ -57,10 +57,10 @@ class LOGIN(form_sr.FORM):
             st.session_state.pwd_new_confirm = ""
         if "pwd_tmp_changed" not in st.session_state:
             st.session_state.pwd_tmp_changed = False
-
         if "new_user_login" not in st.session_state:
             st.session_state.new_user_login = False
-
+        if "email_code_sent" not in st.session_state:
+            st.session_state.email_code_sent = False
         if "swapped_ini" not in st.session_state:
             st.session_state.swapped_ini = False
         if "usrs_ini" not in st.session_state:
@@ -83,6 +83,11 @@ class LOGIN(form_sr.FORM):
             st.session_state.cap_ans = ""
         if "cap_ans_val" not in st.session_state:
             st.session_state.cap_ans_val = ""
+        if "email_code_gen" not in st.session_state:
+            st.session_state.email_code_gen = None
+        if "email_code_entered" not in st.session_state:
+            st.session_state.email_code_entered = None
+
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -104,43 +109,37 @@ class LOGIN(form_sr.FORM):
                 st.session_state.ss_dat_loc_urls = str(config_data["data locations"]["urls"])
             if str(config_data["forgot_password"]["one_time_login"]) == "1":
                 st.session_state.pwd_tmp_changed = True
-
             if str(config_data["new_user"]["first_time_login"]) == "1":
                 st.session_state.new_user_login = True
-
             st.session_state.show_frgt_psswd = False
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
-
                 if not st.session_state.new_user_login:
-
                     sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
                     sbar.init_sidebars()
-
                 else:
-                    #TODO this is rerun when submit btn clocked, add ss to do once (unless resend with btn to be added)
-                    nw_usr_cd = randint(100000, 999999)
-                    # TODO use new process_msg() in def below for forgot pwd email also
-                    self.send_verify_email_msg(auth_config, nw_usr_cd)
+                    if not st.session_state.email_code_sent:
+                        # TODO - all refs to the code, 6 digit add to dictionary.
+                        st.session_state.email_code_gen = randint(100000, 999999)
+                        st.session_state.email_code_sent = True
+                        self.send_verify_email_msg(auth_config, st.session_state.username, st.session_state.email_code_gen)
                     with st.form("Verify new user email"):
                         # TODO use cols to shorten input
-                        verify_code = st.text_input("Enter the six-digit code sent (just now) to your registered email address.",
+                        st.session_state.email_code_entered = st.text_input("Enter the six-digit code sent (just now) to your registered email address.",
                                                     max_chars=6)
                         btn_ver_eml = st.form_submit_button("Verify")
                         if btn_ver_eml:
-
-                            st.write(verify_code)
-                            st.write(nw_usr_cd)
-
-                            if verify_code == "":
+                            if st.session_state.email_code_entered == "":
                                 st.markdown(":red[Enter the verification code to continue.]")
                             else:
-                                if int(verify_code) != nw_usr_cd:
+                                if int(st.session_state.email_code_entered) != st.session_state.email_code_gen:
                                     st.markdown(":red[The verification code you entered does not match the code sent to you by email.]")
                                 else:
-                                    st.write("HERE###########")
-
-
+                                    st.session_state.email_code_sent = False
+                                    st.session_state.new_user_login = False
+                                    config_data["new_user"]["first_time_login"] = "0"
+                                    self.write_ini_config(config_data)
+                                    st.rerun()
             else:
                 if self.chng_tmp_pwd(authenticator, auth_config,
                                   auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
@@ -302,29 +301,22 @@ class LOGIN(form_sr.FORM):
                                                      name=auth_config["credentials"]["usernames"][username_forgot_pw]["name"],
                                                      pwd=str(random_password))
         message.attach(MIMEText(body, 'plain'))
-        server = None
         try:
-            server = smtplib.SMTP_SSL(self.__Load_lib_server_nm(), self.__Load_lib_server_prt())  # Or can use smtp.gmail.com for port 587 and .starttls()
-            server.login(self.__Load_lib_adr(), self.decrypt(self.__Load_lib_server_creds()))  # THIS ACCOUNT IS ALSO PROTECTED BY MFA
-            server.sendmail(self.__Load_lib_adr(),
-                            auth_config["credentials"]["usernames"][username_forgot_pw]["email"], message.as_string())
+            self.__process_msg(auth_config["credentials"]["usernames"][username_forgot_pw]["email"], message)
             st.success('New password sent securely')
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
-        finally:
-            server.quit()
 
-    def send_verify_email_msg(self, auth_config, verify_code):
+    def send_verify_email_msg(self, auth_config, username, verify_code):
         message = MIMEMultipart()
         message['From'] = self.__Load_lib_adr()
-        message['To'] = auth_config["credentials"]["usernames"][st.session_state.username]["email"]
+        message['To'] = auth_config["credentials"]["usernames"][username]["email"]
         message['Subject'] = "Verify your email address - your new account with Librotate"
-        body = self.dict_verify_email_msg.format(name=auth_config["credentials"]["usernames"][st.session_state.username]["name"],
+        body = self.dict_verify_email_msg.format(name=auth_config["credentials"]["usernames"][username]["name"],
                                                      code=str(verify_code))
         message.attach(MIMEText(body, 'plain'))
         try:
-            self.__process_msg(auth_config["credentials"]["usernames"][st.session_state.username]["email"], message)
-            st.success('Verification code sent securely')
+            self.__process_msg(auth_config["credentials"]["usernames"][username]["email"], message)
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
 
