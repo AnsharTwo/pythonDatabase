@@ -23,7 +23,11 @@ class LOGIN(form_sr.FORM):
     dict_auth = {
         "auth_path": "auth/auths.YAML",
         "cap_len": 5,
-        "cap_path": "caps/"
+        "cap_path": "caps/",
+        "ver_code_len": 6,
+        "ver_code_min": 100000,
+        "ver_code_max": 999999,
+        "max_ver_code_resends": 3
     }
 
     def create_auth_ojb(self):
@@ -87,7 +91,8 @@ class LOGIN(form_sr.FORM):
             st.session_state.email_code_gen = None
         if "email_code_entered" not in st.session_state:
             st.session_state.email_code_entered = None
-
+        if "email_code_resent" not in st.session_state:
+            st.session_state.email_code_resent = 1
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -119,15 +124,20 @@ class LOGIN(form_sr.FORM):
                     sbar.init_sidebars()
                 else:
                     if not st.session_state.email_code_sent:
-                        # TODO - all refs to the code, 6 digit add to dictionary.
-                        st.session_state.email_code_gen = randint(100000, 999999)
+                        st.session_state.email_code_gen = randint(self.dict_auth.get("ver_code_min"), self.dict_auth.get("ver_code_max"))
                         st.session_state.email_code_sent = True
                         self.send_verify_email_msg(auth_config, st.session_state.username, st.session_state.email_code_gen)
                     with st.form("Verify new user email"):
-                        # TODO use cols to shorten input
-                        st.session_state.email_code_entered = st.text_input("Enter the six-digit code sent (just now) to your registered email address.",
-                                                    max_chars=6)
-                        btn_ver_eml = st.form_submit_button("Verify")
+                        st.markdown(":blue[Verify your email address]")
+                        st.write("Enter the " + str(self.dict_auth.get("ver_code_len")) +
+                                 "-digit code sent (just now) to your registered email address.")
+                        cols_txt_verify_email = st.columns(8, gap="small", vertical_alignment="center")
+                        st.session_state.email_code_entered = cols_txt_verify_email[0].write(":orange[Verify:]")
+                        st.session_state.email_code_entered = cols_txt_verify_email[1].text_input("Code", label_visibility="hidden",
+                                                                                                  key="vereml34w", max_chars=6)
+                        cols_verify_email = st.columns(4, gap="small", vertical_alignment="center")
+                        btn_ver_eml = cols_verify_email[0].form_submit_button("Verify")
+                        btn_ver_resend = cols_verify_email[1].form_submit_button("Resend")
                         if btn_ver_eml:
                             if st.session_state.email_code_entered == "":
                                 st.markdown(":red[Enter the verification code to continue.]")
@@ -140,6 +150,14 @@ class LOGIN(form_sr.FORM):
                                     config_data["new_user"]["first_time_login"] = "0"
                                     self.write_ini_config(config_data)
                                     st.rerun()
+                        if btn_ver_resend:
+                            st.session_state.email_code_resent += 1
+                            if st.session_state.email_code_resent <= self.dict_auth.get("max_ver_code_resends"):
+                                st.session_state.email_code_sent = False
+                                st.rerun()
+                            else:
+                                st.markdown(":red[You can't resend the verification code more than " +
+                                            str(self.dict_auth.get("max_ver_code_resends")) + " three times in one session.]")
             else:
                 if self.chng_tmp_pwd(authenticator, auth_config,
                                   auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
@@ -405,10 +423,9 @@ class LOGIN(form_sr.FORM):
                               \r\rThe Librotate team."""
     }
 
-    dict_verify_email_msg = """Hello, {name}. Your one-time six-digit code to verify your Librotate email address is:
-                              \r\r{code}
-                              \r\rRegards,
-                              \r\rThe Librotate team."""
+    dict_verify_email_msg = ("Hello, {name}. Your one-time " +
+                             str(dict_auth.get("ver_code_len")) +
+                             "-digit code to verify your Librotate email address is: \r\r{code}\r\rRegards,\r\rThe Librotate team.")
 
     BLOCK_SIZE = 32  # Bytes
 
