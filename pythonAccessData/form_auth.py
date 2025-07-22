@@ -93,6 +93,10 @@ class LOGIN(form_sr.FORM):
             st.session_state.email_code_entered = None
         if "email_code_resent" not in st.session_state:
             st.session_state.email_code_resent = 1
+
+        if "val_shw_new_user" not in st.session_state:
+            st.session_state.val_shw_new_user = False
+
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -116,12 +120,18 @@ class LOGIN(form_sr.FORM):
                 st.session_state.pwd_tmp_changed = True
             if str(config_data["new_user"]["first_time_login"]) == "1":
                 st.session_state.new_user_login = True
+
+            if str(config_data["show_messages"]["new_user"]) == "1":
+                st.session_state.val_shw_new_user = True
+
             st.session_state.show_frgt_psswd = False
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
                 if not st.session_state.new_user_login:
                     sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
                     sbar.init_sidebars()
+                    if st.session_state.val_shw_new_user:
+                        self.__nw_usr_modal()
                 else:
                     if not st.session_state.email_code_sent:
                         st.session_state.email_code_gen = randint(self.dict_auth.get("ver_code_min"), self.dict_auth.get("ver_code_max"))
@@ -413,6 +423,18 @@ class LOGIN(form_sr.FORM):
                 is_unique_usrnm = False
         return is_unique_usrnm
 
+    @st.dialog("Welcome to Librotate", width="large")
+    def __nw_usr_modal(self):
+        st.write(self.nw_usr_msg)
+        cbx_nw_usr_msg_no_show = st.checkbox(label="Don't show this message again", key="lbrtt_nwusrmsg_gfh")
+        if cbx_nw_usr_msg_no_show:
+            if st.session_state.val_shw_new_user:
+                st.session_state.val_shw_new_user = False
+            config_data = self.load_ini_config()
+            config_data["show_messages"]["new_user"] = "0"
+            self.write_ini_config(config_data)
+            st.rerun()
+
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
                              (the one you have specified in your profile account), which will contain a one-time password. You can
@@ -432,3 +454,6 @@ class LOGIN(form_sr.FORM):
     captcha_help_msg = """Enter the 5-character code you see in the image to the left. If you are not directed 
                           to the confrmation-new-user-created page, then the code you entered did not match 
                           the code shown in the image. So you need to try again."""
+
+    # TODO - complete the message below
+    nw_usr_msg = "Get started with Librotate by:"
