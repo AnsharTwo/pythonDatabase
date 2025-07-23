@@ -93,10 +93,8 @@ class LOGIN(form_sr.FORM):
             st.session_state.email_code_entered = None
         if "email_code_resent" not in st.session_state:
             st.session_state.email_code_resent = 1
-
         if "val_shw_new_user" not in st.session_state:
             st.session_state.val_shw_new_user = False
-
         auth_config = self.create_auth_ojb()
         authenticator = self.create_authenticator(auth_config)
         st.header(":blue[Librotate]")
@@ -120,10 +118,8 @@ class LOGIN(form_sr.FORM):
                 st.session_state.pwd_tmp_changed = True
             if str(config_data["new_user"]["first_time_login"]) == "1":
                 st.session_state.new_user_login = True
-
             if str(config_data["show_messages"]["new_user"]) == "1":
                 st.session_state.val_shw_new_user = True
-
             st.session_state.show_frgt_psswd = False
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
@@ -131,7 +127,7 @@ class LOGIN(form_sr.FORM):
                     sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
                     sbar.init_sidebars()
                     if st.session_state.val_shw_new_user:
-                        self.__nw_usr_modal()
+                        self.nw_usr_modal()
                 else:
                     if not st.session_state.email_code_sent:
                         st.session_state.email_code_gen = randint(self.dict_auth.get("ver_code_min"), self.dict_auth.get("ver_code_max"))
@@ -424,7 +420,7 @@ class LOGIN(form_sr.FORM):
         return is_unique_usrnm
 
     @st.dialog("Welcome to Librotate", width="large")
-    def __nw_usr_modal(self):
+    def nw_usr_modal(self):
         st.write(self.nw_usr_msg)
         cbx_nw_usr_msg_no_show = st.checkbox(label="Don't show this message again", key="lbrtt_nwusrmsg_gfh")
         if cbx_nw_usr_msg_no_show:
