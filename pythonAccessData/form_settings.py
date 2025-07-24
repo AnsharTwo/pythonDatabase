@@ -109,10 +109,6 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.inpt_drdge_dstnc = ""
         if "val_inpt_drdge_dstnc" not in st.session_state:
             st.session_state.val_inpt_drdge_dstnc = ""
-
-        # if "val_inpt_shw_new_user" not in st.session_state:
-        #     st.session_state.val_inpt_shw_new_user = ""
-
         if "val_inpt_shw_drdg_msg" not in st.session_state:
             st.session_state.val_inpt_shw_drdg_msg = ""
         if "inpt_shw_drdg_msg" not in st.session_state:
@@ -369,15 +365,6 @@ class CONFIG_FORM (form_sr.FORM):
         self.set_config_flow_shw_msgs() # now inited in if.. at top
         if st.session_state.form_config_flow_shw_msgs == "config settings - show messages":
             config_data = self.load_ini_config()
-
-            ##############################
-            # if st.session_state.val_inpt_shw_new_user == "":
-            #     if config_data['show_messages']['new_user'] == "1":
-            #         st.session_state.val_inpt_shw_new_user = True
-            #     else:
-            #         st.session_state.val_inpt_shw_new_user = False
-            ##############################
-
             if st.session_state.val_inpt_shw_drdg_msg == "":
                 if config_data['show_messages']['dredge_note'] == "1":
                     st.session_state.val_inpt_shw_drdg_msg = True
@@ -390,20 +377,6 @@ class CONFIG_FORM (form_sr.FORM):
                     st.session_state.val_shw_data_loc_msg = False
             with (st.form("config_settings_shw_msgs")):
                 st.markdown(f"**:blue[Show/hide user messages]**")
-
-                ##############################
-                cols_shw_msgs_new_user = st.columns(2, gap="small", vertical_alignment="center")
-                st.session_state.inpt_shw_new_user = cols_shw_msgs_new_user[0].checkbox("New user welcome guide",
-                                                                value=int(st.session_state.val_shw_new_user
-),
-                                                                key="shw_newuser_dfe431")
-                if st.session_state.val_shw_new_user:
-                    st.markdown(":orange[(Current: ]" + "Showing" + ":orange[)]  ")
-                else:
-                    st.markdown(":orange[(Current: ]" + "Not showing" + ":orange[)]  ")
-                st.divider()
-                ##############################
-
                 cols_shw_msgs_drdge = st.columns(2, gap="small", vertical_alignment="center")
                 st.session_state.inpt_shw_drdg_msg = cols_shw_msgs_drdge[0].checkbox("Internet web pages search notification",
                                                                 value=int(st.session_state.val_inpt_shw_drdg_msg),
@@ -424,18 +397,6 @@ class CONFIG_FORM (form_sr.FORM):
                 st.divider()
                 cols_config = st.columns(2, gap="small", vertical_alignment="center")
                 if cols_config[0].form_submit_button("Save"):
-
-                    ##############################
-                    if st.session_state.inpt_shw_new_user:
-                        if config_data["show_messages"]["new_user"] == "0":
-                            config_data["show_messages"]["new_user"] = "1"
-                    else:
-                        if config_data["show_messages"]["new_user"] == "1":
-                            config_data["show_messages"]["new_user"] = "0"
-                    if st.session_state.val_shw_new_user!= st.session_state.inpt_shw_new_user:
-                        st.session_state.val_shw_new_user = st.session_state.inpt_shw_new_user
-                    ##############################
-
                     if st.session_state.inpt_shw_drdg_msg:
                         if config_data["show_messages"]["dredge_note"] == "0":
                             config_data["show_messages"]["dredge_note"] = "1"
@@ -457,18 +418,8 @@ class CONFIG_FORM (form_sr.FORM):
                 if cols_config[1].form_submit_button("Reset"):
                     config_def_data = self.load_ini_config_def()
                     config_data = self.load_ini_config()
-
-                    ##############################
-                    config_data["show_messages"]["new_user"] = config_def_data["show_messages"]["new_user"]
-                    ##############################
-
                     config_data["show_messages"]["dredge_note"] = config_def_data["show_messages"]["dredge_note"]
                     config_data["show_messages"]["profile_note"] = config_def_data["show_messages"]["profile_note"]
-
-                    ##############################
-                    st.session_state.val_shw_new_user = config_def_data["show_messages"]["new_user"]
-                    ##############################
-
                     st.session_state.val_inpt_shw_drdg_msg = config_def_data["show_messages"]["dredge_note"]
                     st.session_state.val_shw_data_loc_msg = config_def_data["show_messages"]["profile_note"]
                     self.write_ini_config(config_data)
