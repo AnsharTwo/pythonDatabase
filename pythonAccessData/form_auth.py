@@ -141,18 +141,17 @@ class LOGIN(form_sr.FORM):
                         if btn_ver_eml:
                             if st.session_state.email_code_entered == "":
                                 st.markdown(":red[Enter the verification code to continue.]")
-                            else:
-                                if int(st.session_state.email_code_entered) != st.session_state.email_code_gen:
+                            elif not st.session_state.email_code_entered.isdigit():
+                                st.markdown(":red[The verification code contains only numbers.]")
+                            elif int(st.session_state.email_code_entered) != st.session_state.email_code_gen:
                                     st.markdown(":red[The verification code you entered does not match the code sent to you by email.]")
-                                else:
-                                    st.session_state.email_code_sent = False
-                                    st.session_state.new_user_login = False
-                                    config_data["new_user"]["first_time_login"] = "0"
-                                    self.write_ini_config(config_data)
-
-                                    # TODO - welcome email send here
-
-                                    st.rerun()
+                            else:
+                                st.session_state.email_code_sent = False
+                                st.session_state.new_user_login = False
+                                config_data["new_user"]["first_time_login"] = "0"
+                                self.write_ini_config(config_data)
+                                self.send_wlcm_msg(auth_config, st.session_state.username)
+                                st.rerun()
                         if btn_ver_resend:
                             st.session_state.email_code_resent += 1
                             if st.session_state.email_code_resent <= self.dict_auth.get("max_ver_code_resends"):
@@ -341,6 +340,18 @@ class LOGIN(form_sr.FORM):
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
 
+    def send_wlcm_msg(self, auth_config, username):
+        message = MIMEMultipart()
+        message['From'] = self.__Load_lib_adr()
+        message['To'] = auth_config["credentials"]["usernames"][username]["email"]
+        message['Subject'] = "Welcome to Librotate"
+        body = self.dict_wlcm_msg.format(name=auth_config["credentials"]["usernames"][username]["name"])
+        message.attach(MIMEText(body, 'plain'))
+        try:
+            self.__process_msg(auth_config["credentials"]["usernames"][username]["email"], message)
+        except Exception as ex:
+            st.write("Error sending email: " + str(ex))
+
     def __process_msg(self, email, message):
         server = None
         try:
@@ -429,6 +440,15 @@ class LOGIN(form_sr.FORM):
     dict_verify_email_msg = ("Hello, {name}. Your one-time " +
                              str(dict_auth.get("ver_code_len")) +
                              "-digit code to verify your Librotate email address is: \r\r{code}\r\rRegards,\r\rThe Librotate team.")
+
+    dict_wlcm_msg = ("""Hello, {name}. Welcome to Librotate! \r\r
+                     Librotate enables you to build and manage a comprehensive store of your academic projects' data.  
+                     Select either 'View' or 'Do' from the left-hand sidebar in order to see or add, update your 
+                     academic or school project notes - then select from your annotated, database-stored records, book entries, 
+                     or online URL-referenced pages. Make use of the multiple data search facilities, and dredge-search the Internet 
+                     using your stored URLs for single or multi search terms.
+                     \r\rSee the full user guide <COMPLETE> here.
+                     \r\rHave fun and regards,\r\rThe Librotate team.""")
 
     BLOCK_SIZE = 32  # Bytes
 
