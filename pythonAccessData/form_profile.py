@@ -2,7 +2,6 @@ import streamlit as st
 import streamlit_authenticator as stauth
 from tkinter import filedialog as fd
 import tkinter as tk
-import email_validator
 import form_sr
 import form_auth
 
@@ -11,12 +10,6 @@ class PROF_FORM (form_sr.FORM):
     def __init__(self, authenticator):
         super().__init__()
         self.authenticator = authenticator
-
-    dict_user_details = {
-        "name": 75,
-        "email_addr": 75,
-        "confirm_email_addr": 75
-    }
 
     dict_data_locs = {
         "librotate_close_msg": "NOTE: Please quit the background popup window after you have selected your file.",
@@ -233,12 +226,10 @@ class PROF_FORM (form_sr.FORM):
                             elif st.session_state.usr_email != st.session_state.usr_conf_email:
                                 st.markdown(":red[email and confirmation email addresses do not match.]")
                                 can_change = False
-                            else:
-                                for users in auth_config["credentials"]["usernames"]:
-                                    if auth_config["credentials"]["usernames"][
-                                        users]["email"] == st.session_state.usr_email and users != st.session_state.username:
-                                        st.markdown(":red[The email address is already in use. Please specify another email address.]")
-                                        can_change = False
+                            elif not self.is_unique_em_addr(auth_config, st.session_state.usr_email,
+                                                            st.session_state.username,True):
+                                st.markdown(":red[The email address is already in use. Please specify another email address.]")
+                                can_change = False
                             if can_change:
                                 if auth_config["credentials"]["usernames"][st.session_state.username][
                                                "email"] != st.session_state.usr_email:
@@ -268,12 +259,3 @@ class PROF_FORM (form_sr.FORM):
     def ds_file_dialog(self, file_brand, file_type):
         input_path = fd.askopenfilename(title="Select a data location", filetypes=[(file_brand, file_type)])
         return str(input_path)
-
-    def is_valid_eml_addr(self, email_addrr):
-        val_em = False
-        try:
-            val_em = email_validator.validate_email(email_addrr)
-        except Exception as e:
-            st.write(":gray[" + str(e) + "]")
-        finally:
-            return val_em
