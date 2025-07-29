@@ -170,14 +170,42 @@ class LOGIN(form_sr.FORM):
                     st.session_state.pwd_new = ""
                     st.session_state.pwd_new_confirm = ""
                     st.rerun()
+
+            # TODO - ss usernanme is lost? assign to "if cancel account then tempusername  = ss.unsername (was seeing quick "key error"
+
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
-                os.remove(st.session_state.usrs_ini)
-                shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
-                os.remove(st.session_state.usrs_toml)
-                shutil.copy(str(self.dict_config.get("toml_config")), st.session_state.usrs_toml)
-                st.session_state.clear()
-                st.rerun()
+
+                # TODO move this up if TODO above is correct
+                config_data = self.load_ini_config()
+                if config_data["account"]["cancel"] == "0":
+
+                    os.remove(st.session_state.usrs_ini)
+                    shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
+                    os.remove(st.session_state.usrs_toml)
+                    shutil.copy(str(self.dict_config.get("toml_config")), st.session_state.usrs_toml)
+                    st.session_state.clear()
+                    st.rerun()
+                else:
+                    os.remove(st.session_state.usrs_ini)
+                    os.remove(st.session_state.usrs_toml)
+
+                    del_user = {
+                        st.session_state.reg_username: {
+                            "email": st.session_state.reg_email,
+                            "name": st.session_state.reg_name,
+                            "password": auth_config["credentials"]["usernames"][st.session_state.reg_username]["password"]
+                        }
+                    }
+
+                    #auth_config = auth_config - del_user
+
+                    auth_config["credentials"]["usernames"].delete(del_user)
+
+                    self.write_auth_obj(auth_config)
+                    st.session_state.clear()
+                    st.rerun()
+
         elif st.session_state["authentication_status"] is None:
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
