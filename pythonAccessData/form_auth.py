@@ -107,6 +107,9 @@ class LOGIN(form_sr.FORM):
                 os.remove(self.dict_config.get("toml_config"))
                 shutil.copy(st.session_state.usrs_toml, str(self.dict_config.get("toml_config")))
                 st.session_state.swapped_ini = True
+
+                # TODO - looks like config.ini is not updated with user's ini (refresh browser btn does it)
+
             config_data = self.load_ini_config()
             if "ss_dat_loc_annots" not in st.session_state:
                 st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
@@ -170,16 +173,13 @@ class LOGIN(form_sr.FORM):
                     st.session_state.pwd_new = ""
                     st.session_state.pwd_new_confirm = ""
                     st.rerun()
-
-            # TODO - ss usernanme is lost? assign to "if cancel account then tempusername  = ss.unsername (was seeing quick "key error"
-
+            config_data = self.load_ini_config()
+            temp_username = ""
+            if config_data["account"]["cancel"] == "1":
+                temp_username = st.session_state.username
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
-
-                # TODO move this up if TODO above is correct
-                config_data = self.load_ini_config()
                 if config_data["account"]["cancel"] == "0":
-
                     os.remove(st.session_state.usrs_ini)
                     shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
                     os.remove(st.session_state.usrs_toml)
@@ -190,18 +190,10 @@ class LOGIN(form_sr.FORM):
                     os.remove(st.session_state.usrs_ini)
                     os.remove(st.session_state.usrs_toml)
 
-                    del_user = {
-                        st.session_state.reg_username: {
-                            "email": st.session_state.reg_email,
-                            "name": st.session_state.reg_name,
-                            "password": auth_config["credentials"]["usernames"][st.session_state.reg_username]["password"]
-                        }
-                    }
+                    # TODO - this below now works, but user not authed (have to delete all cookie again). So need to store and
+                    #  delete after logout, somehow.
 
-                    #auth_config = auth_config - del_user
-
-                    auth_config["credentials"]["usernames"].delete(del_user)
-
+                    auth_config["credentials"]["usernames"].pop(temp_username, None)
                     self.write_auth_obj(auth_config)
                     st.session_state.clear()
                     st.rerun()
