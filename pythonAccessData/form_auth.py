@@ -27,7 +27,7 @@ class LOGIN(form_sr.FORM):
         "ver_code_len": 6,
         "ver_code_min": 100000,
         "ver_code_max": 999999,
-        "max_ver_code_resends": 3
+        "max_ver_code_resends": 3,
     }
 
     def create_auth_ojb(self):
@@ -123,8 +123,12 @@ class LOGIN(form_sr.FORM):
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
                 if not st.session_state.new_user_login:
-                    sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
-                    sbar.init_sidebars()
+                    if stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(), # i.e. if "hack" tried
+                                              auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
+                        st.info("This Libroate user's account has been cancelled.")
+                    else:
+                        sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
+                        sbar.init_sidebars()
                 else:
                     if not st.session_state.email_code_sent:
                         st.session_state.email_code_gen = randint(self.dict_auth.get("ver_code_min"), self.dict_auth.get("ver_code_max"))
@@ -189,15 +193,10 @@ class LOGIN(form_sr.FORM):
                 else:
                     os.remove(st.session_state.usrs_ini)
                     os.remove(st.session_state.usrs_toml)
-
-                    # TODO - this below now works, but user not authed (have to delete all cookie again). So need to store and
-                    #  delete after logout, somehow.
-
-                    auth_config["credentials"]["usernames"].pop(temp_username, None)
+                    auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.__Load_dltd_usr_pwd())
                     self.write_auth_obj(auth_config)
                     st.session_state.clear()
                     st.rerun()
-
         elif st.session_state["authentication_status"] is None:
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
@@ -409,6 +408,10 @@ class LOGIN(form_sr.FORM):
     def __Load_lib_server_prt(self):
         load_dotenv()
         return int(os.getenv("LIBROTATE_EMAIL_SERVER_PORT"))
+
+    def __Load_dltd_usr_pwd(self):
+        load_dotenv()
+        return os.getenv("CNCLD_USER_PWD")
 
     def chng_tmp_pwd(self, authenticator, auth_config, pwd_hashed_curr):
         st.markdown(f"**:blue[Change one-time password]**")
