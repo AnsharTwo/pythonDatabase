@@ -183,6 +183,8 @@ class LOGIN(form_sr.FORM):
                 temp_username = st.session_state.username
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
+                st.session_state.show_frgt_psswd = True
+                st.session_state.show_reg_usr = True
                 if config_data["account"]["cancel"] == "0":
                     os.remove(st.session_state.usrs_ini)
                     shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
@@ -303,6 +305,9 @@ class LOGIN(form_sr.FORM):
                             elif not authenticator.authentication_controller.validator.validate_password(reg_pwd):
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                                 can_reg_usr = False
+                            elif reg_pwd == self.__Load_dltd_usr_pwd():
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
+                                can_reg_usr = False
                             elif reg_pwd != reg_conf_pwd:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                                 can_reg_usr = False
@@ -413,6 +418,23 @@ class LOGIN(form_sr.FORM):
         load_dotenv()
         return os.getenv("CNCLD_USER_PWD")
 
+    def is_unique_em_addr(self, auth_config, eml_addr, usrnm, chk_usrnm):
+        is_unique_eml = True
+        for users in auth_config["credentials"]["usernames"]:
+            if chk_usrnm:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr and users != usrnm:
+                        if not stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+            else:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr:
+                        if not stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+        return is_unique_eml
+
     def chng_tmp_pwd(self, authenticator, auth_config, pwd_hashed_curr):
         st.markdown(f"**:blue[Change one-time password]**")
         st.session_state.pwd_current = st.text_input("Current password", type="password",
@@ -447,7 +469,9 @@ class LOGIN(form_sr.FORM):
         is_unique_usrnm = True
         for usernames in auth_config["credentials"]["usernames"]:
             if usernames == usrname:
-                is_unique_usrnm = False
+                if not stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(),
+                                              auth_config["credentials"]["usernames"][usernames]["password"]):
+                    is_unique_usrnm = False
         return is_unique_usrnm
 
     dict_frgt_pwd_txts = {
