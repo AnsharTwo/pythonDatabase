@@ -146,6 +146,9 @@ class PROF_FORM (form_sr.FORM):
                                 st.markdown(
                                     ":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                                 can_change = False
+                            elif st.session_state.pwd_new == prf_auth_obj.load_dltd_usr_pwd():
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
+                                can_change = False
                             elif st.session_state.pwd_new == st.session_state.pwd_current:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
                                 can_change = False
@@ -226,7 +229,7 @@ class PROF_FORM (form_sr.FORM):
                             elif st.session_state.usr_email != st.session_state.usr_conf_email:
                                 st.markdown(":red[email and confirmation email addresses do not match.]")
                                 can_change = False
-                            elif not self.is_unique_em_addr(auth_config, st.session_state.usr_email,
+                            elif not self.is_unique_em_addr(prf_auth_obj, auth_config, st.session_state.usr_email,
                                                             st.session_state.username,True):
                                 st.markdown(":red[The email address is already in use. Please specify another email address.]")
                                 can_change = False
@@ -259,3 +262,20 @@ class PROF_FORM (form_sr.FORM):
     def ds_file_dialog(self, file_brand, file_type):
         input_path = fd.askopenfilename(title="Select a data location", filetypes=[(file_brand, file_type)])
         return str(input_path)
+#
+    def is_unique_em_addr(self, prf_auth_obj, auth_config, eml_addr, usrnm, chk_usrnm): # also is overloaded (with prf_auth_obj
+        is_unique_eml = True
+        for users in auth_config["credentials"]["usernames"]:
+            if chk_usrnm:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr and users != usrnm:
+                        if not stauth.Hasher.check_pw(prf_auth_obj.load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+            else:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr:
+                        if not stauth.Hasher.check_pw(prf_auth_obj.load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+        return is_unique_eml

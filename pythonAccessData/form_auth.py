@@ -123,7 +123,7 @@ class LOGIN(form_sr.FORM):
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
                 if not st.session_state.new_user_login:
-                    if stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(), # i.e. if "hack" tried
+                    if stauth.Hasher.check_pw(self.load_dltd_usr_pwd(), # i.e. if "hack" tried
                                               auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
                         st.info("This Libroate user's account has been cancelled.")
                     else:
@@ -195,7 +195,7 @@ class LOGIN(form_sr.FORM):
                 else:
                     os.remove(st.session_state.usrs_ini)
                     os.remove(st.session_state.usrs_toml)
-                    auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.__Load_dltd_usr_pwd())
+                    auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.load_dltd_usr_pwd())
                     self.write_auth_obj(auth_config)
                     st.session_state.clear()
                     st.rerun()
@@ -305,7 +305,7 @@ class LOGIN(form_sr.FORM):
                             elif not authenticator.authentication_controller.validator.validate_password(reg_pwd):
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                                 can_reg_usr = False
-                            elif reg_pwd == self.__Load_dltd_usr_pwd():
+                            elif reg_pwd == self.load_dltd_usr_pwd():
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
                                 can_reg_usr = False
                             elif reg_pwd != reg_conf_pwd:
@@ -414,7 +414,7 @@ class LOGIN(form_sr.FORM):
         load_dotenv()
         return int(os.getenv("LIBROTATE_EMAIL_SERVER_PORT"))
 
-    def __Load_dltd_usr_pwd(self):
+    def load_dltd_usr_pwd(self):
         load_dotenv()
         return os.getenv("CNCLD_USER_PWD")
 
@@ -424,13 +424,13 @@ class LOGIN(form_sr.FORM):
             if chk_usrnm:
                 if auth_config["credentials"]["usernames"][
                     users]["email"] == eml_addr and users != usrnm:
-                        if not stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(),
+                        if not stauth.Hasher.check_pw(self.load_dltd_usr_pwd(),
                                                       auth_config["credentials"]["usernames"][users]["password"]):
                             is_unique_eml = False
             else:
                 if auth_config["credentials"]["usernames"][
                     users]["email"] == eml_addr:
-                        if not stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(),
+                        if not stauth.Hasher.check_pw(self.load_dltd_usr_pwd(),
                                                       auth_config["credentials"]["usernames"][users]["password"]):
                             is_unique_eml = False
         return is_unique_eml
@@ -453,6 +453,9 @@ class LOGIN(form_sr.FORM):
                 st.markdown(
                     ":red["  + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                 can_change = False
+            elif st.session_state.pwd_new == self.load_dltd_usr_pwd():
+                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
+                can_change = False
             elif st.session_state.pwd_new == st.session_state.pwd_current:
                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
                 can_change = False
@@ -469,7 +472,7 @@ class LOGIN(form_sr.FORM):
         is_unique_usrnm = True
         for usernames in auth_config["credentials"]["usernames"]:
             if usernames == usrname:
-                if not stauth.Hasher.check_pw(self.__Load_dltd_usr_pwd(),
+                if not stauth.Hasher.check_pw(self.load_dltd_usr_pwd(),
                                               auth_config["credentials"]["usernames"][usernames]["password"]):
                     is_unique_usrnm = False
         return is_unique_usrnm
