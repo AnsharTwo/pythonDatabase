@@ -195,6 +195,10 @@ class LOGIN(form_sr.FORM):
                 else:
                     os.remove(st.session_state.usrs_ini)
                     os.remove(st.session_state.usrs_toml)
+                    if st.session_state.del_accnt_db_src:
+                        os.remove(st.session_state.ss_dat_loc_annots)
+                    if st.session_state.del_accnt_urls_src:
+                        os.remove(st.session_state.ss_dat_loc_urls)
                     auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.load_dltd_usr_pwd())
                     self.write_auth_obj(auth_config)
                     st.session_state.clear()

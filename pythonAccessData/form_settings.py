@@ -561,7 +561,6 @@ class CONFIG_FORM (form_sr.FORM):
                                 try:
                                     config_data["account"]["cancel"] = "1"
                                     self.write_ini_config(config_data)
-                                    # TODO - delete (at logout) data sources files depending on checkbox logic
                                     st.session_state.del_accnt_done = True
                                     st.rerun()
                                 except Exception as ex:
