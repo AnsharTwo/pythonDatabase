@@ -24,6 +24,11 @@ class FORM:
         "url": "data_srcs/fact_defs/online.xlsx"
     }
 
+    dict_dat_locs = {
+        "bk": "data_srcs/book.mdb",
+        "url": "data_srcs/online.xlsx"
+    }
+
     dict_list_annt_wrkr = {
         "header": "Edit annotations data",
         "title": "Select data activity"
@@ -92,7 +97,7 @@ class FORM:
         "db_locked_in_changes": """The data source cannot be changed because book or annotations data is in the process of being edited. 
                                    Complete or abandon your changes in order to amend the data location.""",
         "tkinter_dialog_err": """An error has occured with the file selection dialog. Was it already open, 
-                                        or did you attempt to edit data while it was open?]""",
+                                        or did you attempt to edit data while it was open?""",
         "tkinter_dialog_err_act": """You should either log out, or, refresh your browser 
                                      to continue."""
     }

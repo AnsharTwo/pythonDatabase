@@ -109,6 +109,7 @@ class LOGIN(form_sr.FORM):
                 st.session_state.swapped_ini = True
 
                 # TODO - looks like config.ini is not updated with user's ini (refresh browser btn does it)
+                # first, simply try loading it here.
 
             config_data = self.load_ini_config()
             if "ss_dat_loc_annots" not in st.session_state:
@@ -197,8 +198,17 @@ class LOGIN(form_sr.FORM):
                     os.remove(st.session_state.usrs_toml)
                     if st.session_state.del_accnt_db_src:
                         os.remove(st.session_state.ss_dat_loc_annots)
+                        if st.session_state.ss_dat_loc_annots.find(self.dict_dat_locs.get("bk")) != -1:
+                            shutil.copy(self.dict_fac_defs.get("bk"), st.session_state.ss_dat_loc_annots) # user's data dir might be default (not partial match on dir), so replace with fac def file in case.
+
+                    # TODO - db is working tested with default location (deletes, not sets to fac def if not default loc,and
+                    # TODO sets to fac def after delete if is default loc. url loc is working if data loc is not default loc,
+                    # TODO - deletes it, bit if data loc is default loc then it is not deleting and not replacing with fac def file.
+
                     if st.session_state.del_accnt_urls_src:
                         os.remove(st.session_state.ss_dat_loc_urls)
+                        if st.session_state.ss_dat_loc_urls.find(self.dict_dat_locs.get("url")) != -1:
+                            shutil.copy(self.dict_fac_defs.get("url"), st.session_state.ss_dat_loc_urls) # user's data dir might be default (not partial match on dir), so replace with fac def file in case.
                     auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.load_dltd_usr_pwd())
                     self.write_auth_obj(auth_config)
                     st.session_state.clear()
