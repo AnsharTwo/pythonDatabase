@@ -540,7 +540,8 @@ class CONFIG_FORM (form_sr.FORM):
         if st.session_state.form_del_accnt == "config settings - delete account":
             if st.session_state.del_accnt_sbmttd:
                 if st.session_state.del_accnt_done:
-                    st.info("Your Librotate account has been cancelled.")
+                    st.info("""Your Librotate account has been cancelled. It will remain active until you 
+                               log out of this current session.""")
                 else:
                     sttngs_auth_obj = form_auth.LOGIN()
                     auth_config = sttngs_auth_obj.create_auth_ojb()
