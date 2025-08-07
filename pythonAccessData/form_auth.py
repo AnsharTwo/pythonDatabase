@@ -12,7 +12,6 @@ import os
 import shutil
 from dotenv import load_dotenv
 from random import randint
-import time
 import form_sr
 import sidebar
 
@@ -194,28 +193,22 @@ class LOGIN(form_sr.FORM):
                     st.session_state.clear()
                     st.rerun()
                 else:
-                    os.remove(st.session_state.usrs_ini)
-                    os.remove(st.session_state.usrs_toml)
-                    if st.session_state.del_accnt_db_src:
-                        try:
-                            os.remove(st.session_state.ss_dat_loc_annots)
-                            if st.session_state.ss_dat_loc_annots.find(self.dict_dat_locs.get("bk")) != -1:
-                                shutil.copy(self.dict_fac_defs.get("bk"), st.session_state.ss_dat_loc_annots) # user's data dir might be default (not partial match on dir), so replace with fac def file in case.
-                        except Exception as ex:
-                            st.markdown(":red[There was an error deleting the database file.]")
-                            time.sleep(5)
-                    if st.session_state.del_accnt_urls_src:
-                        try:
-                            os.remove(st.session_state.ss_dat_loc_urls)
-                            if st.session_state.ss_dat_loc_urls.find(self.dict_dat_locs.get("url")) != -1:
-                                shutil.copy(self.dict_fac_defs.get("url"), st.session_state.ss_dat_loc_urls) # user's data dir might be default (not partial match on dir), so replace with fac def file in case.
-                        except Exception as ex:
-                            st.markdown(":red[There was an error deleting the URLs sheets file.]")
-                            time.sleep(5)
-                    auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.load_dltd_usr_pwd())
-                    self.write_auth_obj(auth_config)
-                    st.session_state.clear()
-                    st.rerun()
+                    try:
+                        os.remove(st.session_state.usrs_ini)
+                        os.remove(st.session_state.usrs_toml)
+                        if st.session_state.del_accnt_db_src:
+                            self.__delete_dat_file(st.session_state.ss_dat_loc_annots, self.dict_dat_locs.get("bk"),
+                                                   self.dict_fac_defs.get("bk"))
+                        if st.session_state.del_accnt_urls_src:
+                            self.__delete_dat_file(st.session_state.ss_dat_loc_urls, self.dict_dat_locs.get("url"),
+                                                   self.dict_fac_defs.get("url"))
+                        self.send_bye_msg(auth_config, temp_username)
+                        auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.load_dltd_usr_pwd())
+                        self.write_auth_obj(auth_config)
+                        st.session_state.clear()
+                        st.rerun()
+                    except Exception as ex:
+                        st.error(ex)
         elif st.session_state["authentication_status"] is None:
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
@@ -393,6 +386,18 @@ class LOGIN(form_sr.FORM):
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
 
+    def send_bye_msg(self, auth_config, username):
+        message = MIMEMultipart()
+        message['From'] = self.__Load_lib_adr()
+        message['To'] = auth_config["credentials"]["usernames"][username]["email"]
+        message['Subject'] = "Sorry to see you go..."
+        body = self.dict_bye_msg.format(name=auth_config["credentials"]["usernames"][username]["name"])
+        message.attach(MIMEText(body, 'plain'))
+        try:
+            self.__process_msg(auth_config["credentials"]["usernames"][username]["email"], message)
+        except Exception as ex:
+            st.write("Error sending email: " + str(ex))
+
     def __process_msg(self, email, message):
         server = None
         try:
@@ -494,6 +499,12 @@ class LOGIN(form_sr.FORM):
                     is_unique_usrnm = False
         return is_unique_usrnm
 
+    def __delete_dat_file(self, file_path, file_def_path, file_fac_def_path):
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if not os.path.exists(file_def_path):
+                shutil.copy(file_fac_def_path, file_def_path)
+
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
                              (the one you have specified in your profile account), which will contain a one-time password. You can
@@ -516,6 +527,11 @@ class LOGIN(form_sr.FORM):
                      using your stored URLs for single or multi search terms.
                      \r\rSee the full user guide <COMPLETE> here.
                      \r\rHave fun and regards,\r\rThe Librotate team.""")
+
+    dict_bye_msg = ("""Farewell, {name}. for now from Librotate! \r\r
+                    We hope you enjoyed your account with Librotate, and that you found it useful. \r\r
+                    You can create a new account at any time, should you wish to continue using librotate.   
+                     \r\rBest wishes,\r\rThe Librotate team.""")
 
     BLOCK_SIZE = 32  # Bytes
 
