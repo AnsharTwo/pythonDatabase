@@ -42,6 +42,10 @@ class PROF_FORM (form_sr.FORM):
             st.session_state.loc_db_bk_chng = False
         if "val_shw_data_loc_msg" not in st.session_state:
             st.session_state.val_shw_data_loc_msg = False
+        if "fac_def_bk_sel" not in st.session_state:
+            st.session_state.fac_def_bk_sel = False
+        if "fac_def_urls_sel" not in st.session_state:
+            st.session_state.fac_def_urls_sel = False
         if "usr_name" not in st.session_state:
             st.session_state.usr_name = ""
         if "usr_email" not in st.session_state:
@@ -61,6 +65,10 @@ class PROF_FORM (form_sr.FORM):
                 config_data = self.load_ini_config()
                 st.markdown(f"**:blue[Data locations]**")
                 st.write("Annotations database")
+                if st.session_state.fac_def_bk_sel:
+                    st.error("The data file location cannot contain the path '" + self.dict_fac_defs.get("bk") +
+                             "'. Please select another data location.")
+                    st.session_state.fac_def_bk_sel = False
                 if st.session_state.loc_db_ant_chng or st.session_state.loc_db_bk_chng:
                     st.write(self.dict_err_msgs.get("db_locked_in_changes"))
                     st.markdown(":red[ENSURE YOU CLOSE THE FILE SELECTION AND CONFIRM BOXES] if they are open.]")
@@ -79,9 +87,15 @@ class PROF_FORM (form_sr.FORM):
                                 tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
                                 pth = self.ds_file_dialog("Access", ".mdb")
                                 if pth != "":
-                                    config_data["data locations"]["annotations"] = pth
-                                    st.session_state.ss_dat_loc_annots = pth
-                                    self.write_ini_config(config_data)
+                                    if pth.find(self.dict_fac_defs.get("bk")) == -1:
+                                        config_data["data locations"]["annotations"] = pth
+                                        st.session_state.ss_dat_loc_annots = pth
+                                        self.write_ini_config(config_data)
+                                    else:
+                                        st.session_state.fac_def_bk_sel = True
+                                        config_data["data locations"]["annotations"] = self.dict_dat_locs.get("bk")
+                                        st.session_state.ss_dat_loc_annots = self.dict_dat_locs.get("bk")
+                                        self.write_ini_config(config_data)
                                 root.after(1000)
                                 root.mainloop()
                                 st.rerun()
@@ -91,6 +105,10 @@ class PROF_FORM (form_sr.FORM):
                             st.write(":green[" + self.dict_err_msgs.get("tkinter_dialog_err_act") + "]")
                 st.divider()
                 st.write("URL sheets")
+                if st.session_state.fac_def_urls_sel:
+                    st.error("The data file location cannot contain the path '" + self.dict_fac_defs.get("url") +
+                             "'. Please select another data location.")
+                    st.session_state.fac_def_urls_sel = False
                 st.markdown(":orange[(Current: ]" + str(
                     st.session_state.ss_dat_loc_urls).title() + ":orange[)]  ")
                 if st.form_submit_button("Browse URLs files"):
@@ -104,10 +122,16 @@ class PROF_FORM (form_sr.FORM):
                             tk.Label(root, text = self.dict_data_locs.get("tkinter_close_msg")).pack()
                             pth = self.ds_file_dialog("Excel", ".xlsx")
                             if pth != "":
-                                config_data["data locations"]["urls"] = pth
-                                st.session_state.ss_dat_loc_urls = pth
-                                self.write_ini_config(config_data)
-                                self.load_book_sheet.clear() # clear cache or new data will not show
+                                if pth.find(self.dict_fac_defs.get("url")) == -1:
+                                    config_data["data locations"]["urls"] = pth
+                                    st.session_state.ss_dat_loc_urls = pth
+                                    self.write_ini_config(config_data)
+                                else:
+                                    st.session_state.fac_def_urls_sel = True
+                                    config_data["data locations"]["urls"] = self.dict_dat_locs.get("url")
+                                    st.session_state.ss_dat_loc_urls = self.dict_dat_locs.get("url")
+                                    self.write_ini_config(config_data)
+                                self.load_book_sheet.clear()  # clear cache or new data will not show
                             root.after(1000)
                             root.mainloop()
                             st.rerun()
@@ -145,6 +169,9 @@ class PROF_FORM (form_sr.FORM):
                             elif not authent.authentication_controller.validator.validate_password(st.session_state.pwd_new):
                                 st.markdown(
                                     ":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
+                                can_change = False
+                            elif st.session_state.pwd_new == prf_auth_obj.load_dltd_usr_pwd():
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
                                 can_change = False
                             elif st.session_state.pwd_new == st.session_state.pwd_current:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
@@ -226,7 +253,7 @@ class PROF_FORM (form_sr.FORM):
                             elif st.session_state.usr_email != st.session_state.usr_conf_email:
                                 st.markdown(":red[email and confirmation email addresses do not match.]")
                                 can_change = False
-                            elif not self.is_unique_em_addr(auth_config, st.session_state.usr_email,
+                            elif not self.is_unique_em_addr(prf_auth_obj, auth_config, st.session_state.usr_email,
                                                             st.session_state.username,True):
                                 st.markdown(":red[The email address is already in use. Please specify another email address.]")
                                 can_change = False
@@ -259,3 +286,20 @@ class PROF_FORM (form_sr.FORM):
     def ds_file_dialog(self, file_brand, file_type):
         input_path = fd.askopenfilename(title="Select a data location", filetypes=[(file_brand, file_type)])
         return str(input_path)
+#
+    def is_unique_em_addr(self, prf_auth_obj, auth_config, eml_addr, usrnm, chk_usrnm): # also is overloaded (with prf_auth_obj
+        is_unique_eml = True
+        for users in auth_config["credentials"]["usernames"]:
+            if chk_usrnm:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr and users != usrnm:
+                        if not stauth.Hasher.check_pw(prf_auth_obj.load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+            else:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr:
+                        if not stauth.Hasher.check_pw(prf_auth_obj.load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+        return is_unique_eml

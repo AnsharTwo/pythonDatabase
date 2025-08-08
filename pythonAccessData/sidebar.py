@@ -38,6 +38,7 @@ class SIDEBAR (form_sr.FORM):
                                                              self.dict_tabh_drs.get("Config"),
                                                              self.dict_tabh_drs.get("Prof")])
         st.sidebar.write(":green[Welcome, {}!]".format(self.user))
+        st.sidebar.image("librotate-logo.jpg")
         view_values_list = list(self.dict_data_app.values())
         dropSelectApp = st.sidebar.selectbox("Select what to view", [self.dict_data_app.get("annotDb"),
                                                                      self.dict_data_app.get("urlExcel")],

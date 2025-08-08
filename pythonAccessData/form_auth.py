@@ -27,7 +27,7 @@ class LOGIN(form_sr.FORM):
         "ver_code_len": 6,
         "ver_code_min": 100000,
         "ver_code_max": 999999,
-        "max_ver_code_resends": 3
+        "max_ver_code_resends": 3,
     }
 
     def create_auth_ojb(self):
@@ -107,6 +107,9 @@ class LOGIN(form_sr.FORM):
                 os.remove(self.dict_config.get("toml_config"))
                 shutil.copy(st.session_state.usrs_toml, str(self.dict_config.get("toml_config")))
                 st.session_state.swapped_ini = True
+
+                # TODO - looks like config.ini is not updated with user's ini (refresh browser btn does it)
+
             config_data = self.load_ini_config()
             if "ss_dat_loc_annots" not in st.session_state:
                 st.session_state.ss_dat_loc_annots = str(config_data["data locations"]["annotations"])
@@ -120,8 +123,12 @@ class LOGIN(form_sr.FORM):
             st.session_state.show_reg_usr = False
             if not st.session_state.pwd_tmp_changed:
                 if not st.session_state.new_user_login:
-                    sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
-                    sbar.init_sidebars()
+                    if stauth.Hasher.check_pw(self.load_dltd_usr_pwd(), # i.e. if "hack" tried
+                                              auth_config["credentials"]["usernames"][st.session_state.username]["password"]):
+                        st.info("This Libroate user's account has been cancelled.")
+                    else:
+                        sbar = sidebar.SIDEBAR(st.session_state.name, authenticator)
+                        sbar.init_sidebars()
                 else:
                     if not st.session_state.email_code_sent:
                         st.session_state.email_code_gen = randint(self.dict_auth.get("ver_code_min"), self.dict_auth.get("ver_code_max"))
@@ -170,14 +177,38 @@ class LOGIN(form_sr.FORM):
                     st.session_state.pwd_new = ""
                     st.session_state.pwd_new_confirm = ""
                     st.rerun()
+            config_data = self.load_ini_config()
+            temp_username = ""
+            if config_data["account"]["cancel"] == "1":
+                temp_username = st.session_state.username
             authenticator.logout(location="sidebar")
             if st.session_state["authentication_status"] is None:
-                os.remove(st.session_state.usrs_ini)
-                shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
-                os.remove(st.session_state.usrs_toml)
-                shutil.copy(str(self.dict_config.get("toml_config")), st.session_state.usrs_toml)
-                st.session_state.clear()
-                st.rerun()
+                st.session_state.show_frgt_psswd = True
+                st.session_state.show_reg_usr = True
+                if config_data["account"]["cancel"] == "0":
+                    os.remove(st.session_state.usrs_ini)
+                    shutil.copy(str(self.dict_config.get("ini_config")), st.session_state.usrs_ini)
+                    os.remove(st.session_state.usrs_toml)
+                    shutil.copy(str(self.dict_config.get("toml_config")), st.session_state.usrs_toml)
+                    st.session_state.clear()
+                    st.rerun()
+                else:
+                    try:
+                        os.remove(st.session_state.usrs_ini)
+                        os.remove(st.session_state.usrs_toml)
+                        if st.session_state.del_accnt_db_src:
+                            self.__delete_dat_file(st.session_state.ss_dat_loc_annots, self.dict_dat_locs.get("bk"),
+                                                   self.dict_fac_defs.get("bk"))
+                        if st.session_state.del_accnt_urls_src:
+                            self.__delete_dat_file(st.session_state.ss_dat_loc_urls, self.dict_dat_locs.get("url"),
+                                                   self.dict_fac_defs.get("url"))
+                        self.send_bye_msg(auth_config, temp_username)
+                        auth_config["credentials"]["usernames"][temp_username]["password"] = stauth.Hasher.hash(self.load_dltd_usr_pwd())
+                        self.write_auth_obj(auth_config)
+                        st.session_state.clear()
+                        st.rerun()
+                    except Exception as ex:
+                        st.error(ex)
         elif st.session_state["authentication_status"] is None:
             st.warning('Please enter your username and password')
         elif not st.session_state["authentication_status"]:
@@ -284,6 +315,9 @@ class LOGIN(form_sr.FORM):
                             elif not authenticator.authentication_controller.validator.validate_password(reg_pwd):
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                                 can_reg_usr = False
+                            elif reg_pwd == self.load_dltd_usr_pwd():
+                                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
+                                can_reg_usr = False
                             elif reg_pwd != reg_conf_pwd:
                                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_conf_new_pwd") + "]")
                                 can_reg_usr = False
@@ -352,6 +386,18 @@ class LOGIN(form_sr.FORM):
         except Exception as ex:
             st.write("Error sending email: " + str(ex))
 
+    def send_bye_msg(self, auth_config, username):
+        message = MIMEMultipart()
+        message['From'] = self.__Load_lib_adr()
+        message['To'] = auth_config["credentials"]["usernames"][username]["email"]
+        message['Subject'] = "Sorry to see you go..."
+        body = self.dict_bye_msg.format(name=auth_config["credentials"]["usernames"][username]["name"])
+        message.attach(MIMEText(body, 'plain'))
+        try:
+            self.__process_msg(auth_config["credentials"]["usernames"][username]["email"], message)
+        except Exception as ex:
+            st.write("Error sending email: " + str(ex))
+
     def __process_msg(self, email, message):
         server = None
         try:
@@ -390,6 +436,27 @@ class LOGIN(form_sr.FORM):
         load_dotenv()
         return int(os.getenv("LIBROTATE_EMAIL_SERVER_PORT"))
 
+    def load_dltd_usr_pwd(self):
+        load_dotenv()
+        return os.getenv("CNCLD_USER_PWD")
+
+    def is_unique_em_addr(self, auth_config, eml_addr, usrnm, chk_usrnm):
+        is_unique_eml = True
+        for users in auth_config["credentials"]["usernames"]:
+            if chk_usrnm:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr and users != usrnm:
+                        if not stauth.Hasher.check_pw(self.load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+            else:
+                if auth_config["credentials"]["usernames"][
+                    users]["email"] == eml_addr:
+                        if not stauth.Hasher.check_pw(self.load_dltd_usr_pwd(),
+                                                      auth_config["credentials"]["usernames"][users]["password"]):
+                            is_unique_eml = False
+        return is_unique_eml
+
     def chng_tmp_pwd(self, authenticator, auth_config, pwd_hashed_curr):
         st.markdown(f"**:blue[Change one-time password]**")
         st.session_state.pwd_current = st.text_input("Current password", type="password",
@@ -408,6 +475,9 @@ class LOGIN(form_sr.FORM):
                 st.markdown(
                     ":red["  + self.dict_chng_pwd_err_msgs.get("valid_new_pwd") + "]")
                 can_change = False
+            elif st.session_state.pwd_new == self.load_dltd_usr_pwd():
+                st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_no_sys_new_pwd") + "]")
+                can_change = False
             elif st.session_state.pwd_new == st.session_state.pwd_current:
                 st.markdown(":red[" + self.dict_chng_pwd_err_msgs.get("valid_uniq_new_pwd") + "]")
                 can_change = False
@@ -424,8 +494,16 @@ class LOGIN(form_sr.FORM):
         is_unique_usrnm = True
         for usernames in auth_config["credentials"]["usernames"]:
             if usernames == usrname:
-                is_unique_usrnm = False
+                if not stauth.Hasher.check_pw(self.load_dltd_usr_pwd(),
+                                              auth_config["credentials"]["usernames"][usernames]["password"]):
+                    is_unique_usrnm = False
         return is_unique_usrnm
+
+    def __delete_dat_file(self, file_path, file_def_path, file_fac_def_path):
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if not os.path.exists(file_def_path):
+                shutil.copy(file_fac_def_path, file_def_path)
 
     dict_frgt_pwd_txts = {
         "frgt_pwd_info": """Enter your user name and submit the below form. You will then receive an email to your email address
@@ -449,6 +527,11 @@ class LOGIN(form_sr.FORM):
                      using your stored URLs for single or multi search terms.
                      \r\rSee the full user guide <COMPLETE> here.
                      \r\rHave fun and regards,\r\rThe Librotate team.""")
+
+    dict_bye_msg = ("""Farewell, {name}. for now from Librotate! \r\r
+                    We hope you enjoyed your account with Librotate, and that you found it useful. \r\r
+                    You can create a new account at any time, should you wish to continue using librotate.   
+                     \r\rBest wishes,\r\rThe Librotate team.""")
 
     BLOCK_SIZE = 32  # Bytes
 

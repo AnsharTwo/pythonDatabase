@@ -66,6 +66,9 @@ class CONFIG_FORM (form_sr.FORM):
     def set_config_flow_url_fct_defs(self):
         st.session_state.form_url_fct_defs = "config settings - url source file factory defaults"
 
+    def set_config_flow_url_del_accnt(self):
+        st.session_state.form_del_accnt = "config settings - delete account"
+
     def edt_sttngs(self):
         if "form_config_flow_theme" not in st.session_state:
             st.session_state.form_config_flow_theme = ""
@@ -117,10 +120,20 @@ class CONFIG_FORM (form_sr.FORM):
             st.session_state.form_bk_fct_defs = ""
         if "form_url_fct_defs" not in st.session_state:
             st.session_state.form_url_fct_defs = ""
+        if "form_del_accnt" not in st.session_state:
+            st.session_state.form_del_accnt = ""
         if "fac_bk_def_sbmttd" not in st.session_state:
             st.session_state.fac_bk_def_sbmttd = False
         if "fac_url_def_sbmttd" not in st.session_state:
             st.session_state.fac_url_def_sbmttd = False
+        if "del_accnt_sbmttd" not in st.session_state:
+            st.session_state.del_accnt_sbmttd = False
+        if "del_accnt_done" not in st.session_state:
+            st.session_state.del_accnt_done = False
+        if "del_accnt_db_src" not in st.session_state:
+            st.session_state.del_accnt_db_src = False
+        if "del_accnt_urls_src" not in st.session_state:
+            st.session_state.del_accnt_urls_src = False
         if "loc_db_ant_chng" not in st.session_state:
             st.session_state.loc_db_ant_chng = False
         if "loc_db_bk_chng" not in st.session_state:
@@ -523,6 +536,58 @@ class CONFIG_FORM (form_sr.FORM):
                     if cols_config_url[0].form_submit_button("Restore online url source"):
                         st.session_state.fac_url_def_sbmttd = True
                         st.rerun()
+        self.set_config_flow_url_del_accnt()
+        if st.session_state.form_del_accnt == "config settings - delete account":
+            if st.session_state.del_accnt_sbmttd:
+                if st.session_state.del_accnt_done:
+                    st.info("""Your Librotate account has been cancelled. It will remain active until you 
+                               log out of this current session.""")
+                else:
+                    sttngs_auth_obj = form_auth.LOGIN()
+                    auth_config = sttngs_auth_obj.create_auth_ojb()
+                    config_data = self.load_ini_config()
+                    pwd_hashed_curr = auth_config["credentials"]["usernames"][st.session_state.username]["password"]
+                    with st.form("Delete account"):
+                        st.markdown(f"**:blue[Cancel your account]**")
+                        st.write("Enter your password to cancel your Librotate account.")
+                        pwd_sttngs = st.text_input("Password", type="password",
+                                                                     max_chars=self.dict_pwd_chng.get("length")) # max chars in profile too - add to Super
+                        cols_config_pwd = st.columns(2, gap="small", vertical_alignment="center")
+                        if cols_config_pwd[0].form_submit_button("Submit password"):
+                            can_change = True
+                            if not stauth.Hasher.check_pw(pwd_sttngs, pwd_hashed_curr):
+                                st.markdown(":red[Enter current password.]")
+                                can_change = False
+                            if can_change:
+                                try:
+                                    config_data["account"]["cancel"] = "1"
+                                    self.write_ini_config(config_data)
+                                    st.session_state.del_accnt_done = True
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.markdown(":red[The operation could not be performed.]")
+                                    st.write(str(ex))
+                        if cols_config_pwd[1].form_submit_button("Cancel"):
+                            st.session_state.del_accnt_sbmttd = False
+                            self.set_config_flow_url_del_accnt()
+                            st.rerun()
+            else:
+                if not st.session_state.del_accnt_done:
+                    with (st.form("config_settings_del_accnt")):
+                        st.markdown(f"**:blue[Cancel your Librotate account]**")
+                        st.markdown(""":orange[If you cancel your Librotate account, you will not be able to restore it.
+                                    You could however create a new account, which will be set up for you with default settings.]""")
+                        st.write("""If you cancel your account, your data location sources will not be deleted, unless you tick the 
+                                 delete data files checkboxes.""")
+                        st.divider()
+                        st.session_state.del_accnt_db_src = st.checkbox("Delete database data source")
+                        st.session_state.del_accnt_urls_src = st.checkbox("Delete URLs data source")
+                        cols_config_url = st.columns(2, gap="small", vertical_alignment="center")
+                        if cols_config_url[0].form_submit_button("Cancel account"):
+                            st.session_state.del_accnt_sbmttd = True
+                            st.rerun()
+                else:
+                    st.info("You have already cancelled your account.")
 
     def __fac_def_bk_switch(self, dest_path, dest_file):
         os.remove(st.session_state.ss_dat_loc_annots)

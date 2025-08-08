@@ -24,6 +24,11 @@ class FORM:
         "url": "data_srcs/fact_defs/online.xlsx"
     }
 
+    dict_dat_locs = {
+        "bk": "data_srcs/book.mdb",
+        "url": "data_srcs/online.xlsx"
+    }
+
     dict_list_annt_wrkr = {
         "header": "Edit annotations data",
         "title": "Select data activity"
@@ -92,7 +97,7 @@ class FORM:
         "db_locked_in_changes": """The data source cannot be changed because book or annotations data is in the process of being edited. 
                                    Complete or abandon your changes in order to amend the data location.""",
         "tkinter_dialog_err": """An error has occured with the file selection dialog. Was it already open, 
-                                        or did you attempt to edit data while it was open?]""",
+                                        or did you attempt to edit data while it was open?""",
         "tkinter_dialog_err_act": """You should either log out, or, refresh your browser 
                                      to continue."""
     }
@@ -101,6 +106,7 @@ class FORM:
         "valid_curr_pwd": "Enter current password.",
         "valid_new_pwd": """New password must be between 8 and 20 characters long, contain at least: one uppercase letter,
                             one lowercase letter, one number, and one special character from the set @$!%*?&.""",
+        "valid_no_sys_new_pwd": "This password cannot be used. Please enter another password",
         "valid_conf_new_pwd": "New and confirmed passwords don't match.",
         "valid_uniq_new_pwd": "New password must be different from old."
     }
