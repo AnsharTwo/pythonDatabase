@@ -38,6 +38,8 @@ class EDIT_ANNOT(form_sr.FORM):
         "spell_chk_orng_prefix_len": 7
     }
 
+    page_no_len = 8
+
     def annot_srch_bk(self):
         st.session_state["form_flow"] = "search_for_book_to_annotate"
 
@@ -237,7 +239,7 @@ class EDIT_ANNOT(form_sr.FORM):
                 st.session_state["loc_db_ant_chng"] = True
             with st.form("New annotation"):
                 self.__show_bk_srch_res()
-                annot_page_no = st.text_input("Page number:red[*]", max_chars=8)
+                annot_page_no = st.text_input("Page number:red[*]", max_chars=self.page_no_len)
                 btn_show_annot_textarea = st.form_submit_button(label="Go")
                 btn_annots_back = st.form_submit_button(label="Back to search results")
                 if btn_annots_back:
@@ -246,12 +248,14 @@ class EDIT_ANNOT(form_sr.FORM):
                 if btn_show_annot_textarea:
                     is_valid_page_no = True
                     if annot_page_no == "":
-                        st.markdown(":red[Page number must entered as a number or a Roman numeral up to 8 digits.]")
+                        st.markdown(":red[Page number must entered as a number or a Roman numeral up to "
+                                    + str(self.page_no_len) + " digits.]")
                         is_valid_page_no = False
                     else:
                         if not annot_page_no.isdigit():
                             if not re.search(r"^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$", annot_page_no.upper()):
-                                st.markdown(":red[Page number must entered as a number or a Roman numeral up to 8 digits.]")
+                                st.markdown(":red[Page number must entered as a number or a Roman numeral up to "
+                                    + str(self.page_no_len) + " digits.]")
                                 is_valid_page_no = False
                             else:
                                 annot_page_no = annot_page_no.lower()
