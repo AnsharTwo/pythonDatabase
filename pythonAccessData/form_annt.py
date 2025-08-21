@@ -1,8 +1,6 @@
 import streamlit as st
 from spellchecker import SpellChecker
-
 import re
-
 import form_sr
 import pyodbc
 
@@ -246,9 +244,6 @@ class EDIT_ANNOT(form_sr.FORM):
                     self.annot_srch_bk_res()
                     st.rerun()
                 if btn_show_annot_textarea:
-
-                    # TODO below seems to work, test more.
-                    #############
                     is_valid_page_no = True
                     if annot_page_no == "":
                         st.markdown(":red[Page number must entered as a number or a Roman numeral up to 8 digits.]")
@@ -264,15 +259,6 @@ class EDIT_ANNOT(form_sr.FORM):
                         st.session_state["page_no"] = annot_page_no
                         self.annot_do_new_annot()
                         st.rerun()
-                    #############
-
-                # if annot_page_no == "" or not annot_page_no.isdigit():
-                    #     st.markdown(":red[Page number must entered as a number up to 4 digits.]")
-                    # else:
-                    #     st.session_state["page_no"] = annot_page_no
-                    #     self.annot_do_new_annot()
-                    #     st.rerun()
-
         elif st.session_state["form_flow"] == "action_the_new_annotation":
             if not st.session_state["loc_db_ant_chng"]:
                 st.session_state["loc_db_ant_chng"] = True
